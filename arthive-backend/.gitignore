@@ -1,0 +1,42 @@
+/log/*
+/tmp/*
+/storage/*
+/public/assets
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+/yarn-debug.log*
+/npm-debug.log*
+
+# Ignore application config with secrets.
+/.env
+/.env.*
+!/.env.example
+
+# Ignore pid files, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore cache and sockets.
+/tmp/cache/*
+/tmp/sockets/*
+
+# Ignore uploaded files in local development.
+/storage/*
+!/storage/.keep
+
+# Ignore local database files (if sqlite is ever used locally).
+/db/*.sqlite3
+/db/*.sqlite3-journal
+
+# Ignore local credentials and key material.
+/config/master.key
+
+# Keep placeholder files in otherwise ignored directories.
+!/log/.keep
+!/tmp/.keep
+
+# Ignore local environment variables
+.env
