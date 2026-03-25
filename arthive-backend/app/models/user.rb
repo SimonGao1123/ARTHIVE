@@ -9,4 +9,6 @@ class User < ApplicationRecord
     validates :if_admin, inclusion: { in: [true, false] }
 
     has_one_attached :profile_picture
+
+    has_many :media
 end
