@@ -4,16 +4,41 @@ class GraphqlController < ApplicationController
   # If accessing from outside this domain, nullify the session
   # This allows for outside API access while preventing CSRF attacks,
   # but you'll have to authenticate your user separately
-  # protect_from_forgery with: :null_session
+  protect_from_forgery with: :null_session
 
   def execute
     variables = prepare_variables(params[:variables])
     query = params[:query]
     operation_name = params[:operationName]
+
+    # extract the token from the Authorization header
+    auth_header = request.headers['Authorization']
+    token = auth_header&.split(' ')&.last
+
+    current_user = nil
+    auth_error = nil
+
+    # decode the token and set the current user if valid
+    if token.present?
+      begin
+        payload = JsonWebToken.decode(token)
+        current_user = User.find_by(id: payload['user_id'])
+        auth_error = 'USER_NOT_FOUND' if current_user.blank?
+      rescue JWT::ExpiredSignature
+        auth_error = 'EXPIRED_TOKEN'
+      rescue JWT::DecodeError
+        auth_error = 'INVALID_TOKEN'
+      end
+    else
+      auth_error = 'NO_TOKEN'
+    end
+
     context = {
-      # Query context goes here, for example:
-      # current_user: current_user,
+      current_user: current_user,
+      request: request,
+      auth_error: auth_error
     }
+    
     result = ArthiveBackendSchema.execute(query, variables: variables, context: context, operation_name: operation_name)
     render json: result
   rescue StandardError => e
