@@ -15,6 +15,8 @@ import {useLazyQuery} from '@apollo/client/react'
 import { WHOAMI_QUERY } from './types/mutations/user_login_mutations'
 import { whoAmIQuery } from './data/whoami'
 import { logout } from './data/logout'
+import AdminPage from './pages/Admin'
+import UploadMedia from './pages/admin_sub_pages/UploadMedia'
 
 function App() {
   const location = useLocation()
@@ -51,6 +53,15 @@ function App() {
   return (
     <>
       <Routes>
+        {
+
+          user && user.ifAdmin ? 
+          <Route path="/admin/*" element={<AdminPage user={user} setUser={setUser}/>}>
+            <Route path="upload_media" element={<UploadMedia user={user} setUser={setUser} />} />
+          </Route>
+          :
+          <></> // no admin page for non-admin users
+        }
         <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
         <Route path="/register" element={<RegisterPage/>}/>
