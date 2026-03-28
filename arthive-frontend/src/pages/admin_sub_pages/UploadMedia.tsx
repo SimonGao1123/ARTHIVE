@@ -61,6 +61,8 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
     console.log("organization: ", organization)
     console.log("cover_image: ", cover_image)
     console.log("File Input Ref: ", fileInputRef.current?.value)
+    
+    console.log("token: ", localStorage.getItem("authToken"))
     return (
         <div>
             <h1>Upload Media</h1>

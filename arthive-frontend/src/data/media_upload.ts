@@ -42,12 +42,22 @@ export function mediaUpload(mediaData: any, setUser: any, navigate: any) {
     formData.append("content_type", mediaData.content_type)
     formData.append("language", mediaData.language)
     formData.append("summary", mediaData.summary)
-    formData.append("genre", mediaData.genre)
+    for (const g of mediaData.genre) {
+        formData.append("genre[]", g)
+    }
     formData.append("ongoing", mediaData.ongoing)
-    formData.append("actors", mediaData.actors.length === 0 ? null : mediaData.actors)
-    formData.append("page_count", mediaData.page_count)
-    formData.append("series_title", mediaData.series_title)
-    formData.append("organization", mediaData.organization)
+    for (const a of mediaData.actors) {
+        formData.append("actors[]", a)
+    }
+    if (mediaData.page_count != null) {
+        formData.append("page_count", String(mediaData.page_count))
+    }
+    if (mediaData.series_title != null) {
+        formData.append("series_title", mediaData.series_title)
+    }
+    if (mediaData.organization != null) {
+        formData.append("organization", mediaData.organization)
+    }
     formData.append("cover_image", mediaData.cover_image)
 
     fetch("http://localhost:3000/upload_media", {

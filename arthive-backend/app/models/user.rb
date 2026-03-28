@@ -10,5 +10,5 @@ class User < ApplicationRecord
 
     has_one_attached :profile_picture
 
-    has_many :media
+    has_many :media, class_name: "Media"
 end

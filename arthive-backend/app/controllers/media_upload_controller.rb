@@ -1,4 +1,5 @@
 class MediaUploadController < ApplicationController
+    skip_before_action :verify_authenticity_token
     before_action :validate_user
     
     def validate_user
@@ -43,6 +44,7 @@ class MediaUploadController < ApplicationController
 
     def media_params
         params.permit(:title, :creator, :year, :content_type, :ongoing,
-        :language, :summary, :genre, :actors, :page_count, :series_title, :organization, :cover_image)
+                      :language, :summary, :page_count, :series_title, :organization, :cover_image,
+                      genre: [], actors: [])
     end
 end
