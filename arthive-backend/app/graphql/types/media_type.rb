@@ -19,17 +19,17 @@ module Types
     field :series_title, String, null: true
     field :organization, String, null: true
 
-    field :cover_image, String, null: false
+    field :cover_image, String, null: true
+
+    field :added_by, Types::UserType, null: false
 
     # return the url of the cover image
     def cover_image
-      if object.cover_image.attached?
-        req = context[:request]
-        host = req&.base_url
-        Rails.application.routes.url_helpers.rails_blob_url(object.cover_image, host: host)
-      else
-        nil
-      end
+      object.presigned_cover_image_url
+    end
+
+    def added_by
+      object.user
     end
   end
 end

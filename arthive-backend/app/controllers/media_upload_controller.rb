@@ -34,7 +34,7 @@ class MediaUploadController < ApplicationController
 
         if media.save
             # return the media object with the cover image url
-            render json: { media: media, message: "Media created successfully", cover_image: media.cover_image }, status: :created
+            render json: { media: media, message: "Media created successfully", cover_image: media.presigned_cover_image_url }, status: :created
         else
             render json: { error: "UNPROCESSABLE_ENTITY", message: media.errors.full_messages }, status: :unprocessable_entity
         end

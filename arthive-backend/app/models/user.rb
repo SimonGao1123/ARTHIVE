@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+    include PresignedUrlAttachment
     has_secure_password
     validates :email, presence: true, uniqueness: true
     validates :username, presence: true, uniqueness: true
@@ -11,4 +12,8 @@ class User < ApplicationRecord
     has_one_attached :profile_picture
 
     has_many :media, class_name: "Media"
+
+    def presigned_profile_picture_url
+        PresignedUrlAttachment.presigned_url(profile_picture)
+    end
 end

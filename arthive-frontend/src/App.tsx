@@ -17,14 +17,13 @@ import { whoAmIQuery } from './data/whoami'
 import { logout } from './data/logout'
 import AdminPage from './pages/Admin'
 import UploadMedia from './pages/admin_sub_pages/UploadMedia'
+import MediaInfoPage from './pages/MediaInfoPage'
 
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
   const navigate = useNavigate()
 
-  console.log(user)
-  console.log("authToken", localStorage.getItem("authToken"))
 
   const [whoami] = useLazyQuery<WhoamiResponse>(WHOAMI_QUERY, {
     fetchPolicy: "no-cache",
@@ -66,6 +65,7 @@ function App() {
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
         <Route path="/register" element={<RegisterPage/>}/>
         <Route path="*" element={<NotFoundPage />} />
+        <Route path="/media/:prev_page/:id" element={<MediaInfoPage setUser={setUser}/>} />
       </Routes>
     </>
   )

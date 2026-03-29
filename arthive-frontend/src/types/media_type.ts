@@ -4,14 +4,14 @@ export type Media = {
     title: string;
     creator: string;
     year: string;
-    content_type: "book" | "film" | "series";
+    contentType: "book" | "film" | "series";
     language: string;
     summary: string;
     genre: string[];
     ongoing: boolean;
-    actors: string[];
-    page_count: number | null;
-    series_title: string | null;
+    actors: string[] | null;
+    pageCount: number | null;
+    seriesTitle: string | null;
     organization: string | null;
-    cover_image: string | null; // url of the cover image
+    coverImage: string | null; // url of the cover image
 }

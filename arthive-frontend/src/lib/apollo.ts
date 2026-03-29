@@ -1,4 +1,7 @@
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/client";
+import { ApolloClient } from "@apollo/client/core";
+import { InMemoryCache } from "@apollo/client/cache";
+import { ApolloLink } from "@apollo/client/link";
+import { HttpLink } from "@apollo/client/link/http";
 
 // this occurs before every graphql request
 

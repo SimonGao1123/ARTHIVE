@@ -14,13 +14,7 @@ module Types
 
     # return the url of the profile picture
     def profile_picture
-      if object.profile_picture.attached?
-        req = context[:request]
-        host = req&.base_url
-        Rails.application.routes.url_helpers.rails_blob_url(object.profile_picture, host: host)
-      else
-        nil
-      end
+      object.presigned_profile_picture_url
     end
   end
 end

@@ -22,5 +22,7 @@ module Types
     # They will be entry points for queries on your schema.
 
     field :whoami, resolver: Resolvers::WhoamiResolver
+    field :explore_media, resolver: Resolvers::ExploreMediaResolver
+    field :obtain_media_info, resolver: Resolvers::ObtainMediaInfoResolver
   end
 end
