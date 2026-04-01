@@ -8,10 +8,7 @@ module Resolvers
         argument :page_num, Integer, required: false
 
         def resolve(content_type: "any", limit: 10, page_num: 1)
-            auth = context[:auth_error]
-            if auth.in?(%w[EXPIRED_TOKEN INVALID_TOKEN NO_TOKEN USER_NOT_FOUND]) || context[:current_user].blank?
-                raise GraphQL::ExecutionError, auth
-            end
+            validate_user
             # TODO: ADD CODE FOR ONLY RETURNING MEDIA FOR NOT SEEN MEDIA
             
             if_prev_page = page_num > 1

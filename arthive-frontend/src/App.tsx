@@ -28,6 +28,7 @@ function App() {
   const [whoami] = useLazyQuery<WhoamiResponse>(WHOAMI_QUERY, {
     fetchPolicy: "no-cache",
   })
+  console.log(localStorage.getItem("authToken"))
   useEffect(() => {
     // If the user is on the login or register page, dont need to check who they are
     if (location.pathname === "/login" || location.pathname === "/register") {

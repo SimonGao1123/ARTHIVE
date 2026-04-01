@@ -2,6 +2,7 @@ class Media < ApplicationRecord
     include PresignedUrlAttachment
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
+    has_many :reviews
 
     validates :title, presence: true
     validates :creator, presence: true

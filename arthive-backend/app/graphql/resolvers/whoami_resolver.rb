@@ -1,14 +1,11 @@
 # frozen_string_literal: true
 
 module Resolvers
-  class WhoamiResolver < GraphQL::Schema::Resolver
+  class WhoamiResolver < BaseResolver
     type Types::UserType, null: false
 
     def resolve
-      auth = context[:auth_error]
-      if auth.in?(%w[EXPIRED_TOKEN INVALID_TOKEN NO_TOKEN USER_NOT_FOUND]) || context[:current_user].blank?
-        raise GraphQL::ExecutionError, auth
-      end
+      validate_user
 
       context[:current_user]
     end

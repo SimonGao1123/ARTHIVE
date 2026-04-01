@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_25_170103) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_31_231835) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -61,6 +61,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_170103) do
     t.index ["user_id"], name: "index_media_on_user_id"
   end
 
+  create_table "reviews", force: :cascade do |t|
+    t.string "content"
+    t.datetime "created_at", null: false
+    t.boolean "if_favorite", null: false
+    t.boolean "if_finished", null: false
+    t.bigint "media_id", null: false
+    t.float "rating"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["if_favorite"], name: "index_reviews_on_if_favorite"
+    t.index ["if_finished"], name: "index_reviews_on_if_finished"
+    t.index ["media_id"], name: "index_reviews_on_media_id"
+    t.index ["user_id", "media_id"], name: "index_reviews_on_user_id_and_media_id", unique: true
+    t.index ["user_id"], name: "index_reviews_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
@@ -76,4 +92,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_170103) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "media", "users"
+  add_foreign_key "reviews", "media", column: "media_id"
+  add_foreign_key "reviews", "users"
 end
