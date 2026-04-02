@@ -1,5 +1,6 @@
 class Media < ApplicationRecord
     include PresignedUrlAttachment
+    include SharedScopeMethods
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
     has_many :reviews
@@ -18,11 +19,9 @@ class Media < ApplicationRecord
         PresignedUrlAttachment.presigned_url(cover_image)
     end
 
-    scope :recent, -> {order(created_at: :desc)}
     scope :content_type_filter, -> (type) {
         type == "any" ? all : where(content_type: type)
     }
-    scope :page, -> (page_num, limit) {offset((page_num-1)*limit).limit(limit)}
 
     # TODO: add code for only returning media for not seen media, NEED TO HAVE USER ID INPUT
     scope :explore_page, -> (content_type, page_num, limit) {
@@ -31,5 +30,15 @@ class Media < ApplicationRecord
 
     def self.if_next_page_exists(content_type, page_num, limit)
         Media.explore_page(content_type, page_num + 1, limit).exists?
+    end
+
+    def self.media_reviews_page(media_id, page_num, limit)
+        begin
+            media = Media.find(media_id)
+            reviews = media.reviews.includes(:user).recent.page(page_num, limit)
+            return reviews # returns a paginated list of reviews
+        rescue ActiveRecord::RecordNotFound => e
+            raise GraphQL::ExecutionError, e.message
+        end
     end
 end

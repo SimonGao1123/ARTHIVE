@@ -1,5 +1,6 @@
 class User < ApplicationRecord
     include PresignedUrlAttachment
+    include SharedScopeMethods
     has_many :reviews
     has_secure_password
     validates :email, presence: true, uniqueness: true
@@ -17,4 +18,15 @@ class User < ApplicationRecord
     def presigned_profile_picture_url
         PresignedUrlAttachment.presigned_url(profile_picture)
     end
+
+    # instance method, TODO: optimize preloading of reviews when implementing likes and comments
+    def all_user_reviews(page_num = 1, limit = 10)
+        begin
+            reviews = self.reviews.includes(:media).recent.page(page_num, limit)
+            return reviews.to_a # returns a paginated list of reviews
+        rescue ActiveRecord::RecordNotFound
+            return [] # returns an empty array if no reviews are found
+        end
+    end
+
 end

@@ -1,4 +1,5 @@
 class Review < ApplicationRecord
+    include SharedScopeMethods
     belongs_to :user
     belongs_to :media
 
@@ -10,7 +11,13 @@ class Review < ApplicationRecord
     # guarentees that a review is unique for a user and a media
     validates :user_id, uniqueness: { scope: :media_id }
 
-
+    def self.retrieve_review(user_id, media_id, review_id)
+        if review_id.present?
+            find_by(id: review_id, user_id: user_id, media_id: media_id)
+        else
+            nil # returns nil if review_id is not provided
+        end
+    end
     
     # updates review if review_id is provided, otherwise creates a new review
     def self.update_review(user_id, media_id, content, rating, if_favorite, if_finished, review_id)
