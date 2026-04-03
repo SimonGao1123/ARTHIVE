@@ -9,12 +9,15 @@ import { useNavigate, useParams } from "react-router-dom"
 import type { Media } from "../types/media_type"
 import { useEffect, useState } from "react"
 import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
+import { MediaInfoArticle } from "../lib/MediaInfoArticle"
+import UserMediaReview from "../lib/UserMediaReview"
 
 type MediaInfoPageProps = {
     setUser: (user: User | null) => void
+    user: User | null
 }
 
-export default function MediaInfoPage({ setUser }: MediaInfoPageProps) {
+export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
     const { prev_page, id } = useParams()
     const navigate = useNavigate()
     const [getMediaInfo, { error, loading }] = useLazyQuery<
@@ -61,87 +64,14 @@ export default function MediaInfoPage({ setUser }: MediaInfoPageProps) {
             ) : null}
 
             {showContent && mediaInfo ? (
-                <MediaInfoArticle media={mediaInfo} prev_page={prev_page ?? "explore"} />
-            ) : null}
-        </main>
-    )
-}
-
-function MediaInfoArticle({ media, prev_page }: { media: Media, prev_page: string }) {
-    const navigate = useNavigate()
-    return (
-        <article aria-labelledby={`media-title-${media.id}`}>
-            <header>
-                <h1 id={`media-title-${media.id}`}>{media.title}</h1>
-                <p>
-                    By <span>{media.creator}</span>
-                </p>
-            </header>
-
-            {media.coverImage ? (
-                <figure>
-                    <img
-                        width={230}
-                        height={300}
-                        src={media.coverImage}
-                        alt={`Cover image for ${media.title}`}
-                    />
-                </figure>
+                <>
+                    <UserMediaReview mediaId={Number(id)} setUser={setUser} mediaInfo={mediaInfo}/>
+                    <MediaInfoArticle media={mediaInfo} />
+                </>
             ) : null}
 
-            <section aria-labelledby={`summary-heading-${media.id}`}>
-                <h2 id={`summary-heading-${media.id}`}>Summary</h2>
-                <p>{media.summary}</p>
-            </section>
-
-            <section aria-labelledby={`details-heading-${media.id}`}>
-                <h2 id={`details-heading-${media.id}`}>Details</h2>
-                <dl>
-                    <dt>Genre</dt>
-                    <dd>{media.genre.join(", ")}</dd>
-
-                    <dt>Year</dt>
-                    <dd>{media.year}</dd>
-
-                    <dt>Language</dt>
-                    <dd>{media.language}</dd>
-
-                    <dt>Type</dt>
-                    <dd>{media.contentType}</dd>
-
-                    <dt>Status</dt>
-                    <dd>{media.ongoing ? "Ongoing" : "Completed"}</dd>
-
-                    {media.actors && media.actors.length > 0 ? (
-                        <>
-                            <dt>Actors</dt>
-                            <dd>{media.actors.join(", ")}</dd>
-                        </>
-                    ) : null}
-
-                    {media.pageCount != null ? (
-                        <>
-                            <dt>Page count</dt>
-                            <dd>{media.pageCount}</dd>
-                        </>
-                    ) : null}
-
-                    {media.seriesTitle ? (
-                        <>
-                            <dt>Series title</dt>
-                            <dd>{media.seriesTitle}</dd>
-                        </>
-                    ) : null}
-
-                    {media.organization ? (
-                        <>
-                            <dt>Organization</dt>
-                            <dd>{media.organization}</dd>
-                        </>
-                    ) : null}
-                </dl>
-            </section>
             <button onClick={() => navigate(prev_page == "explore" ? "/" : `/${prev_page}`)}>Back</button>
-        </article>
+
+        </main>
     )
 }

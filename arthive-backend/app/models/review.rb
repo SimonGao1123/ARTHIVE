@@ -11,11 +11,12 @@ class Review < ApplicationRecord
     # guarentees that a review is unique for a user and a media
     validates :user_id, uniqueness: { scope: :media_id }
 
-    def self.retrieve_review(user_id, media_id, review_id)
-        if review_id.present?
-            find_by(id: review_id, user_id: user_id, media_id: media_id)
+    def self.retrieve_review(user_id, media_id)
+        review = find_by(user_id: user_id, media_id: media_id)
+        if review.present?
+            return review
         else
-            nil # returns nil if review_id is not provided
+            return nil
         end
     end
     

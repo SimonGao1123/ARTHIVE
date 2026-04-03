@@ -4,7 +4,7 @@ module Mutations
 
         argument :media_id, ID, required: true
         argument :content, String, required: false
-        argument :rating, Int, required: true
+        argument :rating, Float, required: true
         argument :if_favorite, Boolean, required: true
         argument :if_finished, Boolean, required: true
         argument :review_id, ID, required: false

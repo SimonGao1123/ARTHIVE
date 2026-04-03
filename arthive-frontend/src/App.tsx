@@ -66,7 +66,7 @@ function App() {
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
         <Route path="/register" element={<RegisterPage/>}/>
         <Route path="*" element={<NotFoundPage />} />
-        <Route path="/media/:prev_page/:id" element={<MediaInfoPage setUser={setUser}/>} />
+        <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
       </Routes>
     </>
   )

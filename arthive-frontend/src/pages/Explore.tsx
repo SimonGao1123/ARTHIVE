@@ -1,5 +1,5 @@
 import { logout } from "../data/logout"
-import ExplorePageMediaLibrary from "../lib/explore_page_media_library"
+import ExplorePageMediaLibrary from "../lib/ExplorePageMediaLibrary"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 
