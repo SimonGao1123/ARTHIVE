@@ -23,13 +23,21 @@ class Media < ApplicationRecord
         type == "any" ? all : where(content_type: type)
     }
 
-    # TODO: add code for only returning media for not seen media, NEED TO HAVE USER ID INPUT
-    scope :explore_page, -> (content_type, page_num, limit) {
-        content_type_filter(content_type).recent.page(page_num, limit)
+    scope :explore_page, -> (content_type, page_num, limit, user_id) {
+        joins(
+        sanitize_sql_array([
+            "LEFT JOIN reviews ON reviews.media_id = #{table_name}.id AND reviews.user_id = ?",
+            user_id
+        ])
+        )
+        .order(Arel.sql("reviews.id IS NULL DESC"))
+        .content_type_filter(content_type)
+        .recent
+        .page(page_num, limit)
     }
 
-    def self.if_next_page_exists(content_type, page_num, limit)
-        Media.explore_page(content_type, page_num + 1, limit).exists?
+    def self.if_next_page_exists(content_type, page_num, limit, user_id)
+        Media.explore_page(content_type, page_num + 1, limit, user_id).exists?
     end
 
     def self.media_reviews_page(media_id, page_num, limit)

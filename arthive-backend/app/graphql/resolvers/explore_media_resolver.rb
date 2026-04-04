@@ -12,9 +12,9 @@ module Resolvers
             # TODO: ADD CODE FOR ONLY RETURNING MEDIA FOR NOT SEEN MEDIA
             
             if_prev_page = page_num > 1
-            media_page = Media.explore_page(content_type, page_num, limit).to_a
+            media_page = Media.explore_page(content_type, page_num, limit, context[:current_user].id).to_a
             
-            if_next_page = Media.if_next_page_exists(content_type, page_num, limit)
+            if_next_page = Media.if_next_page_exists(content_type, page_num, limit, context[:current_user].id)
             
             {
                 media: media_page,

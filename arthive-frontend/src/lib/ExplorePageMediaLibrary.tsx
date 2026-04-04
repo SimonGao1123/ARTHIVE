@@ -6,7 +6,7 @@ import { ExplorePageDataFetch } from "../data/explore_page_data"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "./MediaCard"
-const EXPLORE_MEDIA_LIMIT = 10
+const EXPLORE_MEDIA_LIMIT = 2
 
 export default function ExplorePageMediaLibrary({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()

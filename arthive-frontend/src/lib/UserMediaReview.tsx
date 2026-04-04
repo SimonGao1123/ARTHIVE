@@ -1,5 +1,5 @@
 import type { UserReview } from "../types/review_type";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
 import { OBTAIN_USER_REVIEW_QUERY, type ObtainUserReviewResponse, type ObtainUserReviewInput } from "../types/queries/review_request_query";
@@ -7,7 +7,7 @@ import { obtainUserMediaReview } from "../data/obtain_user_media_review";
 import StarRatingMedia from "./StarRatingMedia";
 import { useMutation } from "@apollo/client/react";
 import { CREATE_REVIEW_MUTATION, type CreateReviewInput } from "../types/mutations/create_review_mutation";
-import { createReviewFunction } from "../data/create_review";
+import { createReviewFunction } from "../data/create_review.ts";
 
 export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
 
@@ -22,14 +22,17 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
     const [rating, setRating] = useState<number>(0)
     const [ifFavorite, setIfFavorite] = useState<boolean>(false)
     const [ifFinished, setIfFinished] = useState<boolean>(false)
+    const skipNextAutoSave = useRef<boolean>(true)
 
     const [showWriteReviewContent, setShowWriteReviewContent] = useState<boolean>(false)
     
     useEffect(() => {
+        skipNextAutoSave.current = true
         obtainUserMediaReview(setUserReview, getUserMediaReview, mediaId, navigate, setUser)
         
     }, [mediaId])
     useEffect(() => {
+        skipNextAutoSave.current = true
         if (userReview) {
             setReviewContent(userReview.content || "")
             setRating(userReview.rating || 0)
@@ -37,13 +40,17 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
             setIfFinished(userReview.ifFinished)
         }
     }, [userReview])
-
+    
+    console.log(userReview)
 
     const [createReview] = useMutation<ObtainUserReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
     useEffect(() => {
-        if (reviewContent.trim() !== "" && rating > 0 && rating <= 5 && ifFavorite !== null && ifFinished !== null) {
-            createReviewFunction(reviewContent, rating, ifFavorite, ifFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
+        if (skipNextAutoSave.current) {
+            skipNextAutoSave.current = false
+            return
         }
+        createReviewFunction(reviewContent, rating, ifFavorite, ifFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
+    
     }, [reviewContent, rating, ifFavorite, ifFinished])
     console.log("IMPORTANT: rating in UserMediaReview", rating)
     return (
