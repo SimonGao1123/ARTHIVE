@@ -20,7 +20,7 @@ class Media < ApplicationRecord
     end
 
     scope :content_type_filter, -> (type) {
-        type == "any" ? all : where(content_type: type)
+        type == "all" ? all : where(content_type: type)
     }
 
     scope :explore_page, -> (content_type, page_num, limit, user_id) {
@@ -43,7 +43,7 @@ class Media < ApplicationRecord
     def self.media_reviews_page(media_id, page_num, limit)
         begin
             media = Media.find(media_id)
-            reviews = media.reviews.includes(:user).recent.page(page_num, limit)
+            reviews = media.reviews.where.not(content: [nil, ""]).includes(:user).recent.page(page_num, limit)
             return reviews # returns a paginated list of reviews
         rescue ActiveRecord::RecordNotFound => e
             raise GraphQL::ExecutionError, e.message

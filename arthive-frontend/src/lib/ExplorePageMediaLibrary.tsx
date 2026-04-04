@@ -6,11 +6,12 @@ import { ExplorePageDataFetch } from "../data/explore_page_data"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "./MediaCard"
+import ContentFilter from "./ContentFilter"
 const EXPLORE_MEDIA_LIMIT = 2
 
 export default function ExplorePageMediaLibrary({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
-    const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "any">("any")
+    const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "all">("all")
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
     
     const [pageNum, setPageNum] = useState<number>(1);
@@ -28,12 +29,7 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
 
     return (
         <div>
-            <div>
-                <button style={{backgroundColor: currContentType === "book" ? "lightgray" : "white"}} onClick={() => setCurrContentType("book")}>Books</button>
-                <button style={{backgroundColor: currContentType === "film" ? "lightgray" : "white"}} onClick={() => setCurrContentType("film")}>Films</button>
-                <button style={{backgroundColor: currContentType === "series" ? "lightgray" : "white"}} onClick={() => setCurrContentType("series")}>Series</button>
-                <button style={{backgroundColor: currContentType === "any" ? "lightgray" : "white"}} onClick={() => setCurrContentType("any")}>All</button>
-            </div>
+            <ContentFilter currContentType={currContentType} setContentType={setCurrContentType} />
             <p>Page {pageNum}</p>
             <div>{loading ? "Loading..." : <></>}</div>
             <div>

@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client"
 import type { Media } from "../media_type"
+import type { Review } from "../review_type"
 
 // returns the media for the explore page, only need cover image for now
 export const EXPLORE_PAGE_MEDIA_QUERY = gql`
@@ -29,7 +30,7 @@ export type ExplorePageMediaResponse = {
     }[]
 }
 export type ExplorePageMediaInput = {
-    contentType: "book" | "film" | "series" | "any"
+    contentType: "book" | "film" | "series" | "all"
     limit: number
     pageNum: number
 }
@@ -60,3 +61,30 @@ export type ObtainMediaInfoResponse = {
 export type ObtainMediaInfoInput = {
     mediaId: number
 }
+
+export type ObtainMediaReviewsResponse = {
+    obtainMediaReviews: Review[]
+}
+export type ObtainMediaReviewsInput = {
+    mediaId: number
+    pageNum: number
+    limit: number
+}
+
+export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
+    query ObtainMediaReviews($mediaId: Int!, $pageNum: Int!, $limit: Int!) {
+        obtainMediaReviews(mediaId: $mediaId, pageNum: $pageNum, limit: $limit) {
+            id
+            content
+            rating
+            ifFavorite
+            ifFinished
+            updatedAt
+            user {
+                id
+                username
+                profilePicture
+            }
+        }
+    }
+`;

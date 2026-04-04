@@ -18,11 +18,18 @@ class User < ApplicationRecord
     def presigned_profile_picture_url
         PresignedUrlAttachment.presigned_url(profile_picture)
     end
-
+    
+    def content_type_reviews(content_type)
+        if content_type == "all"
+            self.reviews
+        else
+            self.reviews.where(media: { content_type: content_type })
+        end
+    end
     # instance method, TODO: optimize preloading of reviews when implementing likes and comments
-    def all_user_reviews(page_num = 1, limit = 10)
+    def all_user_reviews(content_type, page_num, limit)
         begin
-            reviews = self.reviews.includes(:media).recent.page(page_num, limit)
+            reviews = self.content_type_reviews(content_type).includes(:media).recent.page(page_num, limit)
             return reviews.to_a # returns a paginated list of reviews
         rescue ActiveRecord::RecordNotFound
             return [] # returns an empty array if no reviews are found

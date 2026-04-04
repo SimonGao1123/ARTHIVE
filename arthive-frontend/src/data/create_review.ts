@@ -17,7 +17,7 @@ export function createReviewFunction(
     setUser: (user: User | null) => void,
     navigate: any
 ) {
-    createReview({ variables: { input: { mediaId, content: reviewContent, rating, ifFavorite, ifFinished, reviewId: userReview ? userReview.id : null } } })
+    createReview({ variables: { input: { mediaId, content: reviewContent === "" ? null : reviewContent, rating: rating === 0 ? null : rating, ifFavorite, ifFinished, reviewId: userReview ? userReview.id : null } } })
     .then((data: any) => {
         setUserReview(data.data.createReview)
     })

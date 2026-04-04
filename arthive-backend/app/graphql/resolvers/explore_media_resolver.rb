@@ -7,7 +7,7 @@ module Resolvers
         argument :limit, Integer, required: false
         argument :page_num, Integer, required: false
 
-        def resolve(content_type: "any", limit: 10, page_num: 1)
+        def resolve(content_type: "all", limit: 10, page_num: 1)
             validate_user
             # TODO: ADD CODE FOR ONLY RETURNING MEDIA FOR NOT SEEN MEDIA
             

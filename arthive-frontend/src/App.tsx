@@ -18,6 +18,9 @@ import { logout } from './data/logout'
 import AdminPage from './pages/Admin'
 import UploadMedia from './pages/admin_sub_pages/UploadMedia'
 import MediaInfoPage from './pages/MediaInfoPage'
+import MediaReviewsPage from './pages/MediaReviewsPage'
+import AllUserReviewsPage from './pages/AllUserReviewsPage'
+import ExplorePageNavBar from './lib/ExplorePageNavBar'
 
 function App() {
   const location = useLocation()
@@ -53,6 +56,7 @@ function App() {
   return (
     <>
       <Routes>
+        
         {
 
           user && user.ifAdmin ? 
@@ -62,11 +66,17 @@ function App() {
           :
           <></> // no admin page for non-admin users
         }
-        <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
+
+        <Route element={<ExplorePageNavBar/>}>
+          <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
+          <Route path="/all-reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
+        </Route>
+
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
         <Route path="/register" element={<RegisterPage/>}/>
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
+        <Route path="/media/:prev_page/:id/reviews" element={<MediaReviewsPage setUser={setUser}/>} />
       </Routes>
     </>
   )
