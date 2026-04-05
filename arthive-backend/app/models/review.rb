@@ -3,6 +3,9 @@ class Review < ApplicationRecord
     belongs_to :user
     belongs_to :media
 
+    has_many :review_comments
+    has_many :review_likes
+
     validates :content, length: { maximum: 5000 }
     validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }, allow_nil: true
     validates :if_favorite, inclusion: { in: [true, false] }

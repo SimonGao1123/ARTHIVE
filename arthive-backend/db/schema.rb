@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_31_231835) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_05_191143) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -61,6 +61,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_231835) do
     t.index ["user_id"], name: "index_media_on_user_id"
   end
 
+  create_table "review_comments", force: :cascade do |t|
+    t.text "comment", null: false
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["review_id"], name: "index_review_comments_on_review_id"
+    t.index ["user_id"], name: "index_review_comments_on_user_id"
+  end
+
+  create_table "review_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["review_id", "user_id"], name: "index_review_likes_on_review_id_and_user_id", unique: true
+    t.index ["review_id"], name: "index_review_likes_on_review_id"
+    t.index ["user_id"], name: "index_review_likes_on_user_id"
+  end
+
   create_table "reviews", force: :cascade do |t|
     t.string "content"
     t.datetime "created_at", null: false
@@ -92,6 +112,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_231835) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "media", "users"
+  add_foreign_key "review_comments", "reviews"
+  add_foreign_key "review_comments", "users"
+  add_foreign_key "review_likes", "reviews"
+  add_foreign_key "review_likes", "users"
   add_foreign_key "reviews", "media", column: "media_id"
   add_foreign_key "reviews", "users"
 end
