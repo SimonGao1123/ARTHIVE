@@ -21,10 +21,15 @@ export function obtainAllUserReviewsFunction(
                 limit: limit,
             },
         }).then((res: any) => {
-            if (res.data.obtainAllUserReviews.length < limit) {
+            const batch = res.data.obtainAllUserReviews
+            if (batch.length < limit) {
                 setIfNextPage(false)
+            } else if (pageNum === 1) {
+                setIfNextPage(true)
             }
-            setReviews((prevReviews) => [...prevReviews, ...res.data.obtainAllUserReviews])
+            setReviews((prevReviews) =>
+                pageNum === 1 ? batch : [...prevReviews, ...batch]
+            )
         }).catch((err: any) => {
             console.log(err)
             if (unauth_messages.includes(err.message)) {

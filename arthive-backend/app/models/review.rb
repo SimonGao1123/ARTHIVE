@@ -4,7 +4,7 @@ class Review < ApplicationRecord
     belongs_to :media
 
     validates :content, length: { maximum: 5000 }
-    validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
+    validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }, allow_nil: true
     validates :if_favorite, inclusion: { in: [true, false] }
     validates :if_finished, inclusion: { in: [true, false] }
 

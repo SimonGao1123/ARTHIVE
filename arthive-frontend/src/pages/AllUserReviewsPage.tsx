@@ -8,8 +8,9 @@ import { useNavigate } from "react-router-dom"
 import ContentFilter from "../lib/ContentFilter"
 import { obtainAllUserReviewsFunction } from "../data/obtain_all_user_reviews"
 import DisplayRating from "../lib/DisplayRating"
+import { useLocation } from "react-router-dom"
 
-const LIMIT = 10
+const LIMIT = 2
 export default function AllUserReviewsPage({setUser}: {setUser: (user: User | null) => void}) {
     const [reviews, setReviews] = useState<AllReview[]>([])
     const [pageNum, setPageNum] = useState<number>(1)
@@ -17,7 +18,7 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     const navigate = useNavigate()
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "all">("all")
     const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY)
-
+    
     const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "all") => {
         if (nextContentType === contentType) {
             return
@@ -27,6 +28,7 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
         setContentType(nextContentType)
         setIfNextPage(true)
     }
+
 
     useEffect(() => {
         obtainAllUserReviewsFunction(contentType, pageNum, LIMIT, getAllReviews, setReviews, navigate, setUser, setIfNextPage)

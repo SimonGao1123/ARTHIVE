@@ -7,7 +7,7 @@ import type { Review } from "../types/review_type"
 import { obtainMediaReviewsFunction } from "../data/obtain_media_reviews"
 import DisplayRating from "../lib/DisplayRating"
 
-const LIMIT = 10
+const LIMIT = 1
 
 // TODO: OBTAIN MEDIA INFORMATION AND DISPLAY IT ON THE PAGE
 
@@ -24,7 +24,7 @@ export default function MediaReviewsPage({setUser}: {setUser: (user: User | null
     const [reviews, setReviews] = useState<Review[]>([])
     console.log(reviews)
     useEffect(() => {
-        obtainMediaReviewsFunction(Number(id), pageNum, LIMIT, obtainMediaReviews, setReviews, navigate, setUser, reviews, setIfNextPage)
+        obtainMediaReviewsFunction(Number(id), pageNum, LIMIT, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage)
     }, [pageNum])
     return (
         <div>
@@ -32,7 +32,9 @@ export default function MediaReviewsPage({setUser}: {setUser: (user: User | null
             <p>{error?.message}</p>
             {loading ? <p>"Loading..."</p> : <></>}
             <h1>Media Reviews</h1>
-            {reviews.map((review) => <Review review_data={review} />)}
+            {reviews.map((review) => (
+                <Review key={review.id} review_data={review} />
+            ))}
             {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
         </div>
     )
