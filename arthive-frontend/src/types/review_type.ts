@@ -1,5 +1,3 @@
-import type { Media } from "./media_type"
-
 export type UserReview = {
     id: number
     content?: string

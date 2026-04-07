@@ -13,20 +13,32 @@ class Review < ApplicationRecord
 
     # guarentees that a review is unique for a user and a media
     validates :user_id, uniqueness: { scope: :media_id }
-
+    
     def self.retrieve_review(user_id, media_id)
-        review = find_by(user_id: user_id, media_id: media_id)
+        review = includes(:review_comments, :review_likes).find_by(user_id: user_id, media_id: media_id)
         if review.present?
             return review
         else
             return nil
         end
     end
-    
+
+    def self.retrieve_review_page(review_id, page_num, limit, user_id)
+        review = includes(:review_comments, :review_likes, :user, :media).find_by(id: review_id)
+        if review.present?
+            {
+                review: review,
+                review_comments: review.review_comments.page(page_num, limit).in_order_of(:user_id, [user_id]),
+                review_likes: review.review_likes
+            }
+        else
+            return nil
+        end
+    end
     # updates review if review_id is provided, otherwise creates a new review
     def self.update_review(user_id, media_id, content, rating, if_favorite, if_finished, review_id)
         if review_id.present?
-            review = Review.find_by(id: review_id, user_id: user_id, media_id: media_id)
+            review = includes(:review_comments, :review_likes).find_by(id: review_id, user_id: user_id, media_id: media_id)
             if review.present?
                 review.update!(content: content, rating: rating, if_favorite: if_favorite, if_finished: if_finished)
                 return review
@@ -34,7 +46,7 @@ class Review < ApplicationRecord
                 raise ActiveRecord::RecordNotFound, "Review not found with the given ID, user ID, and media ID"
             end
         else
-            new_review = Review.new(
+            new_review = new(
                 user_id: user_id, 
                 media_id: media_id, 
                 content: content, 

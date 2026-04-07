@@ -10,5 +10,20 @@ module Types
 
         field :user, Types::UserType, null: false
         field :media, Types::MediaType, null: false
+
+        field :review_comments, [Types::ReviewCommentType], null: true
+        field :review_likes, [Types::ReviewLikeType], null: true
+
+        field :like_count, Integer, null: false
+        field :comment_count, Integer, null: false
+
+        def like_count
+            review_likes.count
+        end
+
+        def comment_count
+            review_comments.count
+        end
+        
     end
 end

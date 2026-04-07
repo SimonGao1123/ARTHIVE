@@ -25,12 +25,11 @@ class User < ApplicationRecord
     
     def content_type_reviews(content_type)
         if content_type == "all"
-            self.reviews
+            self.reviews.includes(:review_comments, :review_likes)
         else
-            self.reviews.where(media: { content_type: content_type })
+            self.reviews.includes(:review_comments, :review_likes).where(media: { content_type: content_type })
         end
     end
-    # instance method, TODO: optimize preloading of reviews when implementing likes and comments
     def all_user_reviews(content_type, page_num, limit)
         begin
             reviews = self.content_type_reviews(content_type).includes(:media).recent.page(page_num, limit)

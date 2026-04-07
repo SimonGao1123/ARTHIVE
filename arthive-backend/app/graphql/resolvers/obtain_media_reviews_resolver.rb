@@ -9,7 +9,7 @@ module Resolvers
         def resolve(media_id:, page_num:, limit:)
             validate_user
 
-            reviews = Media.media_reviews_page(media_id, page_num, limit)
+            reviews = Media.media_reviews_page(media_id, page_num, limit, context[:current_user].id)
             return reviews.to_a # convert to array to avoid pagination issues
         end
     end

@@ -12,6 +12,10 @@ module Types
 
     field :profile_picture, String, null: true
 
+    field :reviews, [Types::ReviewType], null: true
+    field :review_comments, [Types::ReviewCommentType], null: true
+    field :review_likes, [Types::ReviewLikeType], null: true
+
     # return the url of the profile picture
     def profile_picture
       object.presigned_profile_picture_url
