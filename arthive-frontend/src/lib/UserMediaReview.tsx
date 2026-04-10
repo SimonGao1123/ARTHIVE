@@ -2,7 +2,7 @@ import type { UserReview } from "../types/review_type";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
-import { OBTAIN_USER_REVIEW_QUERY, type ObtainUserReviewResponse, type ObtainUserReviewInput } from "../types/queries/review_request_query";
+import { OBTAIN_USER_REVIEW_QUERY, type ObtainUserReviewResponse, type ObtainUserReviewInput } from "../types/queries/review_request_queries";
 import { obtainUserMediaReview } from "../data/obtain_user_media_review";
 import StarRatingMedia from "./StarRatingMedia";
 import { useMutation } from "@apollo/client/react";

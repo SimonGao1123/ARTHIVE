@@ -17,12 +17,18 @@ module Types
         field :like_count, Integer, null: false
         field :comment_count, Integer, null: false
 
+        field :if_liked, Boolean, null: false
+
+        def if_liked
+            object.review_likes.exists?(user_id: context[:current_user].id)
+        end
+
         def like_count
-            review_likes.count
+            object.review_likes.count
         end
 
         def comment_count
-            review_comments.count
+            object.review_comments.count
         end
         
     end

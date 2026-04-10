@@ -10,7 +10,7 @@ module Resolvers
             validate_user
 
             reviews = Media.media_reviews_page(media_id, page_num, limit, context[:current_user].id)
-            return reviews.to_a # convert to array to avoid pagination issues
+            return reviews
         end
     end
 end

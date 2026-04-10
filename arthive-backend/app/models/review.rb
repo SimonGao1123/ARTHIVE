@@ -15,7 +15,7 @@ class Review < ApplicationRecord
     validates :user_id, uniqueness: { scope: :media_id }
     
     def self.retrieve_review(user_id, media_id)
-        review = includes(:review_comments, :review_likes).find_by(user_id: user_id, media_id: media_id)
+        review = find_by(user_id: user_id, media_id: media_id)
         if review.present?
             return review
         else
@@ -35,6 +35,14 @@ class Review < ApplicationRecord
             return nil
         end
     end
+
+    scope :sort_by_likes, -> {
+        left_joins(:review_likes)
+        .select("reviews.*, COUNT(review_likes.id) AS likes_count")
+        .group("reviews.id")
+        .order(Arel.sql("likes_count DESC"))
+    }
+
     # updates review if review_id is provided, otherwise creates a new review
     def self.update_review(user_id, media_id, content, rating, if_favorite, if_finished, review_id)
         if review_id.present?

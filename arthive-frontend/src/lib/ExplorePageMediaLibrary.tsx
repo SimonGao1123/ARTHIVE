@@ -18,7 +18,9 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(true);
     const [ifNextPage, setIfNextPage] = useState<boolean>(true);
 
-    const [getExplorePageMedia, {error, loading}] = useLazyQuery<ExplorePageMediaResponse, ExplorePageMediaInput>(EXPLORE_PAGE_MEDIA_QUERY)
+    const [getExplorePageMedia, {error, loading}] = useLazyQuery<ExplorePageMediaResponse, ExplorePageMediaInput>(EXPLORE_PAGE_MEDIA_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     
     useEffect(() => {
         ExplorePageDataFetch(navigate, setUser, currContentType, EXPLORE_MEDIA_LIMIT, pageNum, setIfPrevPage, setIfNextPage, setAllMedia, getExplorePageMedia)

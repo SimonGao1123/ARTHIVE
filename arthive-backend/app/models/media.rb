@@ -40,10 +40,18 @@ class Media < ApplicationRecord
         Media.explore_page(content_type, page_num + 1, limit, user_id).exists?
     end
 
+
     def self.media_reviews_page(media_id, page_num, limit, user_id)
         begin
             media = Media.find(media_id)
-            reviews = media.reviews.where.not(content: [nil, ""]).includes(:user).recent.page(page_num, limit).in_order_of(:user_id, [user_id]).
+            # Order current user's review first without filtering out others.
+            reviews = media.reviews
+                .where.not(content: [nil, ""])
+                .includes(:user)
+                .in_order_of(:user_id, [user_id], filter: false)
+                .sort_by_likes
+                .page(page_num, limit)
+                .to_a
             return reviews # returns a paginated list of reviews
         rescue ActiveRecord::RecordNotFound => e
             raise GraphQL::ExecutionError, e.message

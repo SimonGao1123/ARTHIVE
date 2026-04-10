@@ -7,6 +7,6 @@ module Types
 
     # ALSO USED FOR UPDATING REVIEW
     field :create_review, mutation: Mutations::CreateReview
-    
+    field :like_review, mutation: Mutations::LikeReview
   end
 end

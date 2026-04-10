@@ -9,6 +9,7 @@ import ContentFilter from "../lib/ContentFilter"
 import { obtainAllUserReviewsFunction } from "../data/obtain_all_user_reviews"
 import DisplayRating from "../lib/DisplayRating"
 import { useLocation } from "react-router-dom"
+import ReviewCard from "../lib/ReviewCard"
 
 const LIMIT = 2
 export default function AllUserReviewsPage({setUser}: {setUser: (user: User | null) => void}) {
@@ -40,29 +41,10 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
         <div>
             <h1>All User Reviews</h1>
             <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
-            <ReviewList reviews={reviews} />
-            {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
-        </div>
-    )
-}
-
-function ReviewList({reviews}: {reviews: AllReview[]}) {
-    const navigate = useNavigate()
-    return (
-        <div>
             {reviews.map((review) => (
-                <div key={review.id}>
-                    <h2>{review.media.title}</h2>
-                    <img onClick={() => navigate(`/media/all-reviews/${review.media.id}`)} width={50} height={50} src={review.media.coverImage ?? "/default-ARTHIVE-cover.png"} alt="Cover Image" />
-                    <p>By: {review.media.creator}</p>
-                    <p>Year: {review.media.year}</p>
-                    <p>{review.content}</p>
-                    <DisplayRating rating={review.rating ?? 0} />
-                    <p>{review.ifFavorite ? "Favorite" : "Not Favorite"}</p>
-                    <p>{review.ifFinished ? "Finished" : "Not Finished"}</p>
-                    <p>{review.updatedAt}</p>
-                </div>
+                <ReviewCard key={review.id} setUser={setUser} review={review} />
             ))}
+            {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
         </div>
     )
 }

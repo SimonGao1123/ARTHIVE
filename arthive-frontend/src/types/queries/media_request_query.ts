@@ -85,6 +85,9 @@ export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
                 username
                 profilePicture
             }
+            likeCount
+            commentCount
+            ifLiked
         }
     }
 `;

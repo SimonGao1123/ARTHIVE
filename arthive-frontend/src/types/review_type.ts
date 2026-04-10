@@ -19,6 +19,10 @@ export type Review = {
         username: string
         profilePicture: string | null
     }
+
+    likeCount: number,
+    commentCount: number,
+    ifLiked: boolean,
 }
 
 export type AllReview = {
@@ -37,4 +41,9 @@ export type AllReview = {
         genre: string[]
         contentType: "book" | "film" | "series"
     }
+
+    
+    likeCount: number,
+    commentCount: number,
+    ifLiked: boolean,
 }
