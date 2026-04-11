@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import type { AllReview } from "../review_type"
+import type { AllReview, ReviewPage } from "../review_type"
 import type { UserReview } from "../review_type"
 
 export const OBTAIN_ALL_USER_REVIEWS_QUERY = gql`
@@ -53,4 +53,63 @@ export type ObtainUserReviewResponse = {
 }
 export type ObtainUserReviewInput = {
     mediaId: number
+}
+
+export const OBTAIN_REVIEW_PAGE_QUERY = gql`
+    query ObtainReviewPage($reviewId: ID!, $pageNum: Int!, $limit: Int!) {
+        obtainReviewPage(reviewId: $reviewId, pageNum: $pageNum, limit: $limit) {
+            review {
+                id
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+                
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+
+                media {
+                    id
+                    title
+                    coverImage
+                    creator
+                    year
+                    genre
+                    contentType
+                }
+
+                likeCount
+                commentCount
+                ifLiked
+            
+            }
+
+            reviewComments {
+                id
+                comment
+                createdAt
+
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+            }
+            
+            
+        }
+    }
+`
+
+export type ObtainReviewPageResponse = {
+    obtainReviewPage: ReviewPage
+}
+export type ObtainReviewPageInput = {
+    reviewId: string
+    pageNum: number
+    limit: number
 }

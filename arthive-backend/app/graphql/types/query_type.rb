@@ -28,5 +28,6 @@ module Types
     field :obtain_media_reviews, resolver: Resolvers::ObtainMediaReviewsResolver
     field :obtain_user_review, resolver: Resolvers::ObtainUserReviewResolver
     field :obtain_all_user_reviews, resolver: Resolvers::ObtainAllUserReviewsResolver
+    field :obtain_review_page, resolver: Resolvers::ObtainReviewPageResolver
   end
 end

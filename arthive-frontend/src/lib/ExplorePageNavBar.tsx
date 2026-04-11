@@ -6,7 +6,7 @@ export default function ExplorePageNavBar() {
     return (
         <nav>
             <button onClick={() => navigate("/") } className={location.pathname === "/" ? "active" : ""}>Explore</button>
-            <button onClick={() => navigate("/all-reviews")} className={location.pathname === "/all-reviews" ? "active" : ""}>All Reviews</button>
+            <button onClick={() => navigate("/all_reviews")} className={location.pathname === "/all_reviews" ? "active" : ""}>All Reviews</button>
 
             <Outlet/>
         </nav>

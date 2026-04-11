@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const CREATE_REVIEW_MUTATION = gql`
-    mutation CreateReview($input: CreateReviewInput!) {
+    mutation createReview($input: CreateReviewInput!) {
         createReview(input: $input) {
             id
             content

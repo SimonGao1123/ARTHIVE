@@ -1,4 +1,5 @@
 class ReviewComment < ApplicationRecord
+    include SharedScopeMethods
     belongs_to :review
     belongs_to :user
 

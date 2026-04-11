@@ -11,7 +11,7 @@ import { useEffect, useState } from "react"
 import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
 import { MediaInfoArticle } from "../lib/MediaInfoArticle"
 import UserMediaReview from "../lib/UserMediaReview"
-import { useLocation } from "react-router-dom"
+import { decodeReturnPath } from "../lib/prevPageRouting"
 
 type MediaInfoPageProps = {
     setUser: (user: User | null) => void
@@ -20,7 +20,6 @@ type MediaInfoPageProps = {
 
 export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
     const { prev_page, id } = useParams()
-    const location = useLocation()
     const navigate = useNavigate()
     const [getMediaInfo, { error, loading }] = useLazyQuery<
         ObtainMediaInfoResponse,
@@ -53,9 +52,9 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
 
     return (
         <main>
-            <button onClick={() => navigate(prev_page == "explore" ? "/" : `/${prev_page}`)}>Back</button>
+            <button onClick={() => navigate(decodeReturnPath(prev_page))}>Back</button>
             
-            <button onClick={() => navigate(`/${location.pathname}/reviews`)}>Reviews</button>
+            <button onClick={() => navigate(`/media/${prev_page}/${id}/reviews`)}>Reviews</button>
             {loading ? (
                 <p role="status" aria-live="polite">
                     Loading…
