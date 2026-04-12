@@ -29,5 +29,7 @@ module Types
     field :obtain_user_review, resolver: Resolvers::ObtainUserReviewResolver
     field :obtain_all_user_reviews, resolver: Resolvers::ObtainAllUserReviewsResolver
     field :obtain_review_page, resolver: Resolvers::ObtainReviewPageResolver
+
+    field :obtain_follower_info, resolver: Resolvers::ObtainFollowerInfoResolver
   end
 end

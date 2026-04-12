@@ -28,7 +28,7 @@ class Review < ApplicationRecord
         if review.present?
             {
                 review: review,
-                review_comments: review.review_comments.page(page_num, limit).in_order_of(:user_id, [user_id], filter: false),
+                review_comments: review.review_comments.page(page_num, limit).recent.in_order_of(:user_id, [user_id], filter: false),
                 review_likes: review.review_likes
             }
         else

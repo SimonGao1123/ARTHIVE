@@ -33,8 +33,11 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                     <p>{review.ifFavorite ? "Favorite" : "Not Favorite"}</p> 
                     <p>{review.ifFinished ? "Finished" : "Not Finished"}</p>
                     <p>{review.updatedAt}</p>
+                    {review.content && 
+                    <>
                     <p onClick={() => likeReviewFunction(setCurrLiked, likeReview, review.id, setUser, navigate, setLikeCount)}>{likeCount} {loading ? "Loading..." : currLiked ? "❤️" : "🤍"}</p>
                     <p onClick={() => navigate(`/${encodeReturnPath(location.pathname)}/review_info/${review.id}`)}>{review.commentCount} 💬</p>
+                    </>}
                     <p>======================================================</p>
         </div>
     )

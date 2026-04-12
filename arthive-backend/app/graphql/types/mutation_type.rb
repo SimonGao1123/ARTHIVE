@@ -9,5 +9,8 @@ module Types
     field :create_review, mutation: Mutations::CreateReview
     field :like_review, mutation: Mutations::LikeReview
     field :comment_on_review, mutation: Mutations::CommentOnReview
+
+    field :send_follow, mutation: Mutations::SendFollow
+    field :manipulate_follow, mutation: Mutations::ManipulateFollow
   end
 end
