@@ -12,6 +12,7 @@ import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
 import { MediaInfoArticle } from "../lib/MediaInfoArticle"
 import UserMediaReview from "../lib/UserMediaReview"
 import { decodeReturnPath } from "../lib/prevPageRouting"
+import MediaReviews from "./MediaReviewsPage"
 
 type MediaInfoPageProps = {
     setUser: (user: User | null) => void
@@ -20,6 +21,7 @@ type MediaInfoPageProps = {
 
 export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
     const { prev_page, id } = useParams()
+
     const navigate = useNavigate()
     const [getMediaInfo, { error, loading }] = useLazyQuery<
         ObtainMediaInfoResponse,
@@ -54,7 +56,6 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
         <main>
             <button onClick={() => navigate(decodeReturnPath(prev_page))}>Back</button>
             
-            <button onClick={() => navigate(`/media/${prev_page}/${id}/reviews`)}>Reviews</button>
             {loading ? (
                 <p role="status" aria-live="polite">
                     Loading…
@@ -74,7 +75,8 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
                 </>
             ) : null}
 
-
+            
+            <MediaReviews id={id ?? ""} setUser={setUser} />
         </main>
     )
 }

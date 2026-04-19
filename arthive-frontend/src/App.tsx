@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Link, Route, Routes } from 'react-router-dom'
 import NotFoundPage from './pages/NotFound'
 import {useState} from 'react'
 import ExplorePage from './pages/Explore'
@@ -57,28 +57,28 @@ function App() {
   return (
     <>
       <Routes>
-        
-        {
+        <Route element={<ExplorePageNavBar user={user}/>}>
+          {
 
-          user && user.ifAdmin ? 
-          <Route path="/admin/*" element={<AdminPage user={user} setUser={setUser}/>}>
-            <Route path="upload_media" element={<UploadMedia user={user} setUser={setUser} />} />
-          </Route>
-          :
-          <></> // no admin page for non-admin users
-        }
+            user && user.ifAdmin ? 
+            <Route path="/admin/*" element={<AdminPage user={user} setUser={setUser}/>}>
+              <Route path="upload_media" element={<UploadMedia user={user} setUser={setUser} />} />
+            </Route>
+            :
+            <></> // no admin page for non-admin users
+          }
 
-        <Route element={<ExplorePageNavBar/>}>
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
           <Route path="/all_reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
+          <Route path="/register" element={<RegisterPage/>}/>
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
+          <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
         </Route>
 
+        
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
-        <Route path="/register" element={<RegisterPage/>}/>
-        <Route path="*" element={<NotFoundPage />} />
-        <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
-        <Route path="/media/:prev_page/:id/reviews" element={<MediaReviewsPage setUser={setUser}/>} />
-        <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
+        
       </Routes>
     </>
   )

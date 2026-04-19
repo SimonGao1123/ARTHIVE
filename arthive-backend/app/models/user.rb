@@ -44,6 +44,7 @@ class User < ApplicationRecord
         end
     end
 
+    
     def self.followers_count(user_id)
         Follow.where(receiver_id: user_id, status: Follow::STATUSES[:accepted]).count
     end
