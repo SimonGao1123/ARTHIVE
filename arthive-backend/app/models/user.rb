@@ -45,19 +45,19 @@ class User < ApplicationRecord
     end
 
     
-    def self.followers_count(user_id)
-        Follow.where(receiver_id: user_id, status: Follow::STATUSES[:accepted]).count
+    def followers_count
+        self.received_follows.where(status: Follow::STATUSES[:accepted]).count
     end
 
-    def self.following_count(user_id)
-        Follow.where(sender_id: user_id, status: Follow::STATUSES[:accepted]).count
+    def following_count
+        self.sent_follows.where(status: Follow::STATUSES[:accepted]).count
     end
 
-    def self.pending_sent_follows_count(user_id)
-        Follow.where(sender_id: user_id, status: Follow::STATUSES[:pending]).count
+    def pending_sent_follows_count
+        self.sent_follows.where(status: Follow::STATUSES[:pending]).count
     end
-    def self.pending_received_follows_count(user_id)
-        Follow.where(receiver_id: user_id, status: Follow::STATUSES[:pending]).count
+    def pending_received_follows_count
+        self.received_follows.where(status: Follow::STATUSES[:pending]).count
     end
 
 
@@ -76,6 +76,7 @@ class User < ApplicationRecord
     end
 
 
+    # for specific follwer pages
     def self.obtain_follower_info(user_id, page_num, limit, type)
         case type
         when "followers"
@@ -107,7 +108,7 @@ class User < ApplicationRecord
         if content_type == "all"
             Review.where(user_id: user_id, if_finished: true).count
         else
-            Review.where(user_id: user_id, content_type: content_type, if_finished: true).count
+            Review.joins(:media).where(user_id: user_id, media: { content_type: content_type }, if_finished: true).count
         end
     end
 
@@ -115,16 +116,17 @@ class User < ApplicationRecord
         User.find_by(id: user_id).visibility
     end
 
-    def self.if_visibile_to_user(user_id, target_user_id)
-        if user_id == target_user_id
-            return true
-        end
+    def self.if_visible_to_user(user_id, target_user_id, follower_status)
         target_user = User.find_by(id: target_user_id)
-        existing_follow = Follow.get_existing_follow(user_id, target_user_id)
-        if target_user.visibility == "public" || (existing_follow.present? && existing_follow.status == Follow::STATUSES[:accepted])
-            return true
+        if target_user.nil?
+            raise GraphQL::ExecutionError, "User not found"
         end
-        return false
+
+        if user_id == target_user_id || (follower_status.present? && follower_status == Follow::STATUSES[:accepted]) || target_user.visibility == "public"
+            return true
+        else
+            return false
+        end
     end
 
     def self.obtain_user_profile(target_user_id, current_user_id)
@@ -132,23 +134,29 @@ class User < ApplicationRecord
         if user.nil?
             raise GraphQL::ExecutionError, "User not found"
         end
+
+        outgoing_follow = Follow.get_existing_follow(current_user_id, target_user_id) unless current_user_id == target_user_id
+        incoming_follow = Follow.get_existing_follow(target_user_id, current_user_id) unless current_user_id == target_user_id
         
-        outgoing_follow = Follow.get_existing_follow(current_user_id, target_user_id)
-        incoming_follow = Follow.get_existing_follow(target_user_id, current_user_id)
-        
-        is_visible_to_user = if_visibile_to_user(current_user_id, target_user_id)
+        is_visible = if_visible_to_user(current_user_id, target_user_id, outgoing_follow&.status)
 
 
+        total_reviews_count = is_visible ? user.reviews.where.not(content: nil).count : nil
+        all_finished_count = is_visible ? get_finished_count(target_user_id, "all") : nil
+        film_finished_count = is_visible ? get_finished_count(target_user_id, "film") : nil
+        series_finished_count = is_visible ? get_finished_count(target_user_id, "series") : nil
+        book_finished_count = is_visible ? get_finished_count(target_user_id, "book") : nil
         return {
             user: user,
             outgoing_follow: outgoing_follow,
             incoming_follow: incoming_follow,
-            is_visible_to_user: is_visible_to_user
+            is_visible_to_user: is_visible,
 
-            all_finished_count: get_finished_count(target_user_id, "all") if is_visible_to_user else nil,
-            film_finished_count: get_finished_count(target_user_id, "film") if is_visible_to_user else nil,
-            series_finished_count: get_finished_count(target_user_id, "series") if is_visible_to_user else nil,
-            book_finished_count: get_finished_count(target_user_id, "book") if is_visible_to_user else nil,
+            total_reviews_count: total_reviews_count,
+            all_finished_count: all_finished_count,
+            film_finished_count: film_finished_count,
+            series_finished_count: series_finished_count,
+            book_finished_count: book_finished_count,
         }
     end
 end

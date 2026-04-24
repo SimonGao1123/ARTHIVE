@@ -31,5 +31,7 @@ module Types
     field :obtain_review_page, resolver: Resolvers::ObtainReviewPageResolver
 
     field :obtain_follower_info, resolver: Resolvers::ObtainFollowerInfoResolver
+
+    field :obtain_user_profile, resolver: Resolvers::ObtainUserProfileResolver
   end
 end

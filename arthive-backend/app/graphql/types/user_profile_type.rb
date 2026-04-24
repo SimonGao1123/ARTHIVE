@@ -9,6 +9,8 @@ module Types
 
         field :is_visible_to_user, Boolean, null: false
 
+        field :total_reviews_count, Int, null: true
+        
         # null if user is not visible to the current user
         field :all_finished_count, Int, null: true
         field :film_finished_count, Int, null: true

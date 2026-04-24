@@ -20,15 +20,51 @@ module Types
 
     field :followers_count, Int, null: false
     field :following_count, Int, null: false
+    field :pending_sent_follows_count, Int, null: true 
+    field :pending_received_follows_count, Int, null: true
 
-    def followers_count
-      object.followers_count(object.id)
+    # must be yourself to see pending follows count
+    def pending_sent_follows_count
+      if context[:current_user].id != object.id
+        return nil
+      end
+      return object.pending_sent_follows_count
     end
-    def following_count
-      object.following_count(object.id)
+    def pending_received_follows_count
+      if context[:current_user].id != object.id
+        return nil
+      end
+      return object.pending_received_follows_count
     end
 
-    
+    def reviews 
+      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if if_visible_to_user
+        return object.reviews
+      else
+        return []
+      end
+    end
+    def review_comments
+      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if if_visible_to_user
+        return object.review_comments
+      else
+        return []
+      end
+    end
+
+    def review_likes
+      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if if_visible_to_user
+        return object.review_likes
+      else
+        return []
+      end
+    end
       
     
 
