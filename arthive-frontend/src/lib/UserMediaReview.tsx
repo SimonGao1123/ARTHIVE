@@ -8,6 +8,7 @@ import StarRatingMedia from "./StarRatingMedia";
 import { useMutation } from "@apollo/client/react";
 import { CREATE_REVIEW_MUTATION, type CreateReviewInput } from "../types/mutations/create_review_mutation";
 import { createReviewFunction } from "../data/create_review.ts";
+import DeleteReviewPopup from "./DeleteReviewPopup.tsx";
 
 export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
 
@@ -33,6 +34,7 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
     }, [mediaId])
     useEffect(() => {
         skipNextAutoSave.current = true
+        console.log("userReview in useEffect", userReview)
         if (userReview) {
             setReviewContent(userReview.content || "")
             setRating(userReview.rating || 0)
@@ -52,7 +54,10 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
         createReviewFunction(reviewContent, rating, ifFavorite, ifFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
     
     }, [reviewContent, rating, ifFavorite, ifFinished])
-    console.log("IMPORTANT: rating in UserMediaReview", rating)
+
+    console.log(skipNextAutoSave.current)
+
+    const [showDeleteReviewPopup, setShowDeleteReviewPopup] = useState<boolean>(false)
     return (
         <div>
             {showWriteReviewContent ? (
@@ -60,9 +65,20 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
             ) : (
                 <button onClick={() => setShowWriteReviewContent(true)}>{reviewContent ? "Edit" : "Write"} a review</button>
             )}
+
+            {showDeleteReviewPopup ? (
+                <DeleteReviewPopup setShowDeleteReviewPopup={setShowDeleteReviewPopup} setIfFinished={setIfFinished} setReviewContent={setReviewContent} setRating={setRating}/>
+            ) : <></>}
             <StarRatingMedia rating={rating} setRating={setRating}/>
             <button onClick={() => setIfFavorite(!ifFavorite)}>{ifFavorite ? "Remove from favorites" : "Add to favorites"}</button>
-            <button onClick={() => setIfFinished(!ifFinished)}>{ifFinished ? "Mark as not finished" : "Mark as finished"}</button>
+            <button onClick={() => { 
+                if (ifFinished && (reviewContent || rating)) {
+                    setShowDeleteReviewPopup(true)
+                    return
+                }
+                setIfFinished(!ifFinished)
+                
+                }}>{ifFinished ? "Mark as not finished" : "Mark as finished"}</button>
         </div>
     )
 }
@@ -80,15 +96,12 @@ function WriteReviewContent({reviewContent, setReviewContent, title, coverImage,
             <img src={coverImage} alt={title} loading="lazy"/>
             <input type="textarea" value={content} onChange={(e) => setContent(e.target.value)}/>
             <button onClick={() => {
-                if (content.trim() === "") {
-                    alert("Review content cannot be empty")
-                    return
-                }
+
                 if (content.length > 1000) {
                     alert("Review content cannot be longer than 1000 characters")
                     return
                 }
-                setReviewContent(content)
+                setReviewContent(content.trim())
                 setShowWriteReviewContent(false)
             }}>{reviewContent ? "Update" : "Post"}</button>
             
