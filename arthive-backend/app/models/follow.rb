@@ -16,8 +16,18 @@ class Follow < ApplicationRecord
     validates :receiver_id, presence: true
 
     validates :sender_id, uniqueness: { scope: :receiver_id }
-    
 
+    validate :sender_receiver_uniqueness
+
+    private
+    def sender_receiver_uniqueness
+        if self.sender_id == self.receiver_id
+            errors.add(:base, "You cannot follow yourself")
+        end
+    end
+
+
+    public 
     def self.send_follow(sender_id, receiver_id)
 
         begin
@@ -25,7 +35,7 @@ class Follow < ApplicationRecord
                 raise GraphQL::ExecutionError, "You cannot follow yourself"
             end
 
-            existing_follow = get_existing_follow(sender_id, receiver_id)
+            existing_follow = Follow.find_by(sender_id: sender_id, receiver_id: receiver_id)
             if existing_follow.present? && existing_follow.status != STATUSES[:rejected]
                 raise GraphQL::ExecutionError, "You are already following this user"
             end
@@ -46,13 +56,6 @@ class Follow < ApplicationRecord
         rescue ActiveRecord::RecordInvalid => e
             raise GraphQL::ExecutionError, e.message
         end
-    end
-
-    def self.get_existing_follow(sender_id, receiver_id)
-        follow = Follow.find_by(sender_id: sender_id, receiver_id: receiver_id)
-
-        return nil unless follow.present?
-        return follow
     end
 
 

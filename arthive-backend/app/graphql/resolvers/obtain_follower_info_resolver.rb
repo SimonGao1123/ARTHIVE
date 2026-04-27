@@ -10,13 +10,11 @@ module Resolvers
         def resolve(user_id:, page_num:, limit:, type:)
             validate_user
             
-            begin
-                User.obtain_follower_info(user_id, page_num, limit, type)
-            rescue GraphQL::ExecutionError => e
-                raise GraphQL::ExecutionError, e.message
-            rescue StandardError => e
-                raise GraphQL::ExecutionError, e.message
-            end
+            User.obtain_follower_info(context[:current_user].id, user_id.to_i, page_num, limit, type)
+        rescue ActiveRecord::RecordNotFound => e
+            raise GraphQL::ExecutionError, e.message
+        rescue GraphQL::ExecutionError => e
+            raise GraphQL::ExecutionError, e.message
         end
     end
 end

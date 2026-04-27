@@ -38,8 +38,7 @@ module Types
     end
 
     def reviews 
-      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
       if if_visible_to_user
         return object.reviews
       else
@@ -47,8 +46,7 @@ module Types
       end
     end
     def review_comments
-      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
       if if_visible_to_user
         return object.review_comments
       else
@@ -57,8 +55,7 @@ module Types
     end
 
     def review_likes
-      existing_follow = Follow.get_existing_follow(context[:current_user].id, object.id)
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id, existing_follow&.status)
+      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
       if if_visible_to_user
         return object.review_likes
       else

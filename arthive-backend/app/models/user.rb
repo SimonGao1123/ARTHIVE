@@ -61,68 +61,82 @@ class User < ApplicationRecord
     end
 
 
-    def self.get_followers(user_id, page_num, limit)
-        Follow.where(receiver_id: user_id, status: Follow::STATUSES[:accepted]).includes(:sender).page(page_num, limit).recent
+    def get_followers(page_num, limit)
+        self.received_follows.where(status: Follow::STATUSES[:accepted]).includes(:sender).page(page_num, limit).recent
     end
-    def self.get_following(user_id, page_num, limit)
-        Follow.where(sender_id: user_id, status: Follow::STATUSES[:accepted]).includes(:receiver).page(page_num, limit).recent
+    def get_following(page_num, limit)
+        self.sent_follows.where(status: Follow::STATUSES[:accepted]).includes(:receiver).page(page_num, limit).recent
     end
 
-    def self.get_pending_sent_follows(user_id, page_num, limit)
-        Follow.where(sender_id: user_id, status: Follow::STATUSES[:pending]).includes(:receiver).page(page_num, limit).recent
+    def get_pending_sent_follows(page_num, limit)
+        self.sent_follows.where(status: Follow::STATUSES[:pending]).includes(:receiver).page(page_num, limit).recent
     end
-    def self.get_pending_received_follows(user_id, page_num, limit)
-        Follow.where(receiver_id: user_id, status: Follow::STATUSES[:pending]).includes(:sender).page(page_num, limit).recent
+    def get_pending_received_follows(page_num, limit)
+        self.received_follows.where(status: Follow::STATUSES[:pending]).includes(:sender).page(page_num, limit).recent
     end
 
 
     # for specific follwer pages
-    def self.obtain_follower_info(user_id, page_num, limit, type)
+    def self.obtain_follower_info(current_user_id, user_id, page_num, limit, type)
+
+        user = User.find_by(id: user_id)
+        if user.nil?
+            raise GraphQL::ExecutionError, "User not found"
+        end
+
+        if !User.if_visible_to_user(current_user_id, user_id)
+            raise GraphQL::ExecutionError, "You are not allowed to view this user's followers"
+        end
+
         case type
         when "followers"
             {
-                follows: get_followers(user_id, page_num, limit),
-                count: followers_count(user_id)
+                follows: user.get_followers(page_num, limit),
+                count: user.followers_count
             }
         when "following"
             {
-                follows: get_following(user_id, page_num, limit),
-                count: following_count(user_id)
+                follows: user.get_following(page_num, limit),
+                count: user.following_count
             }
         when "pending_sent_follows"
+            if current_user_id.to_i != user_id.to_i
+                raise GraphQL::ExecutionError, "You are not the user"
+            end
             {
-                follows: get_pending_sent_follows(user_id, page_num, limit),
-                count: pending_sent_follows_count(user_id)
+                follows: user.get_pending_sent_follows(page_num, limit),
+                count: user.pending_sent_follows_count
             }
         when "pending_received_follows"
+            if current_user_id.to_i != user_id.to_i
+                raise GraphQL::ExecutionError, "You are not the user"
+            end
             {
-                follows: get_pending_received_follows(user_id, page_num, limit),
-                count: pending_received_follows_count(user_id)
+                follows: user.get_pending_received_follows(page_num, limit),
+                count: user.pending_received_follows_count
             }
         else
             raise GraphQL::ExecutionError, "Invalid follow type"
         end
     end
 
-    def self.get_finished_count(user_id, content_type)
+    def get_finished_count(content_type)
         if content_type == "all"
-            Review.where(user_id: user_id, if_finished: true).count
+            self.reviews.where(if_finished: true).count
         else
-            Review.joins(:media).where(user_id: user_id, media: { content_type: content_type }, if_finished: true).count
+            self.reviews.joins(:media).where(media: { content_type: content_type }, if_finished: true).count
         end
     end
 
-    def self.get_visibility(user_id)
-        User.find_by(id: user_id).visibility
-    end
-
-    def self.if_visible_to_user(user_id, target_user_id, follower_status)
+    def self.if_visible_to_user(user_id, target_user_id)
         target_user = User.find_by(id: target_user_id)
         if target_user.nil?
             raise GraphQL::ExecutionError, "User not found"
         end
 
-        if user_id == target_user_id || (follower_status.present? && follower_status == Follow::STATUSES[:accepted]) || target_user.visibility == "public"
+        follower_status = Follow.find_by(sender_id: user_id, receiver_id: target_user_id)
+
+        if user_id.to_i == target_user_id.to_i || (follower_status.present? && follower_status.status == Follow::STATUSES[:accepted]) || target_user.visibility == "public"
             return true
         else
             return false
@@ -135,21 +149,21 @@ class User < ApplicationRecord
             raise GraphQL::ExecutionError, "User not found"
         end
 
-        outgoing_follow = Follow.get_existing_follow(current_user_id, target_user_id) unless current_user_id == target_user_id
-        incoming_follow = Follow.get_existing_follow(target_user_id, current_user_id) unless current_user_id == target_user_id
+        outgoing_follow = Follow.where(sender_id: current_user_id, receiver_id: target_user_id).where.not(status: Follow::STATUSES[:rejected]).first unless current_user_id == target_user_id
+        incoming_follow = Follow.where(sender_id: target_user_id, receiver_id: current_user_id).where.not(status: Follow::STATUSES[:rejected]).first unless current_user_id == target_user_id
         
-        is_visible = if_visible_to_user(current_user_id, target_user_id, outgoing_follow&.status)
+        is_visible = if_visible_to_user(current_user_id, target_user_id)
 
 
         total_reviews_count = is_visible ? user.reviews.where.not(content: nil).count : nil
-        all_finished_count = is_visible ? get_finished_count(target_user_id, "all") : nil
-        film_finished_count = is_visible ? get_finished_count(target_user_id, "film") : nil
-        series_finished_count = is_visible ? get_finished_count(target_user_id, "series") : nil
-        book_finished_count = is_visible ? get_finished_count(target_user_id, "book") : nil
+        all_finished_count = is_visible ? user.get_finished_count("all") : nil
+        film_finished_count = is_visible ? user.get_finished_count("film") : nil
+        series_finished_count = is_visible ? user.get_finished_count("series") : nil
+        book_finished_count = is_visible ? user.get_finished_count("book") : nil
         return {
             user: user,
-            outgoing_follow: outgoing_follow,
-            incoming_follow: incoming_follow,
+            current_outgoing_follow: outgoing_follow,
+            current_incoming_follow: incoming_follow,
             is_visible_to_user: is_visible,
 
             total_reviews_count: total_reviews_count,
