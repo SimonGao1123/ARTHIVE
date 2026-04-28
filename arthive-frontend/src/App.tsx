@@ -21,6 +21,7 @@ import MediaInfoPage from './pages/MediaInfoPage'
 import AllUserReviewsPage from './pages/AllUserReviewsPage'
 import ExplorePageNavBar from './lib/ExplorePageNavBar'
 import ReviewPage from './pages/ReviewPage'
+import UserProfilePage from './pages/UserProfilePage'
 
 function App() {
   const location = useLocation()
@@ -73,6 +74,7 @@ function App() {
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
           <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
+          <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
         </Route>
 
         
