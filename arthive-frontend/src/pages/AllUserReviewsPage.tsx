@@ -17,10 +17,10 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     const [pageNum, setPageNum] = useState<number>(1)
     const [ifNextPage, setIfNextPage] = useState<boolean>(true)
     const navigate = useNavigate()
-    const [contentType, setContentType] = useState<"book" | "film" | "series" | "all">("all")
+    const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY)
     
-    const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "all") => {
+    const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "game" | "all") => {
         if (nextContentType === contentType) {
             return
         }

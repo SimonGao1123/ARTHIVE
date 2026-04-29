@@ -5,7 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function obtainAllUserReviewsFunction(
-    contentType: "book" | "film" | "series" | "all",
+    contentType: "book" | "film" | "series" | "game" | "all",
     pageNum: number,
     limit: number,
     obtainAllUserReviews: any,

@@ -34,7 +34,7 @@ export type ObtainAllUserReviewsResponse = {
 export type ObtainAllUserReviewsInput = {
     pageNum: number
     limit: number
-    contentType: "book" | "film" | "series" | "all"
+    contentType: "book" | "film" | "series" | "game" | "all"
 }
 
 export const OBTAIN_USER_REVIEW_QUERY = gql`

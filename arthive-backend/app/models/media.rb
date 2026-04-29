@@ -13,7 +13,7 @@ class Media < ApplicationRecord
     validates :summary, presence: true
     validates :genre, presence: true
     validates :ongoing, inclusion: { in: [true, false] }
-    enum :content_type, { book: "book", film: "film", series: "series" }, prefix: true
+    enum :content_type, { book: "book", film: "film", series: "series", game: "game" }, prefix: true
 
     def presigned_cover_image_url
         PresignedUrlAttachment.presigned_url(cover_image)

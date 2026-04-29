@@ -6,7 +6,7 @@ const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT
 export function ExplorePageDataFetch(
     navigate: any, 
     setUser: (user: User | null) => void, 
-    contentType: "book" | "film" | "series" | "all", 
+    contentType: "book" | "film" | "series" | "game" | "all", 
     limit: number,
     pageNum: number,
     setIfPrevPage: (ifPrevPage: boolean) => void,

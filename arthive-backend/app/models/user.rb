@@ -164,6 +164,7 @@ class User < ApplicationRecord
         film_finished_count = is_visible ? user.get_finished_count("film") : nil
         series_finished_count = is_visible ? user.get_finished_count("series") : nil
         book_finished_count = is_visible ? user.get_finished_count("book") : nil
+        game_finished_count = is_visible ? user.get_finished_count("game") : nil
         return {
             user: user,
             current_outgoing_follow: outgoing_follow,
@@ -175,6 +176,7 @@ class User < ApplicationRecord
             film_finished_count: film_finished_count,
             series_finished_count: series_finished_count,
             book_finished_count: book_finished_count,
+            game_finished_count: game_finished_count,
         }
     end
 end

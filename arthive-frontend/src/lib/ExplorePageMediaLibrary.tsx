@@ -11,7 +11,7 @@ const EXPLORE_MEDIA_LIMIT = 2
 
 export default function ExplorePageMediaLibrary({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
-    const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "all">("all")
+    const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
     
     const [pageNum, setPageNum] = useState<number>(1);

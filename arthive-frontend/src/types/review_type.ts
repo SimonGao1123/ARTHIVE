@@ -39,7 +39,7 @@ export type AllReview = {
         creator: string
         year: number
         genre: string[]
-        contentType: "book" | "film" | "series"
+        contentType: "book" | "film" | "series" | "game"
     }
 
     
@@ -69,7 +69,7 @@ export type MainReview = {
         creator: string
         year: number
         genre: string[]
-        contentType: "book" | "film" | "series"
+        contentType: "book" | "film" | "series" | "game"
     }
     likeCount: number
     commentCount: number

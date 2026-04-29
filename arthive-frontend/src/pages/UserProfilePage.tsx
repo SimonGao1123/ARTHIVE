@@ -60,6 +60,7 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
             {userProfileData?.filmFinishedCount !== null ? <p>Film Finished: {userProfileData?.filmFinishedCount}</p> : <></>}
             {userProfileData?.seriesFinishedCount !== null ? <p>Series Finished: {userProfileData?.seriesFinishedCount}</p> : <></>}
             {userProfileData?.bookFinishedCount !== null ? <p>Book Finished: {userProfileData?.bookFinishedCount}</p> : <></>}
+            {userProfileData?.gameFinishedCount !== null ? <p>Game Finished: {userProfileData?.gameFinishedCount}</p> : <></>}
         </div>
     )
 }

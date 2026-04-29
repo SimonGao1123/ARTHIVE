@@ -4,7 +4,7 @@ export type Media = {
     title: string;
     creator: string;
     year: string;
-    contentType: "book" | "film" | "series";
+    contentType: "book" | "film" | "series" | "game";
     language: string;
     summary: string;
     genre: string[];

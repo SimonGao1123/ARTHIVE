@@ -149,6 +149,9 @@ function ContentTypeRadio({content_type, setContentType}: {content_type: string,
                 <label htmlFor="series">Series</label>
                 <input checked={content_type === "series"} name="content_type" type="radio" id="series" value="series" onChange={(e) => setContentType(e.target.value)} />
                 
+                <label htmlFor="game">Game</label>
+                <input checked={content_type === "game"} name="content_type" type="radio" id="game" value="game" onChange={(e) => setContentType(e.target.value)} />
+                
         </div>
         
     )

@@ -30,7 +30,7 @@ export type ExplorePageMediaResponse = {
     }[]
 }
 export type ExplorePageMediaInput = {
-    contentType: "book" | "film" | "series" | "all"
+    contentType: "book" | "film" | "series" | "game" | "all"
     limit: number
     pageNum: number
 }

@@ -28,6 +28,7 @@ export const USER_PROFILE_QUERY = gql`
             filmFinishedCount
             seriesFinishedCount
             bookFinishedCount
+            gameFinishedCount
         }
     }
 `
@@ -67,4 +68,5 @@ export type UserProfileType = {
     filmFinishedCount: number | null,
     seriesFinishedCount: number | null,
     bookFinishedCount: number | null,
+    gameFinishedCount: number | null,
 }

@@ -16,5 +16,6 @@ module Types
         field :film_finished_count, Int, null: true
         field :series_finished_count, Int, null: true
         field :book_finished_count, Int, null: true
+        field :game_finished_count, Int, null: true
     end
 end
