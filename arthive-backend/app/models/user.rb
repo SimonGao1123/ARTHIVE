@@ -91,11 +91,13 @@ class User < ApplicationRecord
         case type
         when "followers"
             {
+                user: user,
                 follows: user.get_followers(page_num, limit),
                 count: user.followers_count
             }
         when "following"
             {
+                user: user,
                 follows: user.get_following(page_num, limit),
                 count: user.following_count
             }
@@ -104,6 +106,7 @@ class User < ApplicationRecord
                 raise GraphQL::ExecutionError, "You are not the user"
             end
             {
+                user: user,
                 follows: user.get_pending_sent_follows(page_num, limit),
                 count: user.pending_sent_follows_count
             }
@@ -112,6 +115,7 @@ class User < ApplicationRecord
                 raise GraphQL::ExecutionError, "You are not the user"
             end
             {
+                user: user,
                 follows: user.get_pending_received_follows(page_num, limit),
                 count: user.pending_received_follows_count
             }

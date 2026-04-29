@@ -23,17 +23,14 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
     const [rating, setRating] = useState<number>(0)
     const [ifFavorite, setIfFavorite] = useState<boolean>(false)
     const [ifFinished, setIfFinished] = useState<boolean>(false)
-    const skipNextAutoSave = useRef<boolean>(true)
 
     const [showWriteReviewContent, setShowWriteReviewContent] = useState<boolean>(false)
     
     useEffect(() => {
-        skipNextAutoSave.current = true
         obtainUserMediaReview(setUserReview, getUserMediaReview, mediaId, navigate, setUser)
         
     }, [mediaId])
     useEffect(() => {
-        skipNextAutoSave.current = true
         console.log("userReview in useEffect", userReview)
         if (userReview) {
             setReviewContent(userReview.content || "")
@@ -47,15 +44,10 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
 
     const [createReview] = useMutation<ObtainUserReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
     useEffect(() => {
-        if (skipNextAutoSave.current) {
-            skipNextAutoSave.current = false
-            return
-        }
         createReviewFunction(reviewContent, rating, ifFavorite, ifFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
-    
+
     }, [reviewContent, rating, ifFavorite, ifFinished])
 
-    console.log(skipNextAutoSave.current)
 
     const [showDeleteReviewPopup, setShowDeleteReviewPopup] = useState<boolean>(false)
     return (

@@ -9,7 +9,6 @@ import ReviewCard from "../lib/ReviewCard"
 
 const LIMIT = 10
 
-// TODO: OBTAIN MEDIA INFORMATION AND DISPLAY IT ON THE PAGE
 
 export default function MediaReviews({ setUser, id}: {setUser: (user: User | null) => void, id: string} ) {
     const navigate = useNavigate()

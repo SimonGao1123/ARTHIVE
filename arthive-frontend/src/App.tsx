@@ -22,6 +22,7 @@ import AllUserReviewsPage from './pages/AllUserReviewsPage'
 import ExplorePageNavBar from './lib/ExplorePageNavBar'
 import ReviewPage from './pages/ReviewPage'
 import UserProfilePage from './pages/UserProfilePage'
+import UserFollowDetails from './pages/UserFollowDetails'
 
 function App() {
   const location = useLocation()
@@ -75,6 +76,7 @@ function App() {
           <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
           <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
           <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
+          <Route path="/profile/:follow_type/:id" element={<UserFollowDetails setUser={setUser} user={user}/>} />
         </Route>
 
         
