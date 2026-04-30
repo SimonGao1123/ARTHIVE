@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_12_025017) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -53,6 +53,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_025017) do
     t.index ["sender_id"], name: "index_follows_on_sender_id"
   end
 
+  create_table "lists", force: :cascade do |t|
+    t.string "content_type", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.boolean "if_private", default: false, null: false
+    t.string "name", null: false
+    t.string "tags", default: [], null: false, array: true
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_lists_on_user_id"
+  end
+
   create_table "media", force: :cascade do |t|
     t.string "actors", array: true
     t.string "content_type", null: false
@@ -70,6 +82,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_025017) do
     t.bigint "user_id", null: false
     t.string "year", null: false
     t.index ["user_id"], name: "index_media_on_user_id"
+  end
+
+  create_table "media_in_lists", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["list_id", "media_id"], name: "index_media_in_lists_on_list_id_and_media_id", unique: true
+    t.index ["list_id"], name: "index_media_in_lists_on_list_id"
+    t.index ["media_id"], name: "index_media_in_lists_on_media_id"
   end
 
   create_table "review_comments", force: :cascade do |t|
@@ -125,7 +147,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_12_025017) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "follows", "users", column: "receiver_id"
   add_foreign_key "follows", "users", column: "sender_id"
+  add_foreign_key "lists", "users"
   add_foreign_key "media", "users"
+  add_foreign_key "media_in_lists", "lists"
+  add_foreign_key "media_in_lists", "media", column: "media_id"
   add_foreign_key "review_comments", "reviews"
   add_foreign_key "review_comments", "users"
   add_foreign_key "review_likes", "reviews"

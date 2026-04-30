@@ -1,9 +1,18 @@
 class Media < ApplicationRecord
     include PresignedUrlAttachment
     include SharedScopeMethods
+
+    CONTENT_TYPES = {
+        book: "book",
+        film: "film",
+        series: "series",
+        game: "game"
+    }.freeze
+
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
     has_many :reviews
+    has_many :media_in_lists, dependent: :destroy
 
     validates :title, presence: true
     validates :creator, presence: true
@@ -13,7 +22,7 @@ class Media < ApplicationRecord
     validates :summary, presence: true
     validates :genre, presence: true
     validates :ongoing, inclusion: { in: [true, false] }
-    enum :content_type, { book: "book", film: "film", series: "series", game: "game" }, prefix: true
+    enum :content_type, CONTENT_TYPES, prefix: true
 
     def presigned_cover_image_url
         PresignedUrlAttachment.presigned_url(cover_image)
