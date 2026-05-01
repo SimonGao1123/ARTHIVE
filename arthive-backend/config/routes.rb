@@ -16,5 +16,10 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 
-  post "/upload_media", to: "media_upload#create_media"
+  # DEPRICATED!!! USE THE MUTATION INSTEAD
+  # post "/upload_media", to: "media_upload#create_media"
+
+  post "/rails/active_storage/direct_uploads",
+    to: "authenticated_direct_uploads#create",
+    as: :authenticated_direct_uploads
 end

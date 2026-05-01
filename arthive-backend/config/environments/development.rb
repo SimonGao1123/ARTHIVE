@@ -6,8 +6,12 @@ Rails.application.configure do
   # Make code changes take effect immediately without server restart.
   config.enable_reloading = true
 
+  # set to host in production
+  Rails.application.routes.default_url_options = { host: "localhost", port: 3000 }
+
   # Do not eager load code on boot.
   config.eager_load = false
+
 
   # Show full error reports.
   config.consider_all_requests_local = true

@@ -1,5 +1,10 @@
 import { logout } from "./logout"
-export function mediaUpload(mediaData: any, setUser: any, navigate: any) {
+import { uploadFileToS3 } from "./upload_file_to_s3"
+
+const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+
+
+export async function mediaUpload(mediaData: any, setUser: any, navigate: any, createMedia: any) {
     if (!mediaData.title) {
         alert("Title is required")
         return
@@ -34,50 +39,41 @@ export function mediaUpload(mediaData: any, setUser: any, navigate: any) {
         return
     }
 
-    console.log("Media Data: ", mediaData)
-    const formData = new FormData()
-    formData.append("title", mediaData.title)
-    formData.append("creator", mediaData.creator)
-    formData.append("year", mediaData.year)
-    formData.append("content_type", mediaData.content_type)
-    formData.append("language", mediaData.language)
-    formData.append("summary", mediaData.summary)
-    for (const g of mediaData.genre) {
-        formData.append("genre[]", g)
+    const jwt = localStorage.getItem("authToken")
+    if (!jwt) {
+        logout(setUser, navigate)
+        return
     }
-    formData.append("ongoing", mediaData.ongoing)
-    for (const a of mediaData.actors) {
-        formData.append("actors[]", a)
+    
+    
+    const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
+    if (!signedId) {
+        alert("Error uploading cover image to S3")
+        return
     }
-    if (mediaData.page_count != null) {
-        formData.append("page_count", String(mediaData.page_count))
-    }
-    if (mediaData.series_title != null) {
-        formData.append("series_title", mediaData.series_title)
-    }
-    if (mediaData.organization != null) {
-        formData.append("organization", mediaData.organization)
-    }
-    formData.append("cover_image", mediaData.cover_image)
 
-    fetch("http://localhost:3000/upload_media", {
-        method: "POST",
-        body: formData,
-        headers: {
-            "Authorization": `Bearer ${localStorage.getItem("authToken")}`
-        }
-    }).then(response => response.json()).then(data => {
-        if (data.error && data.error.includes("UNAUTHENTICATED")) {
-            logout(setUser, navigate)
-        } else if (data.error) {
-            alert(data.error)
-        } else {
-            console.log(data.media)
-            console.log(data.cover_image)
-            
-        }
-        console.log(data.message)
-    }).catch(error => {
+    createMedia({variables: {
+        title: mediaData.title,
+        creator: mediaData.creator,
+        year: mediaData.year,
+        contentType: mediaData.content_type,
+        language: mediaData.language,
+        summary: mediaData.summary,
+        genre: mediaData.genre,
+        ongoing: mediaData.ongoing,
+        actors: mediaData.actors,
+        pageCount: Number(mediaData.page_count),
+        seriesTitle: mediaData.series_title,
+        organization: mediaData.organization,
+        coverImage: signedId,
+    }}).then((data: unknown) => {
+        console.log("Media created: ", data)
+    }).catch((error: { message?: string }) => {
         console.error("Error: ", error)
+        if (error.message && unauth_messages.includes(error.message)) {
+            logout(setUser, navigate)
+        } else {
+            alert("Error creating media")
+        }
     })
 }
