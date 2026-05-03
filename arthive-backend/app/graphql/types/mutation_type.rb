@@ -13,5 +13,7 @@ module Types
 
     field :send_follow, mutation: Mutations::SendFollow
     field :manipulate_follow, mutation: Mutations::ManipulateFollow
+
+    field :edit_user_profile, mutation: Mutations::EditUserProfile
   end
 end

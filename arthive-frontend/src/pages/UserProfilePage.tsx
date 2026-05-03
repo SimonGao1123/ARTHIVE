@@ -87,7 +87,7 @@ function IncomingFollowButton({currIncomingFollowStatus, setCurrIncomingFollowSt
     else if (currIncomingFollowStatus.status === "accepted") {
         return (
             <div>
-                <p>You are following this user</p>
+                <p>This user is following you</p>
                 <ManipulateFollowButton followId={currIncomingFollowStatus.id} manipulation="unfollow" setFollowStatus={setCurrIncomingFollowStatus} setUser={setUser} />
             </div>
         )

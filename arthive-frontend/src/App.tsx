@@ -14,7 +14,6 @@ import {useLocation} from 'react-router-dom'
 import {useLazyQuery} from '@apollo/client/react'
 import { WHOAMI_QUERY } from './types/mutations/user_login_mutations'
 import { whoAmIQuery } from './data/whoami'
-import { logout } from './data/logout'
 import AdminPage from './pages/Admin'
 import UploadMedia from './pages/admin_sub_pages/UploadMedia'
 import MediaInfoPage from './pages/MediaInfoPage'
@@ -23,7 +22,7 @@ import ExplorePageNavBar from './lib/ExplorePageNavBar'
 import ReviewPage from './pages/ReviewPage'
 import UserProfilePage from './pages/UserProfilePage'
 import UserFollowDetails from './pages/UserFollowDetails'
-
+import EditUserProfile from './pages/EditUserProfile'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -33,7 +32,8 @@ function App() {
   const [whoami] = useLazyQuery<WhoamiResponse>(WHOAMI_QUERY, {
     fetchPolicy: "no-cache",
   })
-  console.log(localStorage.getItem("authToken"))
+  console.log("LOCAL STORAGE TOKEN", localStorage.getItem("authToken"))
+  console.log(user)
   useEffect(() => {
     // If the user is on the login or register page, dont need to check who they are
     if (location.pathname === "/login" || location.pathname === "/register") {
@@ -41,17 +41,6 @@ function App() {
       return
     }
     whoAmIQuery(whoami, navigate, setUser)
-    .then((user) => {
-      if (user) {
-        setUser(user)
-      } else {
-        setUser(null)
-      }
-    })
-    .catch((error) => {
-      console.log("error in useEffect", error)
-      logout(setUser, navigate)
-    })
 
   }, [location.pathname])
 
@@ -77,6 +66,8 @@ function App() {
           <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
           <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
           <Route path="/profile/:follow_type/:id" element={<UserFollowDetails setUser={setUser} user={user}/>} />
+
+          <Route path={`/edit_profile/${user?.id}`} element={<EditUserProfile setUser={setUser} user={user}/>} />
         </Route>
 
         

@@ -14,13 +14,11 @@ export function ExplorePageDataFetch(
     setAllMedia: any, 
     getExplorePageMedia: any) {
         
-    console.log("Fetching data for contentType", contentType, "and limit", limit)
     getExplorePageMedia({ variables: { contentType, limit, pageNum } })
     .then((data: any) => {
         setAllMedia(data.data.exploreMedia.media ?? [])
         setIfPrevPage(data.data.exploreMedia.ifPrevPage ?? false)
         setIfNextPage(data.data.exploreMedia.ifNextPage ?? false)
-        console.log("data in ExplorePageDataFetch", data.data.exploreMedia)
     })
     .catch((error: any) => {
         console.log("error in ExplorePageDataFetch", error.message)

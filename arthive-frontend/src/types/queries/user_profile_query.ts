@@ -29,6 +29,7 @@ export const USER_PROFILE_QUERY = gql`
             seriesFinishedCount
             bookFinishedCount
             gameFinishedCount
+            editAccess
         }
     }
 `
@@ -69,4 +70,5 @@ export type UserProfileType = {
     seriesFinishedCount: number | null,
     bookFinishedCount: number | null,
     gameFinishedCount: number | null,
+    editAccess: boolean,
 }

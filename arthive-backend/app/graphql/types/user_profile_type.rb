@@ -17,5 +17,11 @@ module Types
         field :series_finished_count, Int, null: true
         field :book_finished_count, Int, null: true
         field :game_finished_count, Int, null: true
+
+        field :edit_access, Boolean, null: false
+        
+        def edit_access
+            object[:user].id == context[:current_user].id
+        end
     end
 end
