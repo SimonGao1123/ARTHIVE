@@ -28,9 +28,7 @@ class Media < ApplicationRecord
         PresignedUrlAttachment.presigned_url(cover_image)
     end
 
-    scope :content_type_filter, -> (type) {
-        type == "all" ? all : where(content_type: type)
-    }
+    
 
     scope :explore_page, -> (content_type, page_num, limit, user_id) {
         joins(
@@ -65,5 +63,38 @@ class Media < ApplicationRecord
         rescue ActiveRecord::RecordNotFound => e
             raise GraphQL::ExecutionError, e.message
         end
+    end
+
+    scope :query_filter, -> (query) {
+        where('title ILIKE ?', "%#{query}%")
+    }
+    scope :genre_filter, -> (genre) {
+        where(
+            <<-SQL, genre, genre.length
+            (
+                SELECT COUNT(DISTINCT LOWER(g))
+                FROM unnest(genre) AS g
+                WHERE LOWER(g) IN (?)
+            ) = ?
+            SQL
+        )
+    }
+    scope :content_type_filter, -> (type) {
+        type == "all" ? all : where(content_type: type)
+    }
+
+    def self.search(query:, search_filter:, page_num:, limit:)
+        base_search = Media.query_filter(query)
+
+        search_filter.each do |filter|
+            case filter.filter
+                when "content_type"
+                    base_search = base_search.content_type_filter(filter.values)
+                when "genre"
+                    base_search = base_search.genre_filter(filter.values)
+                end
+        end
+
+        return base_search.page(page_num, limit)
     end
 end

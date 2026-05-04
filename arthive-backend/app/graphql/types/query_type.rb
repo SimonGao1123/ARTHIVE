@@ -24,7 +24,8 @@ module Types
     field :whoami, resolver: Resolvers::WhoamiResolver
     field :explore_media, resolver: Resolvers::ExploreMediaResolver
     field :obtain_media_info, resolver: Resolvers::ObtainMediaInfoResolver
-
+    field :search_bar, resolver: Resolvers::SearchBarResolver
+    
     field :obtain_media_reviews, resolver: Resolvers::ObtainMediaReviewsResolver
     field :obtain_user_review, resolver: Resolvers::ObtainUserReviewResolver
     field :obtain_all_user_reviews, resolver: Resolvers::ObtainAllUserReviewsResolver
