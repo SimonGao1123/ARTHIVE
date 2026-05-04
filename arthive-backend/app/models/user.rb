@@ -180,4 +180,15 @@ class User < ApplicationRecord
             game_finished_count: game_finished_count,
         }
     end
+
+    scope :query_filter, -> (query) {   
+        where('username ILIKE ?', "%#{query}%")
+    }
+    def self.search(query:, page_num:, limit:, current_user_id:)
+        base_search = User.query_filter(query)
+
+        base_search.filter { |user| User.if_visible_to_user(current_user_id, user.id)}
+
+        return base_search.page(page_num, limit)
+    end
 end

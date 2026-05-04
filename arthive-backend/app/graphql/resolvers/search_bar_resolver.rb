@@ -15,6 +15,8 @@ module Resolvers
         argument :limit, Int, required: true
 
         def resolve(query:, search_type:, search_filter: nil, page_num:, limit:)
+            validate_user
+
             results = {}
 
             medias = []
@@ -24,6 +26,8 @@ module Resolvers
             case search_type
             when "media"
                 medias = Media.search(query: query, search_filter: search_filter, page_num: page_num, limit: limit).to_a
+            when "user"
+                users = User.search(query: query, page_num: page_num, limit: limit, current_user_id: context[:current_user].id).to_a
             end
 
             results[:medias] = medias
