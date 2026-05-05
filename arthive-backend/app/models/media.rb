@@ -87,11 +87,12 @@ class Media < ApplicationRecord
         base_search = Media.query_filter(query)
 
         search_filter.each do |filter|
+            normalized_values = Array(filter.values).map(&:downcase)
             case filter.filter
                 when "content_type"
-                    base_search = base_search.content_type_filter(filter.values)
+                    base_search = base_search.content_type_filter(normalized_values)
                 when "genre"
-                    base_search = base_search.genre_filter(filter.values)
+                    base_search = base_search.genre_filter(normalized_values)
                 end
         end
 

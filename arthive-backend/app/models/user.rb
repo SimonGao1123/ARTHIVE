@@ -13,6 +13,8 @@ class User < ApplicationRecord
     validates :email, presence: true, uniqueness: true
     validates :username, presence: true, uniqueness: true
     validates :password, presence: true, length: { minimum: 8 }, allow_nil: true
+    validates :description, length: { maximum: 280 }
+
     
     validates :visibility, inclusion: { in: ["public", "private"] }
     validates :visibility, presence: true
@@ -45,6 +47,24 @@ class User < ApplicationRecord
         end
     end
 
+    def content_type_lists(content_type)
+        if content_type == "all"
+            self.lists.includes(media_in_lists: :media)
+        else
+            self.lists.where("content_type @> ARRAY[?]::varchar[]", [content_type]).includes(media_in_lists: :media)
+        end
+    end
+    def all_user_lists(current_user_id, target_user_id, content_type, page_num, limit)
+        begin
+            lists = self.content_type_lists(content_type).recent
+            if current_user_id.to_i != target_user_id.to_i
+                lists = lists.where(if_private: false)
+            end
+            return lists.page(page_num, limit).to_a # returns a paginated list of lists
+        rescue ActiveRecord::RecordNotFound
+            return [] # returns an empty array if no lists are found
+        end
+    end
     
     def followers_count
         self.received_follows.where(status: Follow::STATUSES[:accepted]).count

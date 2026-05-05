@@ -59,7 +59,7 @@ function App() {
           }
 
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
-          <Route path="/all_reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
+          <Route path="/:user_id/all_reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />

@@ -1,4 +1,5 @@
 class MediaInList < ApplicationRecord
+    include SharedScopeMethods
     belongs_to :list
     belongs_to :media
 
