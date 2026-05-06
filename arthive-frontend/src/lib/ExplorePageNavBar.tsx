@@ -10,6 +10,7 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
             <img width={50} height={50} onClick={() => navigate("/")} src={user?.profilePicture ? user.profilePicture : "/default-ARTHIVE-pfp.png"} alt="Profile Picture" className="profile-picture" />
             <button onClick={() => navigate("/") } className={location.pathname === "/" ? "active" : ""}>Explore</button>
             {user && <button onClick={() => navigate(`/${user.id}/all_reviews`)} className={location.pathname === `/${user.id}/all_reviews` ? "active" : ""}>All Reviews</button>}
+            {user && <button onClick={() => navigate(`/${user.id}/all_lists`)} className={location.pathname === `/${user.id}/all_lists` ? "active" : ""}>All Lists</button>}
             {user?.ifAdmin && <button onClick={() => navigate("/admin")} className={location.pathname === "/admin" ? "active" : ""}>Admin Panel</button>}
         </nav>
         <Outlet/>

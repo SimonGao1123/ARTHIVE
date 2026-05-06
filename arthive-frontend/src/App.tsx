@@ -23,6 +23,8 @@ import ReviewPage from './pages/ReviewPage'
 import UserProfilePage from './pages/UserProfilePage'
 import UserFollowDetails from './pages/UserFollowDetails'
 import EditUserProfile from './pages/EditUserProfile'
+import AllUserListsPage from './pages/AllUserListsPage'
+import CreateList from './pages/CreateList'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -60,6 +62,8 @@ function App() {
 
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
           <Route path="/:user_id/all_reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
+          <Route path="/:user_id/all_lists" element={<AllUserListsPage setUser={setUser}/>} />
+
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
@@ -68,6 +72,7 @@ function App() {
           <Route path="/profile/:follow_type/:id" element={<UserFollowDetails setUser={setUser} user={user}/>} />
 
           <Route path={`/edit_profile/${user?.id}`} element={<EditUserProfile setUser={setUser} user={user}/>} />
+          <Route path="/create_list" element={<CreateList setUser={setUser}/>} />
         </Route>
 
         
