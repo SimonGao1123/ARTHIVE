@@ -3,8 +3,8 @@ import type { AllReview, ReviewPage } from "../review_type"
 import type { UserReview } from "../review_type"
 
 export const OBTAIN_ALL_USER_REVIEWS_QUERY = gql`
-    query ObtainAllUserReviews($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!) {
-        obtainAllUserReviews(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType) {
+    query ObtainAllUserReviews($userId: ID!, $contentType: String, $pageNum: Int, $limit: Int, $query: String) {
+        obtainAllUserReviews(userId: $userId, contentType: $contentType, pageNum: $pageNum, limit: $limit, query: $query) {
             reviews {
                 id
                 content
@@ -28,8 +28,11 @@ export const OBTAIN_ALL_USER_REVIEWS_QUERY = gql`
             }
             user {
                 id
-                username
-                
+                username   
+            }
+            pageInfo {
+                totalPages
+                totalCount
             }
         }
     }
@@ -42,14 +45,18 @@ export type ObtainAllUserReviewsResponse = {
             id: string
             username: string
         }
+        pageInfo: {
+            totalPages: number
+            totalCount: number
+        }
     }
-    
 }
 export type ObtainAllUserReviewsInput = {
     userId: string
+    contentType: "book" | "film" | "series" | "game" | "all"
     pageNum: number
     limit: number
-    contentType: "book" | "film" | "series" | "game" | "all"
+    query: string | null
 }
 
 export const OBTAIN_USER_REVIEW_QUERY = gql`

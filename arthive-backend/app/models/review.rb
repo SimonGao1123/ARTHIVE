@@ -69,4 +69,10 @@ class Review < ApplicationRecord
             end
         end
     end         
+
+    scope :query_filter, ->(query) {
+        if query.present?
+            where("content ILIKE ?", "%#{query}%")
+        end
+    }
 end

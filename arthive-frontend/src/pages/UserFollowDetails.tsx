@@ -51,7 +51,7 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
             <p>=====================================================</p>
             <div>
                 {followsData.map((follow) => (
-                    <UserFollowCard key={follow.id} follow={follow} follow_type={follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows"} setUser={setUser} id={id as string} setFollowsData={setFollowsData} setCount={setCount} />
+                    <UserFollowCard key={follow.id} user={user} follow={follow} follow_type={follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows"} setUser={setUser} id={id as string} setFollowsData={setFollowsData} setCount={setCount} />
                 ))}
             </div>
 
@@ -61,6 +61,7 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
 }
 
 type UserFollowCardProps = {
+    user: User | null
     follow: FollowData
     follow_type: "followers" | "following" | "pending_sent_follows" | "pending_received_follows"
     setUser: (user: User | null) => void
@@ -68,7 +69,7 @@ type UserFollowCardProps = {
     setFollowsData: (followsData: FollowData[]) => void
     setCount: (count: number) => void
 }
-export function UserFollowCard({follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
+export function UserFollowCard({user, follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
     const [currFollowStatus, setCurrFollowStatus] = useState<{id: string, status: string} | null>({id: follow.id, status: follow.status})
 
     useEffect(() => {
@@ -114,7 +115,7 @@ export function UserFollowCard({follow, follow_type, setUser, id, setFollowsData
             <img width={50} height={50} src={follow.sender?.profilePicture || follow.receiver?.profilePicture || "/default-ARTHIVE-pfp.png"} alt={follow.sender?.username || follow.receiver?.username} />
             <div>{currFollowStatus?.status ?? "No status"}</div>
             <div>{follow.updatedAt}</div>
-            <FollowManipulationButton />
+            {Number(user?.id) === Number(id) ? <FollowManipulationButton /> : <></>}
             <p>=====================================================</p>
         </div>
     )

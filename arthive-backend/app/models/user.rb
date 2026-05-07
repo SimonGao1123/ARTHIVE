@@ -38,15 +38,7 @@ class User < ApplicationRecord
             self.reviews.includes(:review_comments, :review_likes).where(media: { content_type: content_type })
         end
     end
-    def all_user_reviews(content_type, page_num, limit)
-        begin
-            reviews = self.content_type_reviews(content_type).includes(:media).recent.page(page_num, limit)
-            return reviews.to_a # returns a paginated list of reviews
-        rescue ActiveRecord::RecordNotFound
-            return [] # returns an empty array if no reviews are found
-        end
-    end
-
+    
     def content_type_lists(content_type)
         if content_type == "all"
             self.lists.includes(media_in_lists: :media)
