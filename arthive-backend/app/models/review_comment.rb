@@ -7,4 +7,9 @@ class ReviewComment < ApplicationRecord
     validates :review_id, presence: true
     validates :user_id, presence: true
 
+    scope :query_filter, ->(query) {
+        if query.present?
+            where("comment ILIKE ?", "%#{query}%")
+        end
+    }
 end

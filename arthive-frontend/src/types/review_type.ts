@@ -90,5 +90,13 @@ export type ReviewComment = {
 
 export type ReviewPage = {
     review: MainReview
-    reviewComments: ReviewComment[]
+    reviewComments: {
+        edges: {
+            node: ReviewComment
+        }[]
+        pageInfo: {
+            hasNextPage: boolean
+            endCursor: string | null
+        }
+    }
 }

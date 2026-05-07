@@ -78,8 +78,8 @@ export type ObtainUserReviewInput = {
 }
 
 export const OBTAIN_REVIEW_PAGE_QUERY = gql`
-    query ObtainReviewPage($reviewId: ID!, $pageNum: Int!, $limit: Int!) {
-        obtainReviewPage(reviewId: $reviewId, pageNum: $pageNum, limit: $limit) {
+    query ObtainReviewPage($reviewId: ID!, $first: Int, $after: String, $query: String) {
+        obtainReviewPage(reviewId: $reviewId, query: $query) {
             review {
                 id
                 content
@@ -110,19 +110,26 @@ export const OBTAIN_REVIEW_PAGE_QUERY = gql`
             
             }
 
-            reviewComments {
-                id
-                comment
-                createdAt
+            reviewComments(first: $first, after: $after) {
+                edges {
+                    node {
+                        id
+                        comment
+                        createdAt
 
-                user {
-                    id
-                    username
-                    profilePicture
+                        user {
+                            id
+                            username
+                            profilePicture
+                        }
+                    }
+                }
+                
+                pageInfo {
+                    hasNextPage
+                    endCursor
                 }
             }
-            
-            
         }
     }
 `
@@ -132,6 +139,7 @@ export type ObtainReviewPageResponse = {
 }
 export type ObtainReviewPageInput = {
     reviewId: string
-    pageNum: number
-    limit: number
+    first: number
+    after: string | null
+    query: string | null
 }

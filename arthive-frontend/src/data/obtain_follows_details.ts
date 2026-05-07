@@ -6,7 +6,8 @@ const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT
 
 export function obtainFollowsDetailsFunction(
     userId: string,
-    pageNum: number,
+    setTotalPages: Dispatch<SetStateAction<number>>,
+    query: string,
     limit: number,
     type: "followers" | "following" | "pending_sent_follows" | "pending_received_follows",
     obtainFollowersQuery: any,
@@ -15,7 +16,7 @@ export function obtainFollowsDetailsFunction(
     setCount: Dispatch<SetStateAction<number>>,
     navigate: any,
     setUser: any,
-    setIfNextPage: Dispatch<SetStateAction<boolean>>,
+    pageNum: number,
 ) {
     obtainFollowersQuery({
         variables: {
@@ -23,17 +24,14 @@ export function obtainFollowsDetailsFunction(
             pageNum: pageNum,
             limit: limit,
             type: type,
+            query: query,
         },
     }).then((res: any) => {
-        const batch = res.data.obtainFollowerInfo.follows
-        if (batch.length < limit) {
-            setIfNextPage(false)
-        } else if (pageNum === 1) {
-            setIfNextPage(true)
-        }
-        setFollowsData((prev) => (pageNum === 1 ? batch : [...prev, ...batch]))
-        setUserData(res.data.obtainFollowerInfo.user)
-        setCount(res.data.obtainFollowerInfo.count)
+        const batch = res.data.obtainFollowerInfo
+        setFollowsData(batch.follows)
+        setUserData(batch.user)
+        setCount(batch.count)
+        setTotalPages(batch.pageInfo.totalPages)
     })
     .catch((error: any) => {
         console.log("error in obtainFollowsDetailsFunction", error.message)

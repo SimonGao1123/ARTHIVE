@@ -5,21 +5,21 @@ module Resolvers
         type Types::ReviewPageType, null: false
 
         argument :review_id, ID, required: true
+        argument :query, String, required: false, default_value: nil
 
-        # pagination for review comments
-        argument :page_num, Int, required: false, default_value: 1
-        argument :limit, Int, required: false, default_value: 10
-
-        def resolve(review_id:, page_num:, limit:)
+        def resolve(review_id:, query:)
             validate_user
 
-            begin
-                return Review.retrieve_review_page(review_id, page_num, limit, context[:current_user].id)
-            rescue ActiveRecord::RecordNotFound => e
-                raise GraphQL::ExecutionError, e.message
-            rescue ActiveRecord::RecordInvalid => e
-                raise GraphQL::ExecutionError, e.record.errors.full_messages.join(", ")
+            review = Review.includes(:review_comments, :review_likes, :user, :media).find_by(id: review_id)
+            if review.nil?
+                raise GraphQL::ExecutionError, "Review not found"
             end
+            
+            comments = review.review_comments.includes(:user).in_order_of(:user_id, [context[:current_user].id], filter: false).recent.query_filter(query)
+            return {
+                review: review,
+                review_comments: comments
+            }
         end
     end
 end

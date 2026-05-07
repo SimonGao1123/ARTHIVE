@@ -66,8 +66,8 @@ function App() {
 
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />
-          <Route path="/media/:prev_page/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
-          <Route path="/:prev_page/review_info/:id" element={<ReviewPage setUser={setUser}/>} />
+          <Route path="/media/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
+          <Route path="/review_info/:review_id" element={<ReviewPage setUser={setUser}/>} />
           <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
           <Route path="/profile/:follow_type/:id" element={<UserFollowDetails setUser={setUser} user={user}/>} />
 

@@ -1,5 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom"
-import { encodeReturnPath } from "./prevPageRouting"
+import { useNavigate } from "react-router-dom"
 import DisplayRating from "./DisplayRating"
 import { useMutation } from "@apollo/client/react"
 import { LIKE_REVIEW_MUTATION, type LikeReviewInput, type LikeReviewResponse } from "../types/mutations/like_review_mutation"
@@ -9,7 +8,6 @@ import { likeReviewFunction } from "../data/like_review"
 
 export default function ReviewCard({review, setUser}: {review: any, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
-    const location = useLocation()
 
     const [currLiked, setCurrLiked] = useState<boolean>(review.ifLiked)
     const [likeCount, setLikeCount] = useState<number>(review.likeCount)
@@ -36,7 +34,7 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                     {review.content && 
                     <>
                     <p onClick={() => likeReviewFunction(setCurrLiked, likeReview, review.id, setUser, navigate, setLikeCount)}>{likeCount} {loading ? "Loading..." : currLiked ? "❤️" : "🤍"}</p>
-                    <p onClick={() => navigate(`/${encodeReturnPath(location.pathname)}/review_info/${review.id}`)}>{review.commentCount} 💬</p>
+                    <p onClick={() => navigate(`/review_info/${review.id}`)}>{review.commentCount} 💬</p>
                     </>}
                     <p>======================================================</p>
         </div>

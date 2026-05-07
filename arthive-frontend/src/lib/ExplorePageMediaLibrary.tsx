@@ -38,7 +38,7 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
                 {error ? error.message : <></>}
             </div>
             {allMedia.map((media) => (
-                <MediaCard key={media.id} media={media} prev_page="explore" />
+                <MediaCard key={media.id} media={media} />
             ))}
             <button onClick={() => setPageNum(pageNum + 1)} disabled={!ifNextPage}>Next</button>
             <button onClick={() => setPageNum(pageNum - 1)} disabled={!ifPrevPage}>Previous</button>

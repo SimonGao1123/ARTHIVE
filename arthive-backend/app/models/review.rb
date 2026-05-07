@@ -23,19 +23,6 @@ class Review < ApplicationRecord
         end
     end
 
-    def self.retrieve_review_page(review_id, page_num, limit, user_id)
-        review = includes(:review_comments, :review_likes, :user, :media).find_by(id: review_id)
-        if review.present?
-            {
-                review: review,
-                review_comments: review.review_comments.page(page_num, limit).recent.in_order_of(:user_id, [user_id], filter: false),
-                review_likes: review.review_likes
-            }
-        else
-            return nil
-        end
-    end
-
     scope :sort_by_likes, -> {
         left_joins(:review_likes)
         .select("reviews.*, COUNT(review_likes.id) AS likes_count")

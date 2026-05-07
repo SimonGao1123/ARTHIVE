@@ -7,7 +7,7 @@ import type { Review } from "../types/review_type"
 import { obtainMediaReviewsFunction } from "../data/obtain_media_reviews"
 import ReviewCard from "../lib/ReviewCard"
 
-const LIMIT = 10
+const LIMIT = 2
 
 
 export default function MediaReviews({ setUser, id}: {setUser: (user: User | null) => void, id: string} ) {
@@ -16,7 +16,11 @@ export default function MediaReviews({ setUser, id}: {setUser: (user: User | nul
     // for updating the reviews when a user updates a review
 
     // the farthest page num loaded
-    const [pageNum, setPageNum] = useState(1)
+    const [cursor, setCursor] = useState<string | null>(null)
+    const [query, setQuery] = useState<string>("")
+    const [currQuery, setCurrQuery] = useState<string>("")
+
+    const [loadCount, setLoadCount] = useState(0)
     const [obtainMediaReviews, {error, loading}] = useLazyQuery<ObtainMediaReviewsResponse, ObtainMediaReviewsInput>(OBTAIN_MEDIA_REVIEWS_QUERY, {
         fetchPolicy: "no-cache",
     })
@@ -24,20 +28,28 @@ export default function MediaReviews({ setUser, id}: {setUser: (user: User | nul
     const [reviews, setReviews] = useState<Review[]>([])
     console.log(reviews)
     useEffect(() => {
-        obtainMediaReviewsFunction(Number(id), pageNum, LIMIT, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage)
-    }, [pageNum])
+        obtainMediaReviewsFunction(Number(id), cursor, setCursor, LIMIT, query, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage)
+    }, [loadCount])
+
+    useEffect(() => {
+        setCursor(null)
+        setReviews([])
+        setLoadCount(prev => prev + 1)
+    }, [query])
 
 
-    console.log(pageNum)
+    console.log(loadCount)
     return (
         <div>
             <p>{error?.message}</p>
             {loading ? <p>"Loading..."</p> : <></>}
             <h1>Media Reviews</h1>
+            <input type="text" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
+            <button disabled={query === currQuery} onClick={() => setQuery(currQuery)}>Search</button>
             {reviews.map((review) => (
                 <ReviewCard key={review.id} setUser={setUser} review={review} />
             ))}
-            {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
+            {ifNextPage && <button onClick={() => setLoadCount(loadCount + 1)}>Load More</button>}
         </div>
     )
 

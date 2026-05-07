@@ -72,22 +72,30 @@ export type ObtainMediaReviewsInput = {
 }
 
 export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
-    query ObtainMediaReviews($mediaId: Int!, $pageNum: Int!, $limit: Int!) {
-        obtainMediaReviews(mediaId: $mediaId, pageNum: $pageNum, limit: $limit) {
-            id
-            content
-            rating
-            ifFavorite
-            ifFinished
-            updatedAt
-            user {
-                id
-                username
-                profilePicture
+    query ObtainMediaReviews($mediaId: Int!, $query: String, $first: Int, $after: String) {
+        obtainMediaReviews(mediaId: $mediaId, query: $query, first: $first, after: $after) {
+            edges {
+                node {
+                    id
+                    content
+                    rating
+                    ifFavorite
+                    ifFinished
+                    updatedAt
+                    user {
+                        id
+                        username
+                        profilePicture
+                    }
+                    likeCount
+                    commentCount
+                    ifLiked
+                }
             }
-            likeCount
-            commentCount
-            ifLiked
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
         }
     }
 `;

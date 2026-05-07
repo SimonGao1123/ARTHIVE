@@ -6,13 +6,13 @@ import { useLazyQuery } from "@apollo/client/react"
 import { OBTAIN_INCOMING_FOLLOWS_QUERY, OBTAIN_OUTGOING_FOLLOWS_QUERY } from "../types/queries/obtain_followers_query"
 import { obtainFollowsDetailsFunction } from "../data/obtain_follows_details"
 import ManipulateFollowButton from "../lib/ManipulateFollowButton"
-
+import { NumberedPagination } from "../lib/NumberedPagination"
 type UserFollowDetailsProps = {
     setUser: (user: User | null) => void,
     user: User | null
 }
 
-const LIMIT = 1
+const LIMIT = 2
 const VALID_FOLLOW_TYPES = ["followers", "following", "pending_sent_follows", "pending_received_follows"]
 
 export default function UserFollowDetails({ setUser, user }: UserFollowDetailsProps) {
@@ -21,9 +21,13 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
     const [pageNum, setPageNum] = useState(1)
 
     const [followsData, setFollowsData] = useState<FollowData[]>([])
-    const [userData, setUserData] = useState<{id: string, username: string, profilePicture: string} | null>(null)
+    const [targetUserData, setTargetUserData] = useState<{id: string, username: string, profilePicture: string} | null>(null)
     const [count, setCount] = useState<number>(0)
-    const [ifNextPage, setIfNextPage] = useState(true)
+    const [totalPages, setTotalPages] = useState<number>(0)
+
+    const [query, setQuery] = useState<string>("")
+    const [currQuery, setCurrQuery] = useState<string>("")
+
 
     const [obtainFollowersQuery, {loading, error}] = useLazyQuery<ObtainFollowersResponse, ObtainFollowersInput>
     (follow_type === "followers" || follow_type === "pending_received_follows" ? OBTAIN_INCOMING_FOLLOWS_QUERY : OBTAIN_OUTGOING_FOLLOWS_QUERY)
@@ -33,21 +37,22 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
         if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) {
             navigate("/*")
         }
-        obtainFollowsDetailsFunction(id as string, pageNum, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setUserData, setCount, navigate, setUser, setIfNextPage)
+        obtainFollowsDetailsFunction(id as string, setTotalPages, query, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setTargetUserData, setCount, navigate, setUser, pageNum)
 
-    }, [pageNum])
+    }, [pageNum, query])
 
     console.log("followsData", followsData)
-    console.log("userData", userData)
+    console.log("targetUserData", targetUserData)
     console.log("count", count)
-    console.log("ifNextPage", ifNextPage)
     return (
         <div>
             {loading ? <div>Loading...</div> : <></>}
             {error ? <div>Error: {error.message}</div> : <></>}
             
-            <h2>{userData?.username}'s {follow_type} - ({count})</h2>
+            <h2>{targetUserData?.username}'s {follow_type} - ({count})</h2>
 
+            <input type="text" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
+            <button disabled={query === currQuery} onClick={() => setQuery(currQuery)}>Search</button>
             <p>=====================================================</p>
             <div>
                 {followsData.map((follow) => (
@@ -55,7 +60,7 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
                 ))}
             </div>
 
-            {ifNextPage && <button onClick={() => setPageNum((prev: number) => prev + 1)}>Load More</button>}
+            <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>
     )
 }

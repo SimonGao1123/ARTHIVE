@@ -63,67 +63,60 @@ class User < ApplicationRecord
     end
 
 
-    def get_followers(page_num, limit)
-        self.received_follows.where(status: Follow::STATUSES[:accepted]).includes(:sender).page(page_num, limit).recent
+    def get_followers()
+        self.received_follows.where(status: Follow::STATUSES[:accepted]).includes(:sender)
     end
-    def get_following(page_num, limit)
-        self.sent_follows.where(status: Follow::STATUSES[:accepted]).includes(:receiver).page(page_num, limit).recent
+    def get_following()
+        self.sent_follows.where(status: Follow::STATUSES[:accepted]).includes(:receiver)
     end
 
-    def get_pending_sent_follows(page_num, limit)
-        self.sent_follows.where(status: Follow::STATUSES[:pending]).includes(:receiver).page(page_num, limit).recent
+    def get_pending_sent_follows()
+        self.sent_follows.where(status: Follow::STATUSES[:pending]).includes(:receiver)
     end
-    def get_pending_received_follows(page_num, limit)
-        self.received_follows.where(status: Follow::STATUSES[:pending]).includes(:sender).page(page_num, limit).recent
+    def get_pending_received_follows()
+        self.received_follows.where(status: Follow::STATUSES[:pending]).includes(:sender)
     end
+    
 
 
     # for specific follwer pages
-    def self.obtain_follower_info(current_user_id, user_id, page_num, limit, type)
+    def self.obtain_follower_info(current_user_id, user, type, query)
 
-        user = User.find_by(id: user_id)
-        if user.nil?
-            raise GraphQL::ExecutionError, "User not found"
-        end
-
-        if !User.if_visible_to_user(current_user_id, user_id)
+        if !User.if_visible_to_user(current_user_id, user.id)
             raise GraphQL::ExecutionError, "You are not allowed to view this user's followers"
         end
 
+        follows = []
+        count = 0
         case type
         when "followers"
-            {
-                user: user,
-                follows: user.get_followers(page_num, limit),
-                count: user.followers_count
-            }
+            follows = user.get_followers
+            count = user.followers_count
         when "following"
-            {
-                user: user,
-                follows: user.get_following(page_num, limit),
-                count: user.following_count
-            }
+            follows = user.get_following
+            count = user.following_count
         when "pending_sent_follows"
-            if current_user_id.to_i != user_id.to_i
+            if current_user_id.to_i != user.id.to_i
                 raise GraphQL::ExecutionError, "You are not the user"
             end
-            {
-                user: user,
-                follows: user.get_pending_sent_follows(page_num, limit),
-                count: user.pending_sent_follows_count
-            }
+            follows = user.get_pending_sent_follows
+            count = user.pending_sent_follows_count
         when "pending_received_follows"
-            if current_user_id.to_i != user_id.to_i
+            if current_user_id.to_i != user.id.to_i
                 raise GraphQL::ExecutionError, "You are not the user"
             end
-            {
-                user: user,
-                follows: user.get_pending_received_follows(page_num, limit),
-                count: user.pending_received_follows_count
-            }
+            follows = user.get_pending_received_follows
+            count = user.pending_received_follows_count
         else
             raise GraphQL::ExecutionError, "Invalid follow type"
         end
+
+        follows = follows.query_filter(query).recent
+
+        return {
+            follows: follows,
+            count: count
+        }
     end
 
     def get_finished_count(content_type)

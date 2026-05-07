@@ -88,6 +88,15 @@ class Follow < ApplicationRecord
         self.update!(status: STATUSES[:rejected])
     end
     
+    scope :query_filter, ->(query) {
+        if query.present?
+            joins("INNER JOIN users AS sender ON sender.id = follows.sender_id")
+            .joins("INNER JOIN users AS receiver ON receiver.id = follows.receiver_id")
+            .where("sender.username ILIKE ? OR receiver.username ILIKE ?", "%#{query}%", "%#{query}%")
+        end
+    }
+
+    
     def self.manipulate_follow(user_id, follow_id, manipulation)
         follow = Follow.find_by(id: follow_id)
         if follow.blank?

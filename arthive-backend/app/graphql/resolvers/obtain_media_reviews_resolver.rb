@@ -1,15 +1,23 @@
 module Resolvers
     class ObtainMediaReviewsResolver < BaseResolver
-        type [Types::ReviewType], null: false
+        type Types::ReviewType.connection_type, null: false
 
         argument :media_id, Int, required: true
-        argument :page_num, Int, required: false, default_value: 1
-        argument :limit, Int, required: false, default_value: 10
+        argument :query, String, required: false, default_value: null
 
-        def resolve(media_id:, page_num:, limit:)
+        def resolve(media_id:, query:)
             validate_user
 
-            reviews = Media.media_reviews_page(media_id, page_num, limit, context[:current_user].id)
+            media = Media.find_by(id: media_id)
+            if media.nil?
+                raise GraphQL::ExecutionError, "Media not found"
+            end
+
+            reviews = media.reviews.where.not(content: [nil, ""]).includes(:user)
+            .in_order_of(:user_id, [context[:current_user].id], filter: false)
+            .sort_by_likes
+            .query_filter(query)
+
             return reviews
         end
     end

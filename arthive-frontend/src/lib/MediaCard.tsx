@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom"
 
-export function MediaCard ({media, prev_page} : {media: {id: number, coverImage: string}, prev_page: string}) {
+export function MediaCard ({media} : {media: {id: number, coverImage: string}}) {
     const navigate = useNavigate()
     return (
-        <img onClick={() => navigate(`/media/${prev_page}/${media.id}`)} height={250} width={200} src={media.coverImage} alt={`Cover image for media ${media.id}`} />
+        <img onClick={() => navigate(`/media/${media.id}`)} height={250} width={200} src={media.coverImage} alt={`Cover image for media ${media.id}`} />
     )
     
 }
