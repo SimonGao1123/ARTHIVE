@@ -4,7 +4,7 @@ module Types
 
         field :user, Types::UserType, null: true
         field :follows, [Types::FollowType], null: true
-        field :page_info, Types::PageInfoType, null: true
+        field :page_info, Types::OffsetPageInfoType, null: true
         field :count, Int, null: true
     end
 end

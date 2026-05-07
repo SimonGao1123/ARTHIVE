@@ -6,4 +6,11 @@ class MediaInList < ApplicationRecord
     validates :list_id, uniqueness: { scope: :media_id }
     validates :media_id, presence: true
     validates :list_id, presence: true  
+
+    scope :query_filter, -> (query) {
+        if query.present?
+            joins(:media)
+            .where("media.title ILIKE ? OR media.description ILIKE ?", "%#{query}%", "%#{query}%")
+        end
+    }
 end
