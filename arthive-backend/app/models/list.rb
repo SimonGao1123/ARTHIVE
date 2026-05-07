@@ -21,5 +21,11 @@ class List < ApplicationRecord
         end
     end
     public
+
+    scope :query_filter, ->(query) {
+        if query.present?
+            where("name ILIKE ?", "%#{query}%")
+        end
+    }
     
 end

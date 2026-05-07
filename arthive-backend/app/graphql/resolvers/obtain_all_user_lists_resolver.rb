@@ -6,30 +6,38 @@ module Resolvers
         argument :page_num, Int, required: false, default_value: 1
         argument :limit, Int, required: false, default_value: 10
         argument :content_type, String, required: false, default_value: "all"
+        argument :query, String, required: false, default_value: null
+        def resolve(user_id:, page_num:, limit:, content_type:, query:)
+            validate_user
 
-    def resolve(user_id:, page_num:, limit:, content_type:)
-        validate_user
+            if !User.if_visible_to_user(context[:current_user].id.to_i, user_id.to_i)
+                raise GraphQL::ExecutionError, "You are not allowed to access this user's lists"
+            end
 
-        if !User.if_visible_to_user(context[:current_user].id.to_i, user_id.to_i)
-            raise GraphQL::ExecutionError, "You are not allowed to access this user's lists"
+            user = User.find_by(id: user_id)
+
+            if !user.present?
+                raise GraphQL::ExecutionError, "User #{user_id} not found"
+            end
+
+            lists = user.content_type_lists(content_type).query_filter(query).recent
+
+            # hide private lists
+            if user_id.to_i != context[:current_user].id.to_i
+                lists = lists.where(if_private: false)
+            end
+            total_count = lists.count
+            total_pages = (total_count.to_f / limit).ceil
+
+            lists = lists.page(page_num, limit)
+            return {
+                lists: lists,
+                user: user,
+                page_info: {
+                    total_pages: total_pages,
+                    total_count: total_count
+                }
+            }
         end
-
-        user = User.find_by(id: user_id)
-
-        if !user.present?
-            raise GraphQL::ExecutionError, "User #{user_id} not found"
-        end
-
-        begin
-            lists = user.all_user_lists(context[:current_user].id.to_i, user_id.to_i, content_type, page_num, limit)
-            return { lists: lists, user: user } # returns a list of lists
-        rescue ActiveRecord::RecordNotFound
-            return { lists: [], user: user } # returns an empty array if user has no lists
-        end
-    rescue ActiveRecord::RecordNotFound => e
-        raise GraphQL::ExecutionError, e.message
-    rescue GraphQL::ExecutionError => e
-        raise GraphQL::ExecutionError, e.message
-    end
     end
 end

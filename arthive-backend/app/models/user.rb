@@ -46,17 +46,6 @@ class User < ApplicationRecord
             self.lists.where("content_type @> ARRAY[?]::varchar[]", [content_type]).includes(media_in_lists: :media)
         end
     end
-    def all_user_lists(current_user_id, target_user_id, content_type, page_num, limit)
-        begin
-            lists = self.content_type_lists(content_type).recent
-            if current_user_id.to_i != target_user_id.to_i
-                lists = lists.where(if_private: false)
-            end
-            return lists.page(page_num, limit).to_a # returns a paginated list of lists
-        rescue ActiveRecord::RecordNotFound
-            return [] # returns an empty array if no lists are found
-        end
-    end
     
     def followers_count
         self.received_follows.where(status: Follow::STATUSES[:accepted]).count

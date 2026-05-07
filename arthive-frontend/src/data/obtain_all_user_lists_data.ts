@@ -7,14 +7,16 @@ const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT
 export function obtainAllUserListsData(
     user_id: string,
     contentType: "book" | "film" | "series" | "game" | "all",
-    pageNum: number,
+    query: string,
+    setTotalPages: Dispatch<SetStateAction<number>>,
     limit: number,
     obtainAllUserLists: any,
     setLists: Dispatch<SetStateAction<AllUserListType[]>>,
     setTargetUser: Dispatch<SetStateAction<User | null>>,
     navigate: any,
     setUser: any,
-    setIfNextPage: Dispatch<SetStateAction<boolean>>) {
+    pageNum: number,
+    ) {
     
     obtainAllUserLists({
         variables: {
@@ -22,18 +24,12 @@ export function obtainAllUserListsData(
             contentType: contentType,
             pageNum: pageNum,
             limit: limit,
+            query: query === "" ? null : query,
         },
     }).then((res: any) => {
         const batch = res.data.obtainAllUserLists
-        if (batch.lists.length < limit) {
-            setIfNextPage(false)
-        } else if (pageNum === 1) {
-            setIfNextPage(true)
-        }
-
-        setLists((prevLists) =>
-            pageNum === 1 ? batch.lists : [...prevLists, ...batch.lists]
-        )
+        setLists(batch.lists)
+        setTotalPages(batch.pageInfo.totalPages)
         setTargetUser(batch.user)
     }).catch((err: any) => {
         if (unauth_messages.includes(err.message)) {

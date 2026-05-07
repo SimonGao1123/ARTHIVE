@@ -7,17 +7,26 @@ import { OBTAIN_ALL_USER_LISTS_QUERY } from "../types/queries/lists_request_quer
 import { useLazyQuery } from "@apollo/client/react"
 import { obtainAllUserListsData } from "../data/obtain_all_user_lists_data"
 import ContentFilter from "../lib/ContentFilter"
+import { NumberedPagination } from "../lib/NumberedPagination"
 const LIMIT = 2
 export default function AllUserListsPage({setUser}: {setUser: (user: User | null) => void}) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
+    if (!user_id) {
+        navigate("/")
+        return
+    }
+
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageNum, setPageNum] = useState(1)
-    const [ifNextPage, setIfNextPage] = useState(true)
 
     const [lists, setLists] = useState<AllUserListType[]>([])
     const [targetUser, setTargetUser] = useState<User | null>(null)
+
+    const [query, setQuery] = useState<string>("")
+    const [currQuery, setCurrQuery] = useState<string>("")
+    const [totalPages, setTotalPages] = useState<number>(0)
 
     const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "game" | "all") => {
         if (nextContentType === contentType) {
@@ -25,7 +34,6 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
         }
         setLists([])
         setPageNum(1)
-        setIfNextPage(true)
         setContentType(nextContentType)
     }
 
@@ -35,8 +43,8 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
             navigate("/")
             return
         }
-        obtainAllUserListsData(user_id, contentType, pageNum, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, setIfNextPage)
-    }, [contentType, pageNum])
+        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum)
+    }, [contentType, pageNum, query])
 
     return (
         <div>
@@ -44,12 +52,14 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
             {error && <div>Error: {error.message}</div>}
             {targetUser && <h1>{targetUser.username}'s Lists</h1>}
             <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
+            <input type="text" placeholder="Search" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
+            <button disabled={currQuery === query} onClick={() => setQuery(currQuery)}>Search</button>
             {lists && lists.map((list) => {
                 return (
                     <ListCard key={list.id} list={list}/>
                 )
             })}
-            {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
+            <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>
     )
 }
@@ -74,6 +84,7 @@ function ListCard({list}: {list: AllUserListType}) {
                     )
                 })
             }
+        <p>============================================</p>
         </div>
     )
 }
