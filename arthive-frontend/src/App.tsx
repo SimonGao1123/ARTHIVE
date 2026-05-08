@@ -25,6 +25,7 @@ import UserFollowDetails from './pages/UserFollowDetails'
 import EditUserProfile from './pages/EditUserProfile'
 import AllUserListsPage from './pages/AllUserListsPage'
 import CreateList from './pages/CreateList'
+import ListPage from './pages/ListPage'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -73,6 +74,8 @@ function App() {
 
           <Route path={`/edit_profile/${user?.id}`} element={<EditUserProfile setUser={setUser} user={user}/>} />
           <Route path="/create_list" element={<CreateList setUser={setUser}/>} />
+
+          <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
         </Route>
 
         

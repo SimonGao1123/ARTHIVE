@@ -10,7 +10,7 @@ class MediaInList < ApplicationRecord
     scope :query_filter, -> (query) {
         if query.present?
             joins(:media)
-            .where("media.title ILIKE ? OR media.description ILIKE ?", "%#{query}%", "%#{query}%")
+            .where("media.title ILIKE ? OR media.summary ILIKE ?", "%#{query}%", "%#{query}%")
         end
     }
 end

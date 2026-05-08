@@ -76,7 +76,7 @@ type UserFollowCardProps = {
 }
 export function UserFollowCard({user, follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
     const [currFollowStatus, setCurrFollowStatus] = useState<{id: string, status: string} | null>({id: follow.id, status: follow.status})
-
+    const navigate = useNavigate()
     useEffect(() => {
         if (currFollowStatus?.status === "accepted" && (follow_type === "following" || follow_type === "followers")) {
             return
@@ -111,13 +111,12 @@ export function UserFollowCard({user, follow, follow_type, setUser, id, setFollo
     return (
         <div>
             {follow.sender ? 
-            <div>{follow.sender.username}</div> 
+            <div onClick={() => navigate(`/profile/${follow.sender?.id}`)}>{follow.sender?.username}</div> 
             
             : 
-            <div>{follow.receiver?.username}</div>
-            
+            <div onClick={() => navigate(`/profile/${follow.receiver?.id}`)}>{follow.receiver?.username}</div>
             }
-            <img width={50} height={50} src={follow.sender?.profilePicture || follow.receiver?.profilePicture || "/default-ARTHIVE-pfp.png"} alt={follow.sender?.username || follow.receiver?.username} />
+            <img width={50} height={50} src={follow.sender?.profilePicture ? follow.sender?.profilePicture : follow.receiver?.profilePicture ? follow.receiver?.profilePicture : "/default-ARTHIVE-pfp.png"} alt={follow.sender?.username ? follow.sender?.username : follow.receiver?.username ? follow.receiver?.username : "Profile Picture"} />
             <div>{currFollowStatus?.status ?? "No status"}</div>
             <div>{follow.updatedAt}</div>
             {Number(user?.id) === Number(id) ? <FollowManipulationButton /> : <></>}

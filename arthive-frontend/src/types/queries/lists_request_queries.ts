@@ -74,3 +74,84 @@ export type ObtainAllUserListsResponse = {
         }
     }
 }
+
+export const OBTAIN_LIST_PAGE_QUERY = gql`
+    query ObtainListPage($listId: ID!, $pageNum: Int!, $limit: Int!, $query: String) {
+        obtainListPage(listId: $listId, pageNum: $pageNum, limit: $limit, query: $query) {
+            list {
+                id
+                name
+                description
+                contentType
+                ifPrivate
+                tags
+                createdAt
+                updatedAt
+            }
+            mediaInLists {
+                media {
+                    id
+                    coverImage
+                    title
+                }
+            }
+            user {
+                id
+                username
+                email
+                profilePicture
+                ifAdmin
+                description
+                visibility
+            }
+            
+            pageInfo {
+                totalPages
+                totalCount
+            }
+        }
+    }
+`
+
+export type ObtainListPageInput = {
+    listId: string,
+    pageNum: number,
+    limit: number,
+    query: string | null
+}
+export type ObtainListPageResponse = {
+    obtainListPage: {
+        list: {
+            id: string,
+            name: string,
+            description: string | null,
+            contentType: string[],
+            ifPrivate: boolean,
+            tags: string[],
+            createdAt: string,
+            updatedAt: string,
+        }
+        mediaInLists: {
+            media: {
+                id: string,
+                coverImage: string | null,
+                title: string,
+            }
+        } []
+        user: User,
+        pageInfo: {
+            totalPages: number,
+            totalCount: number,
+        }
+    }
+}
+export type ListType = {
+    id: string,
+    name: string,
+    description: string | null,
+    contentType: string[],
+    ifPrivate: boolean,
+    tags: string[],
+    createdAt: string,
+    updatedAt: string,
+}

@@ -65,9 +65,10 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
 }
 
 function ListCard({list}: {list: AllUserListType}) {
+    const navigate = useNavigate();
     return (
         <div>
-            <h2>{list.name}</h2>
+            <h2 onClick={() => navigate(`/list/${list.id}`)}>{list.name}</h2>
             <p>{list.description || "No description"}</p>
             <p>Content Type: {list.contentType.join(", ")}</p>
             <p>{list.ifPrivate ? "Private" : "Public"}</p>

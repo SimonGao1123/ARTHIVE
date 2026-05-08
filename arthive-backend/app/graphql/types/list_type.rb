@@ -9,5 +9,15 @@ module Types
         field :created_at, GraphQL::Types::ISO8601DateTime, null: false
         field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
         field :user, Types::UserType, null: false
+        
+        field :media_in_lists, [Types::MediaInListType], null: false do
+            argument :page_num, Integer, required: false, default_value: 1
+            argument :limit, Integer, required: false, default_value: 10
+        end
+
+        def media_in_lists (page_num:, limit:)
+            object.media_in_lists.includes(:media).recent.page(page_num, limit)
+        end
+
     end
 end

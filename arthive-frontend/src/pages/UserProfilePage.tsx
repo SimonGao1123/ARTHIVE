@@ -42,10 +42,10 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
             <img width={50} height={50} src={userProfileData?.user?.profilePicture ? userProfileData?.user?.profilePicture : "/default-ARTHIVE-pfp.png"} alt="Profile Picture" className="profile-picture" />
             <h1>{userProfileData?.user?.username} 's Profile - {userProfileData?.user?.visibility === "public" ? "Public" : "Private"}</h1>
             {userProfileData?.user?.description ? <p>Description: {userProfileData?.user?.description}</p> : <></>}
-            <p>Followers: {userProfileData?.user?.followersCount}</p>
-            <p>Following: {userProfileData?.user?.followingCount}</p>
-            {userProfileData?.user?.pendingSentFollowsCount !== null ? <p>Pending Sent Follows: {userProfileData?.user?.pendingSentFollowsCount}</p> : <></>}
-            {userProfileData?.user?.pendingReceivedFollowsCount !== null ? <p>Pending Received Follows: {userProfileData?.user?.pendingReceivedFollowsCount}</p> : <></>}
+            <p onClick={() => navigate(`/profile/followers/${id}`)}>Followers: {userProfileData?.user?.followersCount}</p>
+            <p onClick={() => navigate(`/profile/following/${id}`)}>Following: {userProfileData?.user?.followingCount}</p>
+            {userProfileData?.user?.pendingSentFollowsCount !== null ? <p onClick={() => navigate(`/profile/pending_sent_follows/${id}`)}>Pending Sent Follows: {userProfileData?.user?.pendingSentFollowsCount}</p> : <></>}
+            {userProfileData?.user?.pendingReceivedFollowsCount !== null ? <p onClick={() => navigate(`/profile/pending_received_follows/${id}`)}>Pending Received Follows: {userProfileData?.user?.pendingReceivedFollowsCount}</p> : <></>}
             <p>Visibility: {userProfileData?.isVisibleToUser ? "Can View" : "Private"}</p>
             
             {
