@@ -10,11 +10,7 @@ module Resolvers
 
         argument :search_filter, [Types::SearchFilterInput], required: false
 
-        # pagination
-        argument :page_num, Int, required: true
-        argument :limit, Int, required: true
-
-        def resolve(query:, search_type:, search_filter: nil, page_num:, limit:)
+        def resolve(query:, search_type:, search_filter: nil)
             validate_user
 
             results = {}
@@ -25,9 +21,9 @@ module Resolvers
 
             case search_type
             when "media"
-                medias = Media.search(query: query, search_filter: search_filter, page_num: page_num, limit: limit).to_a
+                medias = Media.search(query: query, search_filter: search_filter)
             when "user"
-                users = User.search(query: query, page_num: page_num, limit: limit, current_user_id: context[:current_user].id).to_a
+                users = User.search(query: query, current_user_id: context[:current_user].id)
             end
 
             results[:medias] = medias

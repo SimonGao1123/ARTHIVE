@@ -21,7 +21,7 @@ module Resolvers
                 raise GraphQL::ExecutionError, "List #{list_id} not found"
             end
 
-            if !User.if_visible_to_user(context[:current_user].id.to_i, list.user.id.to_i)
+            if !User.if_visible_to_user(context[:current_user].id.to_i, user.id.to_i)
                 raise GraphQL::ExecutionError, "You are not allowed to access this list"
             end
 

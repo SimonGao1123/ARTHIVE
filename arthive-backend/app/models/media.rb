@@ -65,19 +65,21 @@ class Media < ApplicationRecord
         type == "all" ? all : where(content_type: type)
     }
 
-    def self.search(query:, search_filter:, page_num:, limit:)
+    def self.search(query:, search_filter:)
         base_search = Media.query_filter(query)
 
-        search_filter.each do |filter|
-            normalized_values = Array(filter.values).map(&:downcase)
-            case filter.filter
-                when "content_type"
-                    base_search = base_search.content_type_filter(normalized_values)
-                when "genre"
-                    base_search = base_search.genre_filter(normalized_values)
-                end
+        if search_filter.present?
+            search_filter.each do |filter|
+                normalized_values = Array(filter.values).map(&:downcase)
+                case filter.filter
+                    when "content_type"
+                        base_search = base_search.content_type_filter(normalized_values)
+                    when "genre"
+                        base_search = base_search.genre_filter(normalized_values)
+                    end
+            end
         end
 
-        return base_search.page(page_num, limit)
+        return base_search
     end
 end

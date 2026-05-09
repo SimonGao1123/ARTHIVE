@@ -4,11 +4,11 @@ module Mutations
 
         argument :name, String, required: true
         argument :if_private, Boolean, required: true
-        argument :tags, [String], required: true
+        argument :tags, [String], required: false
         argument :description, String, required: false
         argument :added_media_ids, [ID], required: false
 
-        def resolve(name:, if_private:, tags:, description: nil, added_media_ids: nil)
+        def resolve(name:, if_private:, tags: [], description: nil, added_media_ids: nil)
             validate_user
 
             list = List.new(

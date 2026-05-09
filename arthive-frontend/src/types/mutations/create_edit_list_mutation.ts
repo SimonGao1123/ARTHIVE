@@ -1,6 +1,6 @@
 import {gql} from "@apollo/client"
 
-const CREATE_LIST_MUTATION = gql`
+export const CREATE_LIST_MUTATION = gql`
     mutation CreateList($input: CreateListInput!) {
         createList(input: $input) {
             id
@@ -16,9 +16,9 @@ const CREATE_LIST_MUTATION = gql`
 export type CreateListInput = {
     name: string,
     ifPrivate: boolean,
-    tags: string[],
+    tags: string[] | null,
     description: string | null,
-    addedMediaIds: string[]
+    addedMediaIds: string[] | null
 }
 export type CreateListResponse = {
     createList: {
@@ -27,6 +27,7 @@ export type CreateListResponse = {
         description: string | null,
         contentType: string[],
         ifPrivate: boolean,
-        tags: string[]
+        tags: string[] | null
     }
 }
+

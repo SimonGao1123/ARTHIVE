@@ -178,11 +178,11 @@ class User < ApplicationRecord
     scope :query_filter, -> (query) {   
         where('username ILIKE ?', "%#{query}%")
     }
-    def self.search(query:, page_num:, limit:, current_user_id:)
+    def self.search(query:, current_user_id:)
         base_search = User.query_filter(query)
 
-        base_search.filter { |user| User.if_visible_to_user(current_user_id, user.id)}
+        base_search = base_search.filter { |user| User.if_visible_to_user(current_user_id, user.id)}
 
-        return base_search.page(page_num, limit)
+        return base_search
     end
 end
