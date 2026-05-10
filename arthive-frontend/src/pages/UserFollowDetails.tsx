@@ -6,13 +6,13 @@ import { useLazyQuery } from "@apollo/client/react"
 import { OBTAIN_INCOMING_FOLLOWS_QUERY, OBTAIN_OUTGOING_FOLLOWS_QUERY } from "../types/queries/obtain_followers_query"
 import { obtainFollowsDetailsFunction } from "../data/obtain_follows_details"
 import ManipulateFollowButton from "../lib/ManipulateFollowButton"
-
+import { NumberedPagination } from "../lib/NumberedPagination"
 type UserFollowDetailsProps = {
     setUser: (user: User | null) => void,
     user: User | null
 }
 
-const LIMIT = 1
+const LIMIT = 2
 const VALID_FOLLOW_TYPES = ["followers", "following", "pending_sent_follows", "pending_received_follows"]
 
 export default function UserFollowDetails({ setUser, user }: UserFollowDetailsProps) {
@@ -21,9 +21,13 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
     const [pageNum, setPageNum] = useState(1)
 
     const [followsData, setFollowsData] = useState<FollowData[]>([])
-    const [userData, setUserData] = useState<{id: string, username: string, profilePicture: string} | null>(null)
+    const [targetUserData, setTargetUserData] = useState<{id: string, username: string, profilePicture: string} | null>(null)
     const [count, setCount] = useState<number>(0)
-    const [ifNextPage, setIfNextPage] = useState(true)
+    const [totalPages, setTotalPages] = useState<number>(0)
+
+    const [query, setQuery] = useState<string>("")
+    const [currQuery, setCurrQuery] = useState<string>("")
+
 
     const [obtainFollowersQuery, {loading, error}] = useLazyQuery<ObtainFollowersResponse, ObtainFollowersInput>
     (follow_type === "followers" || follow_type === "pending_received_follows" ? OBTAIN_INCOMING_FOLLOWS_QUERY : OBTAIN_OUTGOING_FOLLOWS_QUERY)
@@ -33,34 +37,36 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
         if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) {
             navigate("/*")
         }
-        obtainFollowsDetailsFunction(id as string, pageNum, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setUserData, setCount, navigate, setUser, setIfNextPage)
+        obtainFollowsDetailsFunction(id as string, setTotalPages, query, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setTargetUserData, setCount, navigate, setUser, pageNum)
 
-    }, [pageNum])
+    }, [pageNum, query])
 
     console.log("followsData", followsData)
-    console.log("userData", userData)
+    console.log("targetUserData", targetUserData)
     console.log("count", count)
-    console.log("ifNextPage", ifNextPage)
     return (
         <div>
             {loading ? <div>Loading...</div> : <></>}
             {error ? <div>Error: {error.message}</div> : <></>}
             
-            <h2>{userData?.username}'s {follow_type} - ({count})</h2>
+            <h2>{targetUserData?.username}'s {follow_type} - ({count})</h2>
 
+            <input type="text" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
+            <button disabled={query === currQuery} onClick={() => setQuery(currQuery)}>Search</button>
             <p>=====================================================</p>
             <div>
                 {followsData.map((follow) => (
-                    <UserFollowCard key={follow.id} follow={follow} follow_type={follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows"} setUser={setUser} id={id as string} setFollowsData={setFollowsData} setCount={setCount} />
+                    <UserFollowCard key={follow.id} user={user} follow={follow} follow_type={follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows"} setUser={setUser} id={id as string} setFollowsData={setFollowsData} setCount={setCount} />
                 ))}
             </div>
 
-            {ifNextPage && <button onClick={() => setPageNum((prev: number) => prev + 1)}>Load More</button>}
+            <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>
     )
 }
 
 type UserFollowCardProps = {
+    user: User | null
     follow: FollowData
     follow_type: "followers" | "following" | "pending_sent_follows" | "pending_received_follows"
     setUser: (user: User | null) => void
@@ -68,9 +74,9 @@ type UserFollowCardProps = {
     setFollowsData: (followsData: FollowData[]) => void
     setCount: (count: number) => void
 }
-export function UserFollowCard({follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
+export function UserFollowCard({user, follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
     const [currFollowStatus, setCurrFollowStatus] = useState<{id: string, status: string} | null>({id: follow.id, status: follow.status})
-
+    const navigate = useNavigate()
     useEffect(() => {
         if (currFollowStatus?.status === "accepted" && (follow_type === "following" || follow_type === "followers")) {
             return
@@ -105,16 +111,15 @@ export function UserFollowCard({follow, follow_type, setUser, id, setFollowsData
     return (
         <div>
             {follow.sender ? 
-            <div>{follow.sender.username}</div> 
+            <div onClick={() => navigate(`/profile/${follow.sender?.id}`)}>{follow.sender?.username}</div> 
             
             : 
-            <div>{follow.receiver?.username}</div>
-            
+            <div onClick={() => navigate(`/profile/${follow.receiver?.id}`)}>{follow.receiver?.username}</div>
             }
-            <img width={50} height={50} src={follow.sender?.profilePicture || follow.receiver?.profilePicture || "/default-ARTHIVE-pfp.png"} alt={follow.sender?.username || follow.receiver?.username} />
+            <img width={50} height={50} src={follow.sender?.profilePicture ? follow.sender?.profilePicture : follow.receiver?.profilePicture ? follow.receiver?.profilePicture : "/default-ARTHIVE-pfp.png"} alt={follow.sender?.username ? follow.sender?.username : follow.receiver?.username ? follow.receiver?.username : "Profile Picture"} />
             <div>{currFollowStatus?.status ?? "No status"}</div>
             <div>{follow.updatedAt}</div>
-            <FollowManipulationButton />
+            {Number(user?.id) === Number(id) ? <FollowManipulationButton /> : <></>}
             <p>=====================================================</p>
         </div>
     )

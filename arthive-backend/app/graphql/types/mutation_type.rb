@@ -13,5 +13,11 @@ module Types
 
     field :send_follow, mutation: Mutations::SendFollow
     field :manipulate_follow, mutation: Mutations::ManipulateFollow
+
+    field :edit_user_profile, mutation: Mutations::EditUserProfile
+
+    field :create_list, mutation: Mutations::CreateList
+    field :add_or_remove_media_in_list, mutation: Mutations::AddOrRemoveMediaInList
+    field :edit_list_details, mutation: Mutations::EditListDetails
   end
 end

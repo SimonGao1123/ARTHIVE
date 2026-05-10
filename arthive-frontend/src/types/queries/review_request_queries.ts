@@ -3,38 +3,60 @@ import type { AllReview, ReviewPage } from "../review_type"
 import type { UserReview } from "../review_type"
 
 export const OBTAIN_ALL_USER_REVIEWS_QUERY = gql`
-    query ObtainAllUserReviews($pageNum: Int!, $limit: Int!, $contentType: String!) {
-        obtainAllUserReviews(pageNum: $pageNum, limit: $limit, contentType: $contentType) {
-            id
-            content
-            rating
-            ifFavorite
-            ifFinished
-            updatedAt
-
-            media {
+    query ObtainAllUserReviews($userId: ID!, $contentType: String, $pageNum: Int, $limit: Int, $query: String) {
+        obtainAllUserReviews(userId: $userId, contentType: $contentType, pageNum: $pageNum, limit: $limit, query: $query) {
+            reviews {
                 id
-                title
-                coverImage
-                creator
-                year
-                genre
-                contentType
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+
+                media {
+                    id
+                    title
+                    coverImage
+                    creator
+                    year
+                    genre
+                    contentType
+                }
+                likeCount
+                commentCount
+                ifLiked
             }
-            likeCount
-            commentCount
-            ifLiked
+            user {
+                id
+                username   
+            }
+            pageInfo {
+                totalPages
+                totalCount
+            }
         }
     }
 `
 
 export type ObtainAllUserReviewsResponse = {
-    obtainAllUserReviews: AllReview[]
+    obtainAllUserReviews: {
+        reviews: AllReview[]
+        user: {
+            id: string
+            username: string
+        }
+        pageInfo: {
+            totalPages: number
+            totalCount: number
+        }
+    }
 }
 export type ObtainAllUserReviewsInput = {
+    userId: string
+    contentType: "book" | "film" | "series" | "game" | "all"
     pageNum: number
     limit: number
-    contentType: "book" | "film" | "series" | "game" | "all"
+    query: string | null
 }
 
 export const OBTAIN_USER_REVIEW_QUERY = gql`
@@ -56,8 +78,8 @@ export type ObtainUserReviewInput = {
 }
 
 export const OBTAIN_REVIEW_PAGE_QUERY = gql`
-    query ObtainReviewPage($reviewId: ID!, $pageNum: Int!, $limit: Int!) {
-        obtainReviewPage(reviewId: $reviewId, pageNum: $pageNum, limit: $limit) {
+    query ObtainReviewPage($reviewId: ID!, $first: Int, $after: String, $query: String) {
+        obtainReviewPage(reviewId: $reviewId, query: $query) {
             review {
                 id
                 content
@@ -88,19 +110,26 @@ export const OBTAIN_REVIEW_PAGE_QUERY = gql`
             
             }
 
-            reviewComments {
-                id
-                comment
-                createdAt
+            reviewComments(first: $first, after: $after) {
+                edges {
+                    node {
+                        id
+                        comment
+                        createdAt
 
-                user {
-                    id
-                    username
-                    profilePicture
+                        user {
+                            id
+                            username
+                            profilePicture
+                        }
+                    }
+                }
+                
+                pageInfo {
+                    hasNextPage
+                    endCursor
                 }
             }
-            
-            
         }
     }
 `
@@ -110,6 +139,7 @@ export type ObtainReviewPageResponse = {
 }
 export type ObtainReviewPageInput = {
     reviewId: string
-    pageNum: number
-    limit: number
+    first: number
+    after: string | null
+    query: string | null
 }

@@ -1,17 +1,21 @@
 import { logout } from "./logout"
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
-export async function whoAmIQuery(whoami: any, navigate: any, setUser: any) {
-    try {
-        const userData = await whoami()
-        return userData.data.whoami ?? null
-    } catch (error: any) {
-        console.log("error in whoAmIQuery", error.message)
 
-        // redirect to login if the user is unauthenticated
+export function whoAmIQuery(whoami: any, navigate: any, setUser: any) {
+    whoami().
+    then((userData: any) => {
+        console.log("userData in whoAmIQuery", userData)
+        if (userData.data.whoami) {
+            setUser(userData.data.whoami)
+        } else {
+            setUser(null)
+            logout(setUser, navigate)
+        }
+    })
+    .catch((error: any) => {
+        console.log("error in whoAmIQuery", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
-            return null
         }
-        return null
-    }
+    })
 }

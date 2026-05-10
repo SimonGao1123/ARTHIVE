@@ -10,6 +10,8 @@ export const LOGIN_USER = gql`
                 email
                 profilePicture
                 ifAdmin
+                description
+                visibility
             }
         }
     }
@@ -66,6 +68,8 @@ export const WHOAMI_QUERY = gql`
             email
             profilePicture
             ifAdmin
+            description
+            visibility
         }
     }
 `

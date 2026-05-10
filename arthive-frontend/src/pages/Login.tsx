@@ -22,17 +22,20 @@ export default function Login({ setUser }: LoginPageProps) {
             <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
             <button onClick={() => {
-                handleLogin(email, password, loginUser)
-                .then((user) => {
-                    if (user) {
-                        setUser(user)
-                        console.log(user)
+                loginUser({variables: {input: {email, password}}})
+                .then((loginData: any) => {
+                    if (loginData.data?.login.user && loginData.data.login.token) {
+                        setUser(loginData.data.login.user)
+                        localStorage.setItem("authToken", loginData.data.login.token)
                         navigate("/")
+                    } else {
+                        console.error(loginData.data?.login.errors)
                     }
                 })
-                .catch((error) => {
+                .catch((error: any) => {
                     console.error(error);
-                })}}>Login</button>
+                })
+                }}>Login</button>
 
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error.message}</p>}
@@ -42,19 +45,4 @@ export default function Login({ setUser }: LoginPageProps) {
     )
 
 
-}
-
-async function handleLogin(email: string, password: string, loginUser: any) {
-    try {
-        const loginData = await loginUser({variables: {input: {email, password}}});
-        if (loginData.data?.login.token) {
-            const token = loginData.data.login.token;
-            localStorage.setItem("authToken", token);
-            return loginData.data.login.user;
-        }
-        return null;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
 }

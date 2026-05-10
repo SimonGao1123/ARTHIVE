@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 
 export const OBTAIN_INCOMING_FOLLOWS_QUERY = gql`
-    query ObtainIncomingFollows($userId: ID!, $pageNum: Int!, $limit: Int!, $type: FollowTypeEnum!) {
-        obtainFollowerInfo(userId: $userId, pageNum: $pageNum, limit: $limit, type: $type) {
+    query ObtainIncomingFollows($userId: ID!, $pageNum: Int!, $limit: Int!, $type: FollowTypeEnum!, $query: String) {
+        obtainFollowerInfo(userId: $userId, pageNum: $pageNum, limit: $limit, type: $type, query: $query) {
             user {
                 id
                 username
@@ -21,13 +21,18 @@ export const OBTAIN_INCOMING_FOLLOWS_QUERY = gql`
                 }
             }
             count
+
+            pageInfo {
+                totalPages
+                totalCount
+            }
         }
     }
 `
 
 export const OBTAIN_OUTGOING_FOLLOWS_QUERY = gql`
-    query ObtainOutgoingFollows($userId: ID!, $pageNum: Int!, $limit: Int!, $type: FollowTypeEnum!) {
-        obtainFollowerInfo(userId: $userId, pageNum: $pageNum, limit: $limit, type: $type) {
+    query ObtainOutgoingFollows($userId: ID!, $pageNum: Int!, $limit: Int!, $type: FollowTypeEnum!, $query: String) {
+        obtainFollowerInfo(userId: $userId, pageNum: $pageNum, limit: $limit, type: $type, query: $query) {
             user {
                 id
                 username
@@ -46,6 +51,10 @@ export const OBTAIN_OUTGOING_FOLLOWS_QUERY = gql`
                 }
             }
             count
+            pageInfo {
+                totalPages
+                totalCount
+            }
         }
     }
 `
@@ -80,6 +89,10 @@ export type ObtainFollowersResponse = {
             } | null
         }[]
         count: number
+        pageInfo: {
+            totalPages: number
+            totalCount: number
+        }
     }
 }
 

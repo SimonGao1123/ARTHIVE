@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom"
-import { decodeReturnPath, mediaInfoPathFromReviewPrev } from "../lib/prevPageRouting"
 import type { User } from "../types/user_types"
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
 import type { MainReview, ReviewComment } from "../types/review_type"
@@ -15,38 +14,51 @@ import { writeReviewCommentFunction } from "../data/write_review_comment"
 const LIMIT = 1;
 
 export default function ReviewPage({setUser}: {setUser: (user: User | null) => void}) {
-    const {prev_page} = useParams()
-    const {id} = useParams()
+    const {review_id} = useParams()
 
     const navigate = useNavigate()
     const [mainReview, setMainReview] = useState<MainReview | null>(null)
     const [reviewComments, setReviewComments] = useState<ReviewComment[]>([])
 
-    const [pageNum, setPageNum] = useState(1)
+    const [cursor, setCursor] = useState<string | null>(null)
+    const [query, setQuery] = useState<string>("")
+    const [currQuery, setCurrQuery] = useState<string>("")
+
+    const [loadCount, setLoadCount] = useState(0)
+
     const [ifNextPage, setIfNextPage] = useState(true)
     
     const [commentCount, setCommentCount] = useState<number>(0)
     
-    console.log("reviewComments", reviewComments)
-    const [obtainReviewPage] = useLazyQuery<ObtainReviewPageResponse, ObtainReviewPageInput>(OBTAIN_REVIEW_PAGE_QUERY)
-    useEffect(() => {
-        if (id) {
-            obtainReviewPageFunction(id, pageNum, LIMIT, setUser, navigate, obtainReviewPage, setMainReview, setReviewComments, setIfNextPage)
-        }
-    }, [id, pageNum])
-
     useEffect(() => {
         setCommentCount(mainReview?.commentCount ?? 0)
     }, [mainReview])
 
+    useEffect(() => {
+        setCursor(null)
+        setReviewComments([])
+        setLoadCount(prev => prev + 1)
+    }, [query])
+
+    console.log("reviewComments", reviewComments)
+    const [obtainReviewPage] = useLazyQuery<ObtainReviewPageResponse, ObtainReviewPageInput>(OBTAIN_REVIEW_PAGE_QUERY)
+    useEffect(() => {
+        if (review_id) {
+            obtainReviewPageFunction(review_id, query, cursor, setCursor, LIMIT, setUser, navigate, obtainReviewPage, setMainReview, setReviewComments, setIfNextPage)
+        }
+    }, [review_id, loadCount, query])
+
     console.log("main review", mainReview)
 
     return (<div>Review Page
-        <button onClick={() => navigate(decodeReturnPath(prev_page))}>Back</button>
-        {mainReview && <MainReviewComponent commentCount={commentCount} mainReview={mainReview} setUser={setUser} prevPageToken={prev_page} />}
-        {id && <CommentComponent reviewId={id} setReviewComments={setReviewComments} setCommentCount={setCommentCount} setUser={setUser} navigate={navigate} />}
+        {mainReview && <MainReviewComponent commentCount={commentCount} mainReview={mainReview} setUser={setUser} />}
+        {review_id && <CommentComponent reviewId={review_id} setReviewComments={setReviewComments} setCommentCount={setCommentCount} setUser={setUser} navigate={navigate} />}
+
+        <p>======================================================</p>
+        <input type="text" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
+        <button disabled={query === currQuery} onClick={() => setQuery(currQuery)}>Search</button>
         {reviewComments.map((comment) => <UserReviewCommentComponent key={comment.id} comment={comment} />)}
-        {ifNextPage && <button onClick={() => setPageNum(pageNum + 1)}>Load More</button>}
+        {ifNextPage && <button onClick={() => setLoadCount(loadCount + 1)}>Load More</button>}
     </div>)
 }
 
@@ -76,7 +88,7 @@ function UserReviewCommentComponent({comment}: {comment: ReviewComment}) {
 }
 
 
-function MainReviewComponent({commentCount, mainReview, setUser, prevPageToken}: {commentCount: number, mainReview: MainReview, setUser: (user: User | null) => void, prevPageToken: string | undefined}) {
+function MainReviewComponent({commentCount, mainReview, setUser}: {commentCount: number, mainReview: MainReview, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
 
     const [currLiked, setCurrLiked] = useState(mainReview.ifLiked)
@@ -88,7 +100,7 @@ function MainReviewComponent({commentCount, mainReview, setUser, prevPageToken}:
         <p>{mainReview.media.year}</p>
         <p>{mainReview.media.genre.join(", ")}</p>
         <p>{mainReview.media.contentType}</p>
-        <img onClick={() => navigate(mediaInfoPathFromReviewPrev(prevPageToken, mainReview.media.id))} width={50} height={50} src={mainReview.media.coverImage} alt="Cover Image" loading="lazy"/>
+        <img onClick={() => navigate(`/media/${mainReview.media.id}`)} width={50} height={50} src={mainReview.media.coverImage} alt="Cover Image" loading="lazy"/>
 
         <p>Posted by: {mainReview.user.username}</p>
         <img width={50} height={50} src={mainReview.user.profilePicture ?? "/default-ARTHIVE-pfp.png"} alt="Profile Picture" loading="lazy"/>

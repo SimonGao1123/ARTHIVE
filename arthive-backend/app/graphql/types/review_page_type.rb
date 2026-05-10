@@ -1,7 +1,6 @@
 module Types
     class ReviewPageType < Types::BaseObject
         field :review, Types::ReviewType, null: false
-        field :review_comments, [Types::ReviewCommentType], null: true
-        field :review_likes, [Types::ReviewLikeType], null: true
+        field :review_comments, Types::ReviewCommentType.connection_type, null: false
     end
 end

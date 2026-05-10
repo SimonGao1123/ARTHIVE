@@ -4,6 +4,8 @@ export type User = {
     email: string,
     profilePicture: string | null,
     ifAdmin: boolean,
+    description: string | null,
+    visibility: string,
 }
 
 export type WhoamiResponse = {
