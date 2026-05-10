@@ -25,12 +25,10 @@ export default function QuickSearch({setSearchResults, searchType, limit, setHas
     const [currQuery, setCurrQuery] = useState("")
     const [cursor, setCursor] = useState<string | null>(null)
 
-    console.log(cursor)
-
+    console.log("cursor: ", cursor)
     useEffect(() => {
         if (query.length > 0) {
-            setCursor(null)
-            setSearchResults([])
+            
             quickSearchQuery(query, searchType, cursor, limit, setUser, setHasNextPage, setCursor, setSearchResults, navigate, obtainQuickSearch)
             
         }
@@ -48,6 +46,12 @@ export default function QuickSearch({setSearchResults, searchType, limit, setHas
             {loading && <div>Loading...</div>}
             <input type="text" placeholder="Search" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
             <button disabled={query === currQuery} onClick={() => {setQuery(currQuery)}}>Search</button>
+            <button onClick={() => {
+                setCurrQuery("")
+                setQuery("")
+                setHasNextPage(false)
+            }}>
+                    Clear</button>
         </div>
     )
 }

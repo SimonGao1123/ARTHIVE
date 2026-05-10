@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { User } from "../types/user_types";
 import { logout } from "./logout";
 
-// only for a specific type and NO FILTERS, just query
+// only for a specific type (no all type) and NO FILTERS, just query
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function quickSearchQuery(
     query: string, 
