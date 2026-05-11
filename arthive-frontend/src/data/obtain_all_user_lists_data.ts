@@ -16,8 +16,10 @@ export function obtainAllUserListsData(
     navigate: any,
     setUser: any,
     pageNum: number,
-    ) {
+    excludeMediaId: string | null,
+) {
     
+    console.log("excludeMediaId in obtainAllUserListsData", excludeMediaId)
     obtainAllUserLists({
         variables: {
             userId: user_id,
@@ -25,6 +27,7 @@ export function obtainAllUserListsData(
             pageNum: pageNum,
             limit: limit,
             query: query === "" ? null : query,
+            excludeMediaId: excludeMediaId,
         },
     }).then((res: any) => {
         const batch = res.data.obtainAllUserLists

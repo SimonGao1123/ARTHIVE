@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 import type { User } from "../user_types"
 export const OBTAIN_ALL_USER_LISTS_QUERY = gql`
-    query ObtainAllUserLists($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!, $query: String) {
-        obtainAllUserLists(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType, query: $query) {
+    query ObtainAllUserLists($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!, $query: String, $excludeMediaId: ID) {
+        obtainAllUserLists(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType, query: $query, excludeMediaId: $excludeMediaId) {
             lists {
                 id
                 name
@@ -63,6 +63,7 @@ export type ObtainAllUserListsInput = {
     limit: number,
     contentType: "book" | "film" | "series" | "game" | "all"
     query: string | null
+    excludeMediaId: string | null
 }
 export type ObtainAllUserListsResponse = {
     obtainAllUserLists: {

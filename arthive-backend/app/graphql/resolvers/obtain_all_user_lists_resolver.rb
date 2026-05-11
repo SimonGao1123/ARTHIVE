@@ -7,7 +7,10 @@ module Resolvers
         argument :limit, Int, required: false, default_value: 10
         argument :content_type, String, required: false, default_value: "all"
         argument :query, String, required: false, default_value: null
-        def resolve(user_id:, page_num:, limit:, content_type:, query:)
+        
+        argument :exclude_media_id, ID, required: false, default_value: nil
+
+        def resolve(user_id:, page_num:, limit:, content_type:, query:, exclude_media_id:)
             validate_user
 
             if !User.if_visible_to_user(context[:current_user].id.to_i, user_id.to_i)
@@ -22,6 +25,9 @@ module Resolvers
 
             lists = user.content_type_lists(content_type).query_filter(query).recent
 
+            if exclude_media_id.present?
+                lists = lists.where.not(id: MediaInList.select(:list_id).where(media_id: exclude_media_id))
+            end
             # hide private lists
             if user_id.to_i != context[:current_user].id.to_i
                 lists = lists.where(if_private: false)

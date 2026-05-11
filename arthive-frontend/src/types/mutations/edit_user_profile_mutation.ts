@@ -11,6 +11,7 @@ export const EDIT_USER_PROFILE_MUTATION = gql`
             description
             visibility
             ifAdmin
+            
         }
     }
 `

@@ -1,6 +1,22 @@
+import { useMutation } from "@apollo/client/react"
 import type { Media } from "../types/media_type"
+import type { AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput } from "../types/mutations/create_edit_list_mutation"
+import { ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION } from "../types/mutations/create_edit_list_mutation"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { addOrRemoveMediaData } from "../data/add_or_remove_media_data"
+import type { User } from "../types/user_types"
 
-export function MediaInfoArticle({ media }: { media: Media}) {
+export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Media, setUser: (user: User | null) => void, setMediaInfo: (mediaInfo: Media | null) => void}) {
+    const [addOrRemoveMediaInListMutation, {loading, error}] = useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
+    const [removeListId, setRemoveListId] = useState<string>("")
+    const navigate = useNavigate()
+    
+    useEffect(() => {
+        if (removeListId !== "") {
+            addOrRemoveMediaData(addOrRemoveMediaInListMutation, removeListId, [media.id.toString()], setUser, navigate, false)
+        }
+    }, [removeListId])
     return (
         <article aria-labelledby={`media-title-${media.id}`}>
 
@@ -74,6 +90,27 @@ export function MediaInfoArticle({ media }: { media: Media}) {
                     ) : null}
                 </dl>
             </section>
+
+            {error && <div>{error.message}</div>}
+            {loading && <div>Loading...</div>}
+
+            {media.inLists.length > 0 ? (
+                <section aria-labelledby={`in-lists-heading-${media.id}`}>
+                    <h2 id={`in-lists-heading-${media.id}`}>In Lists</h2>
+                    <ul>
+                        {media.inLists.map((list) => (
+                            <>
+                                <li key={list.id}>{list.name}</li>
+                                <button onClick={() => {
+                                    setRemoveListId(list.id)
+                                    setMediaInfo({...media, inLists: media.inLists.filter((l) => l.id !== list.id)})
+
+                                }}>Remove from List</button>
+                            </>
+                        ))}
+                    </ul>
+                </section>
+            ) : null}
         </article>
     )
 }

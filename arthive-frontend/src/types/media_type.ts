@@ -14,4 +14,8 @@ export type Media = {
     seriesTitle: string | null;
     organization: string | null;
     coverImage: string | null; // url of the cover image
+    inLists: {
+        id: string;
+        name: string;
+    }[];
 }

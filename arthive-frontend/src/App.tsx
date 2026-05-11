@@ -76,7 +76,7 @@ function App() {
 
           <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
 
-          <Route path="/create_list" element={<CreateListPage setUser={setUser}/>} />
+          <Route path="/create_list" element={<CreateListPage setUser={setUser} user={user}/>} />
         </Route>
 
         

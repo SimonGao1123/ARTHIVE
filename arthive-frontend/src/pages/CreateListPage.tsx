@@ -8,7 +8,7 @@ import type { MediaSearchType } from "../types/queries/search_bar_queries"
 import { useNavigate } from "react-router-dom"
 import { createList } from "../data/create_list"
 
-export default function CreateListPage({setUser}: {setUser: (user: User) => void}) {
+export default function CreateListPage({setUser, user}: {setUser: (user: User) => void, user: User | null}) {
 
     const [addedMediaIds, setAddedMediaIds] = useState<string[]>([])
     const [name, setName] = useState<string>("")
@@ -38,6 +38,7 @@ export default function CreateListPage({setUser}: {setUser: (user: User) => void
 
             <button onClick={() => {
                 createList(name, description, currTags, addedMediaIds, ifPrivate, setUser, navigate, createListMutation)
+                navigate(`/${user?.id ?? ""}/all_lists`)
             }}>Create List</button>
         </div>
     )

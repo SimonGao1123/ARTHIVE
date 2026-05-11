@@ -52,6 +52,11 @@ export const OBTAIN_MEDIA_INFO_QUERY = gql`
             seriesTitle
             organization
             coverImage
+
+            inLists {
+                id
+                name
+            }
         }
     }
 `

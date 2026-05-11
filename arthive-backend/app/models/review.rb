@@ -62,4 +62,28 @@ class Review < ApplicationRecord
             where("content ILIKE ?", "%#{query}%")
         end
     }
+    scope :content_type_filter, ->(content_type) {
+        where(media: {content_type: content_type})
+    }
+    scope :genre_filter, ->(genre) {
+        where(media_id: Media.genre_filter(genre).select(:id))
+    }
+
+    def self.search(query:, search_filter:)
+        base_search = Review.query_filter(query).where.not(content: nil)
+        
+        if search_filter.present?
+            search_filter.each do |filter|
+                normalized_values = Array(filter.values).map(&:downcase)
+                case filter.filter
+                    when "content_type"
+                        base_search = base_search.content_type_filter(normalized_values)
+                    when "genre"
+                        base_search = base_search.genre_filter(normalized_values)
+                end
+            end
+        end
+
+        return base_search.includes(:user, :media).recent
+    end
 end

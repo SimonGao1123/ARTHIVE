@@ -23,6 +23,8 @@ module Types
 
     field :added_by, Types::UserType, null: false
 
+    field :in_lists, [Types::ListType], null: false
+
     # return the url of the cover image
     def cover_image
       object.presigned_cover_image_url
@@ -30,6 +32,12 @@ module Types
 
     def added_by
       object.user
+    end
+
+    def in_lists
+      List.joins(:media_in_lists)
+          .where(media_in_lists: { media_id: object.id })
+          .where(user_id: context[:current_user].id)
     end
   end
 end

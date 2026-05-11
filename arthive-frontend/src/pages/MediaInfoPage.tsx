@@ -13,6 +13,7 @@ import { MediaInfoArticle } from "../lib/MediaInfoArticle"
 import UserMediaReview from "../lib/UserMediaReview"
 
 import MediaReviews from "./MediaReviewsPage"
+import AddMediaToList from "../lib/AddMediaToList"
 
 type MediaInfoPageProps = {
     setUser: (user: User | null) => void
@@ -52,6 +53,8 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
 
     const showContent = Boolean(mediaInfo) && !loading
 
+    const [showAddMediaToList, setShowAddMediaToList] = useState<boolean>(false)
+
     return (
         <main>
             {loading ? (
@@ -69,12 +72,14 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
             {showContent && mediaInfo ? (
                 <>
                     <UserMediaReview mediaId={Number(id)} setUser={setUser} mediaInfo={mediaInfo}/>
-                    <MediaInfoArticle media={mediaInfo} />
+                    <MediaInfoArticle media={mediaInfo} setUser={setUser} setMediaInfo={setMediaInfo}/>
                 </>
             ) : null}
 
-            
+            {showAddMediaToList && <AddMediaToList setUser={setUser} mediaId={id ?? ""} user_id={user?.id ?? ""} />}
+            <button onClick={() => setShowAddMediaToList(!showAddMediaToList)}>{showAddMediaToList ? "Hide Add Media to List" : "Add Media to List"}</button>
             <MediaReviews id={id ?? ""} setUser={setUser} />
+
         </main>
     )
 }

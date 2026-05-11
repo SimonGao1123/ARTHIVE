@@ -4,5 +4,6 @@ module Types
         value "media", "Search media"
         value "user", "Search users"
         value "review", "Search reviews"
+        value "list", "Search lists"
     end
 end

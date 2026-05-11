@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react"
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react"
 import type { AllUserListType, ObtainAllUserListsInput, ObtainAllUserListsResponse } from "../types/queries/lists_request_queries"
 import { OBTAIN_ALL_USER_LISTS_QUERY } from "../types/queries/lists_request_queries"
 import { useLazyQuery } from "@apollo/client/react"
@@ -17,7 +17,26 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
         navigate("/")
         return
     }
+    
+    return (
+        <>
+            <AllUserListsComponent setUser={setUser} user_id={user_id} if_adding_media={false} setListId={null} excludeMediaId={null} />
+            <button onClick={() => {
+                navigate("/create-list")
+            }}>Create New List</button>
+        </>
+    )
 
+    
+}
+
+
+// reusable component for adding media to lists, if if_adding_media is true, then the component will show a list of lists that the user can add the media to
+export function AllUserListsComponent({setUser, user_id, if_adding_media, setListId, excludeMediaId}: {setUser: (user: User | null) => void, user_id: string, if_adding_media: boolean, setListId: Dispatch<SetStateAction<string>> | null, excludeMediaId: string | null}) {
+    if (if_adding_media && !setListId) {
+        throw new Error("setListId is required if if_adding_media is true")
+    }
+    const navigate = useNavigate()
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageNum, setPageNum] = useState(1)
 
@@ -43,7 +62,7 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
             navigate("/")
             return
         }
-        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum)
+        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum, excludeMediaId)
     }, [contentType, pageNum, query])
 
     return (
@@ -56,18 +75,21 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
             <button disabled={currQuery === query} onClick={() => setQuery(currQuery)}>Search</button>
             {lists && lists.map((list) => {
                 return (
-                    <ListCard key={list.id} list={list}/>
+                    <div key={list.id}>
+                        <ListCard list={list}/>
+                        {if_adding_media && setListId && <button onClick={() => setListId(list.id)}>Add to List</button>}
+                        <p>============================================</p>
+                    </div>
                 )
             })}
             <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>
     )
 }
-
 function ListCard({list}: {list: AllUserListType}) {
     const navigate = useNavigate();
     return (
-        <div>
+        <div key={"list-card-" + list.id + "-div"}>
             <h2 onClick={() => navigate(`/list/${list.id}`)}>{list.name}</h2>
             <p>{list.description || "No description"}</p>
             <p>Content Type: {list.contentType.join(", ")}</p>
@@ -85,7 +107,6 @@ function ListCard({list}: {list: AllUserListType}) {
                     )
                 })
             }
-        <p>============================================</p>
         </div>
     )
 }
