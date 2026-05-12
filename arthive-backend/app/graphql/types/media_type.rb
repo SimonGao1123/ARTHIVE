@@ -34,6 +34,8 @@ module Types
       object.user
     end
 
+    # returns all the lists from the current user that the media is in
+    # this is used to display the lists that the media is in on the media details page (for quick removal)
     def in_lists
       List.joins(:media_in_lists)
           .where(media_in_lists: { media_id: object.id })

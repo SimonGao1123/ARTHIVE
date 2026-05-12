@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_12_065758) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "communities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_id"], name: "index_communities_on_media_id", unique: true
+  end
+
+  create_table "community_threads", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.boolean "if_root", default: false, null: false
+    t.bigint "parent_thread_id"
+    t.bigint "root_thread_id"
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["community_id"], name: "index_community_threads_on_community_id"
+    t.index ["if_root"], name: "index_community_threads_on_if_root"
+    t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
+    t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
+    t.index ["user_id"], name: "index_community_threads_on_user_id"
   end
 
   create_table "follows", force: :cascade do |t|
@@ -130,6 +154,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
     t.index ["user_id"], name: "index_reviews_on_user_id"
   end
 
+  create_table "thread_likes", force: :cascade do |t|
+    t.bigint "community_thread_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["community_thread_id", "user_id"], name: "index_thread_likes_on_community_thread_id_and_user_id", unique: true
+    t.index ["community_thread_id"], name: "index_thread_likes_on_community_thread_id"
+    t.index ["user_id"], name: "index_thread_likes_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "description"
@@ -145,6 +179,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "communities", "media", column: "media_id"
+  add_foreign_key "community_threads", "communities"
+  add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"
+  add_foreign_key "community_threads", "community_threads", column: "root_thread_id"
+  add_foreign_key "community_threads", "users"
   add_foreign_key "follows", "users", column: "receiver_id"
   add_foreign_key "follows", "users", column: "sender_id"
   add_foreign_key "lists", "users"
@@ -157,4 +196,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_013037) do
   add_foreign_key "review_likes", "users"
   add_foreign_key "reviews", "media", column: "media_id"
   add_foreign_key "reviews", "users"
+  add_foreign_key "thread_likes", "community_threads"
+  add_foreign_key "thread_likes", "users"
 end

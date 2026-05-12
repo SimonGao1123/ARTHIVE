@@ -14,6 +14,8 @@ class Media < ApplicationRecord
     has_many :reviews
     has_many :media_in_lists, dependent: :destroy
 
+    has_one :community, dependent: :destroy
+
     validates :title, presence: true
     validates :creator, presence: true
     validates :year, presence: true

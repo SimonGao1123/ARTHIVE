@@ -22,7 +22,7 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
         <>
             <AllUserListsComponent setUser={setUser} user_id={user_id} if_adding_media={false} setListId={null} excludeMediaId={null} />
             <button onClick={() => {
-                navigate("/create-list")
+                navigate("/create_list")
             }}>Create New List</button>
         </>
     )
