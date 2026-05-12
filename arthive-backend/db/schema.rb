@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_12_065758) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_12_162334) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -53,14 +53,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_065758) do
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
-    t.boolean "if_root", default: false, null: false
     t.bigint "parent_thread_id"
     t.bigint "root_thread_id"
-    t.string "title", null: false
+    t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_community_threads_on_community_id"
-    t.index ["if_root"], name: "index_community_threads_on_if_root"
     t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
     t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
     t.index ["user_id"], name: "index_community_threads_on_user_id"

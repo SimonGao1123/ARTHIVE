@@ -5,7 +5,9 @@
       "Bash(xargs cat)",
       "Bash(bin/rails db:migrate:status)",
       "Bash(bin/rails runner *)",
-      "Bash(bin/rails db:migrate)"
+      "Bash(bin/rails db:migrate)",
+      "Bash(rails generate *)",
+      "Bash(rails db:migrate:status)"
     ]
   }
 }
