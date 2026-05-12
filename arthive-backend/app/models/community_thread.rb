@@ -11,10 +11,10 @@ class CommunityThread < ApplicationRecord
     validates :if_root, inclusion: { in: [true, false] }
 
     # guarentees that cannot point back at itself
-    validates :root_thread_id, presence: true, if: :if_root == false
+    validates :root_thread_id, presence: true, unless: :if_root
 
     # If thread isn't the root thread, it must have a parent thread
-    validates :parent_thread_id, presence: true, if: :if_root == false
+    validates :parent_thread_id, presence: true, unless: :if_root
 
     # TODO: add attachments feature
     # has_many_attached :attachments
