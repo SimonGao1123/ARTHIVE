@@ -24,7 +24,12 @@ module Mutations
             media.user = context[:current_user]
             
             if media.save
-                media
+                # currently communities are created automatically when a media is created (one to one with media)
+                # so we technically don't need communities at all, but keep in case of one to many relationship in future
+            
+                Community.create!(media: media)
+
+                return media
             else
                 raise GraphQL::ExecutionError, media.errors.full_messages.join(", ") unless media.errors.empty?
             end

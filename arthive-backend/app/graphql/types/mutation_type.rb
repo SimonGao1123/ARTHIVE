@@ -19,5 +19,9 @@ module Types
     field :create_list, mutation: Mutations::CreateList
     field :add_or_remove_media_in_list, mutation: Mutations::AddOrRemoveMediaInList
     field :edit_list_details, mutation: Mutations::EditListDetails
+
+    field :create_thread, mutation: Mutations::CreateThread
+    field :like_thread, mutation: Mutations::LikeThread
+    field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
   end
 end

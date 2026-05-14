@@ -34,5 +34,7 @@ module Types
     field :obtain_follower_info, resolver: Resolvers::ObtainFollowerInfoResolver
     field :obtain_list_page, resolver: Resolvers::ObtainListPageResolver
     field :obtain_user_profile, resolver: Resolvers::ObtainUserProfileResolver
+    field :obtain_community, resolver: Resolvers::ObtainCommunityResolver
+    field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
   end
 end
