@@ -4,36 +4,44 @@ import type { Review } from "../review_type"
 
 // returns the media for the explore page, only need cover image for now
 export const EXPLORE_PAGE_MEDIA_QUERY = gql`
-
-    query ExplorePageMedia($contentType: String, $limit: Int, $pageNum: Int) {
-        exploreMedia(contentType: $contentType, limit: $limit, pageNum: $pageNum) {
-            media {
-                id
-                coverImage
+    query ExplorePageMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
+        exploreMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
+            edges {
+                node {
+                    id
+                    coverImage
+                }
             }
-            ifPrevPage
-            ifNextPage
-            pageNum
+            pageInfo {
+                hasNextPage
+                endCursor
+                hasPreviousPage
+                startCursor
+            }
         }
     }
 `
 
 export type ExplorePageMediaResponse = {
     exploreMedia: {
-        media: {
-            id: number
-            coverImage: string
+        edges: {
+            node: {
+                id: number
+                coverImage: string
+            }
         }[]
-        ifPrevPage: boolean
-        ifNextPage: boolean
-        pageNum: number
-    }[]
+        pageInfo: {
+            hasNextPage: boolean
+            endCursor: string
+            hasPreviousPage: boolean
+            startCursor: string
+        }
+    }
 }
-export type ExplorePageMediaInput = {
-    contentType: "book" | "film" | "series" | "game" | "all"
-    limit: number
-    pageNum: number
-}
+
+export type ExplorePageMediaInput =
+    | { contentType: "book" | "film" | "series" | "game" | "all"; first: number; after?: string; last?: never; before?: never }
+    | { contentType: "book" | "film" | "series" | "game" | "all"; last: number; before?: string; first?: never; after?: never }
 
 export const OBTAIN_MEDIA_INFO_QUERY = gql`
     query ObtainMediaInfo($mediaId: Int!) {

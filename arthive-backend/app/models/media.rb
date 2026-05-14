@@ -32,7 +32,7 @@ class Media < ApplicationRecord
 
     
 
-    scope :explore_page, -> (content_type, page_num, limit, user_id) {
+    scope :explore_page, -> (content_type: "all", user_id: nil) {
         joins(
         sanitize_sql_array([
             "LEFT JOIN reviews ON reviews.media_id = #{table_name}.id AND reviews.user_id = ?",
@@ -42,12 +42,7 @@ class Media < ApplicationRecord
         .order(Arel.sql("reviews.id IS NULL DESC"))
         .content_type_filter(content_type)
         .recent
-        .page(page_num, limit)
     }
-
-    def self.if_next_page_exists(content_type, page_num, limit, user_id)
-        Media.explore_page(content_type, page_num + 1, limit, user_id).exists?
-    end
 
     scope :query_filter, -> (query) {
         where('title ILIKE ?', "%#{query}%")
