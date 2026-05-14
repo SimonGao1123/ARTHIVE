@@ -1,15 +1,47 @@
 # ARTHIVE
 
-MORE STUFF CHANGESS
+A single platform for tracking books, movies, and TV shows — so you can reflect on your media experiences without switching between apps.
 
-PROBLEM TESTTT: Users who read books, watch movies, and follow TV shows require multiple platforms to track reviews for the media they consume.
+---
 
-HOW MIGHT WE: How might we design a single app that lets people easily track books, movies, and TV in one place so users can reflect on their media experiences without having to switch between apps?
+## Tech Stack
 
-<<<<<<< HEAD
-Requirements:
-=======
-Ruby 4.0.2
-Graphql
-NPM package manager
->>>>>>> d920790 (readme edits)
+| Layer    | Technology                              |
+|----------|-----------------------------------------|
+| Backend  | Ruby on Rails 8.1, PostgreSQL, GraphQL  |
+| Frontend | React 19, TypeScript, Vite, Apollo Client |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Ruby (see `arthive-backend/Gemfile.lock` for exact version)
+- Node.js & npm
+- PostgreSQL
+
+---
+
+### Backend
+
+```bash
+cd arthive-backend
+bundle install
+rails db:create db:migrate
+rails server
+```
+
+The API will be available at `http://localhost:3000`.
+
+---
+
+### Frontend
+
+```bash
+cd arthive-frontend
+npm install
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`.
