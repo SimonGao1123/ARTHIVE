@@ -1,5 +1,6 @@
 class Community < ApplicationRecord
     include SharedScopeMethods
+    # one to one with media currently
     belongs_to :media
     has_many :community_threads, dependent: :destroy
     
