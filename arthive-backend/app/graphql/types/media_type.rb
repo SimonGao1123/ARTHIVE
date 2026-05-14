@@ -25,6 +25,8 @@ module Types
 
     field :in_lists, [Types::ListType], null: false
 
+    field :community, Types::CommunityType, null: false
+
     # return the url of the cover image
     def cover_image
       object.presigned_cover_image_url

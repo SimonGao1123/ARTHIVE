@@ -3,8 +3,8 @@ class Review < ApplicationRecord
     belongs_to :user
     belongs_to :media
 
-    has_many :review_comments
-    has_many :review_likes
+    has_many :review_comments, dependent: :delete_all
+    has_many :review_likes, dependent: :delete_all
 
     validates :content, length: { maximum: 5000 }
     validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }, allow_nil: true
@@ -35,6 +35,17 @@ class Review < ApplicationRecord
         if review_id.present?
             review = includes(:review_comments, :review_likes).find_by(id: review_id, user_id: user_id, media_id: media_id)
             if review.present?
+                # if content is removed, delete all comments and likes
+                if content.blank?
+                    review.review_comments.delete_all
+                    review.review_likes.delete_all
+                end
+
+                if content.blank? && rating.blank? && !if_favorite && !if_finished
+                    review.destroy!
+                    return nil
+                end
+
                 review.update!(content: content, rating: rating, if_favorite: if_favorite, if_finished: if_finished)
                 return review
             else
