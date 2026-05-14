@@ -1,6 +1,6 @@
 # ARTHIVE
 
-App to track and log books, movies and tv shows, cultural journal with suggestions for new media based on what you liked
+MORE STUFF CHANGESS
 
 PROBLEM TESTTT: Users who read books, watch movies, and follow TV shows require multiple platforms to track reviews for the media they consume.
 
