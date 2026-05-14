@@ -25,7 +25,7 @@ module Types
         field :if_liked, Boolean, null: false
 
         def if_liked
-            object.thread_likes.exists?(user_id: context[:current_user].id)
+            object.thread_likes.exists?(user: context[:current_user])
         end
 
         def child_threads
