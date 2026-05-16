@@ -6,14 +6,14 @@ import { createThreadMutation } from "../data/create_thread_mutation"
 import { useNavigate } from "react-router-dom"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 
-type AddMediaComponentProps = {
+type AddThreadComponentProps = {
     media_id: string,
     setUser: (user: User | null) => void
     parentThreadId: string | null
     rootThreadId: string | null
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>
 }
-export function AddMediaComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads}: AddMediaComponentProps) {
+export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads}: AddThreadComponentProps) {
     const [createThread,{loading, error}] = useMutation<CreateThreadResponse, CreateThreadInput>(CREATE_THREAD_MUTATION)
     const [content, setContent] = useState("")
     const [title, setTitle] = useState<string | null>(null)

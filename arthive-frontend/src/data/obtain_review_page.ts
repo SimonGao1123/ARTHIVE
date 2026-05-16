@@ -27,7 +27,10 @@ export function obtainReviewPageFunction(
     })
     .then((data: any) => {
         const batch = data.data.obtainReviewPage.reviewComments.edges.map((edge: any) => edge.node)
-        setReviewComments((prev) => [...prev, ...batch])
+        setReviewComments((prev) => {
+            const existingIds = new Set(prev.map((r) => r.id))
+            return [...prev, ...batch.filter((r: any) => !existingIds.has(r.id))]
+        })
         setMainReview(data.data.obtainReviewPage.review)
         setIfNextPage(data.data.obtainReviewPage.reviewComments.pageInfo.hasNextPage)
         setCursor(data.data.obtainReviewPage.reviewComments.pageInfo.endCursor)

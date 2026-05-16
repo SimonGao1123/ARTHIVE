@@ -1,7 +1,7 @@
 import { useMutation } from "@apollo/client/react"
 import type { User } from "../types/user_types"
 import { EDIT_USER_PROFILE_MUTATION, type EditUserProfileInput, type EditUserProfileResponse } from "../types/mutations/edit_user_profile_mutation"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { LOGIN_USER, type LoginInput, type LoginUserMutation} from "../types/mutations/user_login_mutations"
 import { EditUserProfileDataFetch } from "../data/edit_user_profile"
 import { useNavigate } from "react-router-dom"
@@ -21,6 +21,15 @@ export default function EditUserProfile({ setUser, user }: EditUserProfileProps)
     const [email, setEmail] = useState<string | null>(user?.email || null)
     const [visibility, setVisibility] = useState<string | null>(user?.visibility || null)
     
+    useEffect(() => {
+        if (user) {
+            setUsername(user.username || null)
+            setDescription(user.description || null)
+            setEmail(user.email || null)
+            setVisibility(user.visibility || null)
+        }
+    }, [user])
+
     const profilePictureRef = useRef<HTMLInputElement>(null)
     const [profilePicture, setProfilePicture] = useState<File | null>(null)
 

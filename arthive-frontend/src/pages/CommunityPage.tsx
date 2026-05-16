@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { obtainCommunityData } from "../data/obtain_community_data"
 import { CommunityThreads } from "../lib/CommunityThread"
-import { AddMediaComponent } from "../lib/AddMediaComponent"
+import { AddThreadComponent } from "../lib/AddThreadComponent"
 
 const LIMIT = 1
 export default function CommunityPage({setUser}: {setUser: (user: User | null) => void}) {
@@ -48,7 +48,7 @@ export default function CommunityPage({setUser}: {setUser: (user: User | null) =
             {community && <CommunityDetails community={community}/>}
             
             <p>======================================================</p>
-            <AddMediaComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} />
+            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} />
             <p>======================================================</p>
             
             <input type="text" value={currQuery || ""} onChange={(e) => setCurrQuery(e.target.value)} />

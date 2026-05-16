@@ -10,7 +10,7 @@ import { CommunityThreads } from "../lib/CommunityThread"
 
 import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } from "../types/mutations/thread_mutations"
 import { likeThreadFunction } from "../data/like_thread_function"
-import { AddMediaComponent } from "../lib/AddMediaComponent"
+import { AddThreadComponent } from "../lib/AddThreadComponent"
 const LIMIT = 2
 export default function ThreadPage({setUser}: {setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
@@ -57,7 +57,7 @@ export default function ThreadPage({setUser}: {setUser: (user: User | null) => v
             {mainThread && <ThreadPageContent mainThread={mainThread} media_id={media_id!} setUser={setUser} />}
 
             <p>======================================================</p>
-            {mainThread && <AddMediaComponent media_id={media_id!} setUser={setUser} parentThreadId={mainThread.id} rootThreadId={mainThread.rootThreadId || mainThread.id} setThreads={setChildThreads} />}
+            {mainThread && <AddThreadComponent media_id={media_id!} setUser={setUser} parentThreadId={mainThread.id} rootThreadId={mainThread.rootThreadId || mainThread.id} setThreads={setChildThreads} />}
             <p>======================================================</p>
             <h1>COMMENTS</h1>
             <p>======================================================</p>

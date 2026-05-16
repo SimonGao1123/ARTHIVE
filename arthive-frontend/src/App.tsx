@@ -63,8 +63,8 @@ function App() {
           }
 
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
-          <Route path="/:user_id/all_reviews" element={<AllUserReviewsPage setUser={setUser}/>} />
-          <Route path="/:user_id/all_lists" element={<AllUserListsPage setUser={setUser}/>} />
+          <Route path="/all_reviews/:user_id" element={<AllUserReviewsPage setUser={setUser}/>} />
+          <Route path="/all_lists/:user_id" element={<AllUserListsPage setUser={setUser}/>} />
 
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />
@@ -73,7 +73,7 @@ function App() {
           <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
           <Route path="/profile/:follow_type/:id" element={<UserFollowDetails setUser={setUser} user={user}/>} />
 
-          <Route path={`/edit_profile/${user?.id}`} element={<EditUserProfile setUser={setUser} user={user}/>} />
+          <Route path={`/edit_profile`} element={<EditUserProfile setUser={setUser} user={user}/>} />
 
           <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
 

@@ -32,17 +32,26 @@ export function quickSearchQuery(
         const batch = data.data.searchBar
         switch (searchType) {
             case "media":
-                setSearchResults((prev) => [...prev, ...batch.medias.edges.map((edge: any) => edge.node)])
+                setSearchResults((prev) => {
+                    const existingIds = new Set(prev.map((m) => m.id))
+                    return [...prev, ...batch.medias.edges.map((edge: any) => edge.node).filter((m: any) => !existingIds.has(m.id))]
+                })
                 setCursor(batch.medias.pageInfo.endCursor)
                 setHasNextPage(batch.medias.pageInfo.hasNextPage)
                 break
             case "user":
-                setSearchResults((prev) => [...prev, ...batch.users.edges.map((edge: any) => edge.node)])
+                setSearchResults((prev) => {
+                    const existingIds = new Set(prev.map((u) => u.id))
+                    return [...prev, ...batch.users.edges.map((edge: any) => edge.node).filter((u: any) => !existingIds.has(u.id))]
+                })
                 setCursor(batch.users.pageInfo.endCursor)
                 setHasNextPage(batch.users.pageInfo.hasNextPage)
                 break
             case "review":
-                setSearchResults((prev) => [...prev, ...batch.reviews.edges.map((edge: any) => edge.node)])
+                setSearchResults((prev) => {
+                    const existingIds = new Set(prev.map((r) => r.id))
+                    return [...prev, ...batch.reviews.edges.map((edge: any) => edge.node).filter((r: any) => !existingIds.has(r.id))]
+                })
                 setCursor(batch.reviews.pageInfo.endCursor)
                 setHasNextPage(batch.reviews.pageInfo.hasNextPage)
                 break
