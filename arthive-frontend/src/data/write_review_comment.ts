@@ -26,7 +26,6 @@ export function writeReviewCommentFunction(
         setCommentCount(prev => prev + 1)
     })
     .catch((error: any) => {
-        console.log("error in writeReviewComment", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

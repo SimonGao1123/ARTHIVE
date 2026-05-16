@@ -29,16 +29,7 @@ export default function EditUserProfile({ setUser, user }: EditUserProfileProps)
     const [ifViewPassword, setIfViewPassword] = useState<boolean>(false)
     
 
-    console.log(
-        "username", username,
-        "description", description,
-        "email", email,
-        "visibility", visibility,
-        "profilePicture", profilePicture,
-        "password", password,
-        "ifChangingPassword", ifChangingPassword,
-        "ifViewPassword", ifViewPassword
-    )
+    
     const navigate = useNavigate()
 
     
@@ -98,7 +89,6 @@ function PasswordInput({setIfChangingPassword, setPassword, user}: {setIfChangin
     const [newPassword, setNewPassword] = useState<string | null>(null)
     const [loginUser, {error}] = useMutation<LoginUserMutation, LoginInput>(LOGIN_USER)
 
-    console.log("currentPassword", currentPassword, "newPassword", newPassword, "confirmPassword", confirmPassword)
 
 
     return (
@@ -126,7 +116,6 @@ function PasswordInput({setIfChangingPassword, setPassword, user}: {setIfChangin
                 }
                 loginUser({variables: {input: {email: user.email, password: currentPassword}}})
                 .then((data) => {
-                    console.log(data)
                     if (data.data?.login.user.id === user.id) {
                         setPassword(newPassword)
                         setNewPassword(null)

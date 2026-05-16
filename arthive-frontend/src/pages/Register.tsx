@@ -23,10 +23,9 @@ export default function Register() {
                 handleRegister(email, username, password, createUser).
                 then((user) => {
                     if (user) {
-                        console.log("Successfully created user")
                         navigate("/login")
                     }
-                }).catch(err => {console.log(err)})
+                }).catch(() => {})
             }}>Register</button>
             {loading && <p>Loading...</p>}
             {error && <p>Error: {error.message}</p>}
@@ -40,7 +39,6 @@ async function handleRegister(email: string, username: string, password: string,
     try {
         const createUserData = await createUser({variables: {input: {email, username, password}}});
         if (createUserData.data?.createUser.id) {
-            console.log(createUserData.data.createUser);
             return createUserData.data.createUser
         }
         return null

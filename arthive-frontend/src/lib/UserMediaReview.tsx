@@ -31,7 +31,6 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
         
     }, [mediaId])
     useEffect(() => {
-        console.log("userReview in useEffect", userReview)
         if (userReview) {
             setReviewContent(userReview.content || "")
             setRating(userReview.rating || 0)
@@ -40,7 +39,6 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo}: any) {
         }
     }, [userReview])
     
-    console.log(userReview)
 
     const [createReview] = useMutation<ObtainUserReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
     useEffect(() => {

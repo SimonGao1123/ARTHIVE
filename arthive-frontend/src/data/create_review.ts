@@ -17,13 +17,11 @@ export function createReviewFunction(
     setUser: (user: User | null) => void,
     navigate: any
 ) {
-    console.log("reviewContent in createReview", reviewContent)
     createReview({ variables: { input: { mediaId, content: reviewContent === "" ? null : reviewContent, rating: rating === 0 ? null : rating, ifFavorite, ifFinished, reviewId: userReview ? userReview.id : null } } })
     .then((data: any) => {
         setUserReview(data.data.createReview)
     })
     .catch((error: any) => {
-        console.log("error in createReview", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } 

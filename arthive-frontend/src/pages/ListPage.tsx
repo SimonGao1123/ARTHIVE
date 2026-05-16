@@ -46,10 +46,6 @@ export default function ListPage({ setUser}: {setUser: (user: User | null) => vo
     }, [list_id, pageNum, query])
 
 
-    console.log(listData)
-    console.log(targetUser)
-    console.log(mediaInLists)
-    console.log(totalPages)
 
     const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
     return (

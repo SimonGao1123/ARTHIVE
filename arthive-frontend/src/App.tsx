@@ -26,6 +26,8 @@ import EditUserProfile from './pages/EditUserProfile'
 import AllUserListsPage from './pages/AllUserListsPage'
 import ListPage from './pages/ListPage'
 import CreateListPage from './pages/CreateListPage'
+import CommunityPage from './pages/CommunityPage'
+import ThreadPage from './pages/ThreadPage'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -36,7 +38,6 @@ function App() {
     fetchPolicy: "no-cache",
   })
   console.log("LOCAL STORAGE TOKEN", localStorage.getItem("authToken"))
-  console.log(user)
   useEffect(() => {
     // If the user is on the login or register page, dont need to check who they are
     if (location.pathname === "/login" || location.pathname === "/register") {
@@ -77,6 +78,8 @@ function App() {
           <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
 
           <Route path="/create_list" element={<CreateListPage setUser={setUser} user={user}/>} />
+          <Route path="/community/:media_id" element={<CommunityPage setUser={setUser}/>} />
+          <Route path="/community/:media_id/thread/:thread_id" element={<ThreadPage setUser={setUser}/>} />
         </Route>
 
         

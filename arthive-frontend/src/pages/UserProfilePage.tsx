@@ -32,9 +32,6 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
             setCurrOutgoingFollowStatus(userProfileData.currentOutgoingFollow ?? null)
         }
     }, [userProfileData])
-    console.log(userProfileData)
-    console.log(currIncomingFollowStatus)
-    console.log(currOutgoingFollowStatus)
     return (
         <div>
             {error?.message}

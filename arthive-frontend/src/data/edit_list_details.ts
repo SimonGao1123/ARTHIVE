@@ -29,7 +29,6 @@ export function editListDetails(
         }
     })
     .then((data: any) => {
-        console.log("List details edited: ", data)
         setListData(data.data.editListDetails)
         alert("List details edited successfully")
     })

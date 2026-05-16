@@ -20,7 +20,6 @@ export default function CreateListPage({setUser, user}: {setUser: (user: User) =
 
     const [createListMutation, {loading, error}] = useMutation<CreateListResponse, CreateListInput>(CREATE_LIST_MUTATION)
     const navigate = useNavigate()
-    console.log(addedMediaIds)
     return (
         <div>
             {error && <div>{error.message}</div>}

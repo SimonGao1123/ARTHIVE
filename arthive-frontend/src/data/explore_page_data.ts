@@ -34,7 +34,6 @@ export function ExplorePageDataFetch(
         setIfNextPage(data.data.exploreMedia.pageInfo.hasNextPage ?? false)
     })
     .catch((error: any) => {
-        console.log("error in ExplorePageDataFetch", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

@@ -12,7 +12,6 @@ export function uploadFileToS3(file: File, jwt: string): Promise<string> {
                 xhr.upload.addEventListener("progress", (e: ProgressEvent) => {
                     if (e.lengthComputable) {
                         const pct = Math.round((e.loaded / e.total) * 100);
-                        console.log(`upload ${pct}%`)
                     }
                 });
             },

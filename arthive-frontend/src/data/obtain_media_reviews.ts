@@ -23,12 +23,14 @@ export function obtainMediaReviewsFunction(
      } })
         .then((data: any) => {
             const batch = data.data.obtainMediaReviews.edges.map((edge: any) => edge.node)
-            setReviews((prev) => [...prev, ...batch])
+            setReviews((prev) => {
+                const existingIds = new Set(prev.map((r) => r.id))
+                return [...prev, ...batch.filter((r: any) => !existingIds.has(r.id))]
+            })
             setCursor(data.data.obtainMediaReviews.pageInfo.endCursor)
             setIfNextPage(data.data.obtainMediaReviews.pageInfo.hasNextPage)
         })
         .catch((error: any) => {
-            console.log("error in obtainMediaReviews", error.message)
             if (unauth_messages.includes(error.message)) {
                 logout(setUser, navigate)
             }

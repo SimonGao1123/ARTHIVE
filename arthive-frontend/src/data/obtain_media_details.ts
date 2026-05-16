@@ -8,10 +8,8 @@ export function ObtainMediaDetailsFetch(getMediaInfo: any, navigate: any, setUse
     getMediaInfo({ variables: { mediaId } })
     .then((data: any) => {
         setMediaInfo(data.data.obtainMediaInfo)
-        console.log("data in ObtainMediaDetailsFetch", data.data.obtainMediaInfo)
     })
     .catch((error: any) => {
-        console.log("error in ObtainMediaDetailsFetch", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } 

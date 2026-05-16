@@ -26,7 +26,6 @@ export default function MediaReviews({ setUser, id}: {setUser: (user: User | nul
     })
     const [ifNextPage, setIfNextPage] = useState(true)
     const [reviews, setReviews] = useState<Review[]>([])
-    console.log(reviews)
     useEffect(() => {
         obtainMediaReviewsFunction(Number(id), cursor, setCursor, LIMIT, query, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage)
     }, [loadCount])
@@ -38,7 +37,6 @@ export default function MediaReviews({ setUser, id}: {setUser: (user: User | nul
     }, [query])
 
 
-    console.log(loadCount)
     return (
         <div>
             <p>{error?.message}</p>

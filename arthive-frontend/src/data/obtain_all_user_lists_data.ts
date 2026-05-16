@@ -19,7 +19,6 @@ export function obtainAllUserListsData(
     excludeMediaId: string | null,
 ) {
     
-    console.log("excludeMediaId in obtainAllUserListsData", excludeMediaId)
     obtainAllUserLists({
         variables: {
             userId: user_id,

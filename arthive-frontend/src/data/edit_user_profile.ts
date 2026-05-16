@@ -21,7 +21,6 @@ export async function EditUserProfileDataFetch(
         return
     }
     
-    console.log(profilePicture)
     let signedId = null;
     if (profilePicture) {
         signedId = await uploadFileToS3(profilePicture, jwt);
@@ -32,14 +31,12 @@ export async function EditUserProfileDataFetch(
     }
     editUserProfile({variables: {input: {username, description, email, visibility, profilePicture: signedId, password}}})
     .then((data: any) => {
-        console.log(data)
         if (data.data?.editUserProfile) {
             setUser(data.data.editUserProfile)
             alert("Profile updated successfully")
         }
     })
     .catch((error: any) => {
-        console.log("error in EditUserProfileDataFetch", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

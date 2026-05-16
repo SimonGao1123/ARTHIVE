@@ -32,7 +32,6 @@ export function obtainAllUserReviewsFunction(
             setTargetUser(batch.user)
             
         }).catch((err: any) => {
-            console.log(err)
             if (unauth_messages.includes(err.message)) {
                 logout(setUser, navigate)
             }

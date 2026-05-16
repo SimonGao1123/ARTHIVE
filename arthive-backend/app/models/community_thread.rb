@@ -46,7 +46,9 @@ class CommunityThread < ApplicationRecord
     }
 
     scope :query_filter, -> (query) {
-        where('title ILIKE ? OR content ILIKE ?', "%#{query}%", "%#{query}%")
+        if query.present?
+            where('title ILIKE ? OR content ILIKE ?', "%#{query}%", "%#{query}%")
+        end
     }
 end
 

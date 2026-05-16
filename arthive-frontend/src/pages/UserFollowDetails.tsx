@@ -41,9 +41,6 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
 
     }, [pageNum, query])
 
-    console.log("followsData", followsData)
-    console.log("targetUserData", targetUserData)
-    console.log("count", count)
     return (
         <div>
             {loading ? <div>Loading...</div> : <></>}

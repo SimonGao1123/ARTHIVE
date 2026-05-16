@@ -6,9 +6,11 @@ class Community < ApplicationRecord
     
     validates :media_id, presence: true
 
-    def root_threads (current_user_id)
+    def root_threads (current_user_id, query: nil)
         self.community_threads
         .where(parent_thread: nil, root_thread: nil)
         .order_threads(current_user_id)
+        .query_filter(query)
     end
+
 end

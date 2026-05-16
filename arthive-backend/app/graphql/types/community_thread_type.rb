@@ -11,12 +11,34 @@ module Types
         field :community, Types::CommunityType, null: false
 
         
-        field :parent_thread, Types::CommunityThreadType, null: true
-        field :root_thread, Types::CommunityThreadType, null: true
+        field :parent_thread_id, ID, null: true
+        field :root_thread_id, ID, null: true
+
+        def parent_thread
+            if object.parent_thread.present?
+                return object.parent_thread.id
+            else
+                return nil
+            end 
+        end
+        def root_thread
+            if object.root_thread.present?
+                return object.root_thread.id
+            else
+                return nil
+            end
+        end
+
+
 
         field :child_threads, Types::CommunityThreadType.connection_type, null: true
 
         field :likes_count, Int, null: false
+        
+        field :child_threads_count, Int, null: false
+        def child_threads_count
+            object.child_threads.count
+        end
 
         def likes_count
             object.thread_likes.count

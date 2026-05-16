@@ -111,6 +111,7 @@ export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Medi
                     </ul>
                 </section>
             ) : null}
+            <button onClick={() => navigate(`/community/${media.id}`)}>Community</button>
         </article>
     )
 }

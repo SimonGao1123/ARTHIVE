@@ -4,7 +4,6 @@ const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT
 export function whoAmIQuery(whoami: any, navigate: any, setUser: any) {
     whoami().
     then((userData: any) => {
-        console.log("userData in whoAmIQuery", userData)
         if (userData.data.whoami) {
             setUser(userData.data.whoami)
         } else {
@@ -13,7 +12,6 @@ export function whoAmIQuery(whoami: any, navigate: any, setUser: any) {
         }
     })
     .catch((error: any) => {
-        console.log("error in whoAmIQuery", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

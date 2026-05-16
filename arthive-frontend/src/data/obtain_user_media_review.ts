@@ -7,10 +7,8 @@ export function obtainUserMediaReview(setUserReview: (userReview: UserReview | n
     getUserMediaReview({ variables: { mediaId } })
     .then((data: any) => {
         setUserReview(data.data.obtainUserReview)
-        console.log("data in obtainUserMediaReview", data.data.obtainUserReview)
     })
     .catch((error: any) => {
-        console.log("error in obtainUserMediaReview", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } 

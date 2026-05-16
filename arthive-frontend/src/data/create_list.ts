@@ -25,7 +25,6 @@ export function createList(
         }
     })
     .then((data: any) => {
-        console.log("List created: ", data)
     }).catch((error: any) => {
         console.error("Error creating list: ", error)
         if (unauth_messages.includes(error.message)) {

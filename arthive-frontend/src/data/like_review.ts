@@ -22,7 +22,6 @@ export function likeReviewFunction(setCurrLiked: (currLiked: boolean) => void, l
         if (unauth_messages.includes(err.message)) {
             logout(setUser, navigate)
         } else {
-            console.log("error in likeReview", err.message)
         }
     })
 }

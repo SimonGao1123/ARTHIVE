@@ -67,7 +67,6 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         organization: mediaData.organization,
         coverImage: signedId,
     }}).then((data: unknown) => {
-        console.log("Media created: ", data)
     }).catch((error: { message?: string }) => {
         console.error("Error: ", error)
         if (error.message && unauth_messages.includes(error.message)) {

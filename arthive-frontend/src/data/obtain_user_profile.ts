@@ -13,10 +13,8 @@ export function ObtainUserProfileFetch(
     getUserProfile({ variables: { userId } })
     .then((data: any) => {
         setUserProfileData(data.data.obtainUserProfile)
-        console.log("data in ObtainUserProfileFetch", data.data.obtainUserProfile)
     })
     .catch((error: any) => {
-        console.log("error in ObtainUserProfileFetch", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } 

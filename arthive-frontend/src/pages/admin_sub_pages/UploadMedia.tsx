@@ -51,22 +51,7 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
 
 
 
-    console.log("title: ", title)
-    console.log("creator: ", creator)
-    console.log("year: ", year)
-    console.log("content_type: ", content_type)
-    console.log("language: ", language)
-    console.log("summary: ", summary)
-    console.log("genre: ", genre)
-    console.log("ongoing: ", ongoing)
-    console.log("actors: ", actors)
-    console.log("page_count: ", page_count)
-    console.log("series_title: ", series_title)
-    console.log("organization: ", organization)
-    console.log("cover_image: ", cover_image)
-    console.log("File Input Ref: ", fileInputRef.current?.value)
     
-    console.log("token: ", localStorage.getItem("authToken"))
     return (
         <div>
             <h1>Upload Media</h1>

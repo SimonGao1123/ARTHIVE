@@ -19,7 +19,6 @@ export default function AddMediaToList({setUser, mediaId, user_id}: {setUser: (u
             addOrRemoveMediaData(addOrRemoveMediaInListMutation, listId, [mediaId], setUser, navigate, true)
         }
     }, [listId])
-    console.log(mediaId)
     return (
         <div>
             {error && <div>{error.message}</div>}

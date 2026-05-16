@@ -14,7 +14,6 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
 
     const [likeReview, {loading, error}] = useMutation<LikeReviewResponse, LikeReviewInput>(LIKE_REVIEW_MUTATION)
     if (error) {
-        console.log("error in likeReview", error.message)
     }
     return (
         <div key={review.id}>

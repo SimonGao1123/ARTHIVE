@@ -46,7 +46,6 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
             )
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err)
-            console.log(message)
             navigate("/", { replace: true })
         }
     }, [id])
@@ -69,6 +68,7 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
                 </div>
             ) : null}
 
+
             {showContent && mediaInfo ? (
                 <>
                     <UserMediaReview mediaId={Number(id)} setUser={setUser} mediaInfo={mediaInfo}/>
@@ -78,6 +78,7 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
 
             {showAddMediaToList && <AddMediaToList setUser={setUser} mediaId={id ?? ""} user_id={user?.id ?? ""} />}
             <button onClick={() => setShowAddMediaToList(!showAddMediaToList)}>{showAddMediaToList ? "Hide Add Media to List" : "Add Media to List"}</button>
+            
             <MediaReviews id={id ?? ""} setUser={setUser} />
 
         </main>

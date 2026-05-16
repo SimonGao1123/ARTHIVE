@@ -47,7 +47,6 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
         obtainAllUserReviewsFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getAllReviews, setReviews, setTargetUser, navigate, setUser)
     }, [contentType, pageNum, query])
 
-    console.log(reviews)
     return (
         <div>
             <h1>{targetUser?.username}'s Reviews</h1>

@@ -4,6 +4,5 @@ export function logout(setUser: any, navigate: any) {
         setUser(null)
         navigate("/login")
     } catch (error: any) {
-        console.log("error in logout", error)
     }
 }

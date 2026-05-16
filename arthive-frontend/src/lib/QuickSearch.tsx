@@ -25,7 +25,6 @@ export default function QuickSearch({setSearchResults, searchType, limit, setHas
     const [currQuery, setCurrQuery] = useState("")
     const [cursor, setCursor] = useState<string | null>(null)
 
-    console.log("cursor: ", cursor)
     useEffect(() => {
         if (query.length > 0) {
             

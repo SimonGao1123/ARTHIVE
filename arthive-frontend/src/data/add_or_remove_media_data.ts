@@ -22,10 +22,8 @@ export function addOrRemoveMediaData(
         }
     })
     .then((data: any) => {
-        console.log("data in addOrRemoveMediaData", data)
     })
     .catch((error: any) => {
-        console.log("error in addOrRemoveMediaData", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

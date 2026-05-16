@@ -29,7 +29,6 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
 
     useEffect(() => {
         fetchPage(true, null)
-        if (error) console.log("error in useEffect", error.message)
     }, [currContentType])
 
     return (

@@ -8,8 +8,7 @@ module Types
         end
 
         def root_threads(query: nil)
-            object.root_threads(context[:current_user].id)
-            .query_filter(query)
+            object.root_threads(context[:current_user].id, query: query)
         end
     end
 end

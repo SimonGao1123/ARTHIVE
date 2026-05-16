@@ -31,7 +31,6 @@ export function obtainListDetails(
         setTargetUser(batch.user)
     })
     .catch((error: any) => {
-        console.log("error in obtainListDetails", error.message)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

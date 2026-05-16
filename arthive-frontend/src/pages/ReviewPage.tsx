@@ -40,7 +40,6 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
         setLoadCount(prev => prev + 1)
     }, [query])
 
-    console.log("reviewComments", reviewComments)
     const [obtainReviewPage] = useLazyQuery<ObtainReviewPageResponse, ObtainReviewPageInput>(OBTAIN_REVIEW_PAGE_QUERY)
     useEffect(() => {
         if (review_id) {
@@ -48,7 +47,6 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
         }
     }, [review_id, loadCount, query])
 
-    console.log("main review", mainReview)
 
     return (<div>Review Page
         {mainReview && <MainReviewComponent commentCount={commentCount} mainReview={mainReview} setUser={setUser} />}
