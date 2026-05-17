@@ -1,9 +1,12 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { User } from "../types/user_types";
+import { useState } from "react";
 
 export default function ExplorePageNavBar({user}: {user: User | null}) {
     const navigate = useNavigate()
     const location = useLocation()
+
+    const [searchQuery, setSearchQuery] = useState("")
     return (
         <>
         <nav>
@@ -12,6 +15,9 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
             {user && <button onClick={() => navigate(`/${user.id}/all_reviews`)} className={location.pathname === `/${user.id}/all_reviews` ? "active" : ""}>All Reviews</button>}
             {user && <button onClick={() => navigate(`/${user.id}/all_lists`)} className={location.pathname === `/${user.id}/all_lists` ? "active" : ""}>All Lists</button>}
             {user?.ifAdmin && <button onClick={() => navigate("/admin")} className={location.pathname === "/admin" ? "active" : ""}>Admin Panel</button>}
+
+            {!location.pathname.includes("/search") ? <><input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <button onClick={() => navigate(`/search?query=${searchQuery}&searchType=all`)}>Search</button> </> : <></>}
         </nav>
         <Outlet/>
         </>

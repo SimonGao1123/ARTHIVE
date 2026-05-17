@@ -5,5 +5,6 @@ module Types
         value "user", "Search users"
         value "review", "Search reviews"
         value "list", "Search lists"
+        value "thread", "Search root threads"
     end
 end

@@ -177,14 +177,16 @@ class User < ApplicationRecord
         }
     end
 
-    scope :query_filter, -> (query) {   
+    scope :query_filter, -> (query) {
         where('username ILIKE ?', "%#{query}%")
     }
+    scope :visible_to, ->(current_user_id) {
+        where(
+            "users.visibility = 'public' OR users.id = :uid OR EXISTS (SELECT 1 FROM follows WHERE follows.sender_id = :uid AND follows.receiver_id = users.id AND follows.status = 'accepted')",
+            uid: current_user_id
+        )
+    }
     def self.search(query:, current_user_id:)
-        base_search = User.query_filter(query)
-
-        base_search = base_search.filter { |user| User.if_visible_to_user(current_user_id, user.id)}
-
-        return base_search
+        User.query_filter(query).visible_to(current_user_id)
     end
 end

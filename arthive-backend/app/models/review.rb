@@ -74,15 +74,16 @@ class Review < ApplicationRecord
         end
     }
     scope :content_type_filter, ->(content_type) {
-        where(media: {content_type: content_type})
+        where(media_id: Media.where(content_type: content_type).select(:id))
     }
     scope :genre_filter, ->(genre) {
         where(media_id: Media.genre_filter(genre).select(:id))
     }
 
-    def self.search(query:, search_filter:)
-        base_search = Review.query_filter(query).where.not(content: nil)
-        
+    def self.search(query:, search_filter:, current_user_id:)
+        base_search = Review.query_filter(query)
+            .where.not(content: nil)
+            .where(user_id: User.visible_to(current_user_id).select(:id))
         if search_filter.present?
             search_filter.each do |filter|
                 normalized_values = Array(filter.values).map(&:downcase)
@@ -95,6 +96,6 @@ class Review < ApplicationRecord
             end
         end
 
-        return base_search.includes(:user, :media).recent
+        return base_search.sort_by_likes.recent.preload(:user, :media)
     end
 end

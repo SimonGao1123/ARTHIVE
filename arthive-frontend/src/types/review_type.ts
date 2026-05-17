@@ -23,6 +23,15 @@ export type Review = {
     likeCount: number,
     commentCount: number,
     ifLiked: boolean,
+    media: {
+        id: number
+        title: string
+        coverImage: string
+        creator: string
+        year: number
+        genre: string[]
+        contentType: "book" | "film" | "series" | "game"
+    }
 }
 
 export type AllReview = {

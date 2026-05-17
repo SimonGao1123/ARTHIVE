@@ -31,7 +31,7 @@ class List < ApplicationRecord
     }
     
     scope :content_type_filter, ->(content_type) {
-        where("content_type @> ARRAY[?]::varchar[]", [content_type])
+        where("content_type @> ARRAY[?]::varchar[]", content_type)
     }
 
     scope :user_visible_filter, ->(current_user_id) {
@@ -40,7 +40,8 @@ class List < ApplicationRecord
     }
     def self.search(query:, search_filter:, current_user_id:)
         base_search = List.query_filter(query)
-        base_search = base_search.user_visible_filter(current_user_id)
+            .user_visible_filter(current_user_id)
+            .where(user_id: User.visible_to(current_user_id).select(:id))
 
         if search_filter.present?
             search_filter.each do |filter|

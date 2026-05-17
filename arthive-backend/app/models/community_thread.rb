@@ -47,8 +47,32 @@ class CommunityThread < ApplicationRecord
 
     scope :query_filter, -> (query) {
         if query.present?
-            where('title ILIKE ? OR content ILIKE ?', "%#{query}%", "%#{query}%")
+            where('community_threads.title ILIKE ? OR community_threads.content ILIKE ?', "%#{query}%", "%#{query}%")
         end
     }
+
+    def self.search(query:, search_filter:, current_user_id:)
+        base_search = CommunityThread
+        .order_threads(current_user_id)
+        .query_filter(query)
+        .where(root_thread_id: nil, parent_thread_id: nil)
+        .where(user_id: User.visible_to(current_user_id).select(:id))
+        .includes(:user, :child_threads, :thread_likes)
+        
+
+        if search_filter.present?
+            search_filter.each do |filter|
+                normalized_values = Array(filter.values).map(&:downcase)
+                case filter.filter
+                    when "content_type"
+                        base_search = base_search.where(community_id: Community.where(media_id: Media.content_type_filter(normalized_values).select(:id)).select(:id))
+                    when "genre"
+                        base_search = base_search.where(community_id: Community.where(media_id: Media.genre_filter(normalized_values).select(:id)).select(:id))
+                end
+            end
+        end
+
+        base_search
+    end
 end
 

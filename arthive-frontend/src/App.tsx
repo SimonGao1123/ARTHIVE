@@ -28,6 +28,7 @@ import ListPage from './pages/ListPage'
 import CreateListPage from './pages/CreateListPage'
 import CommunityPage from './pages/CommunityPage'
 import ThreadPage from './pages/ThreadPage'
+import SearchPageResults from './pages/SearchPageResults'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -80,6 +81,8 @@ function App() {
           <Route path="/create_list" element={<CreateListPage setUser={setUser} user={user}/>} />
           <Route path="/community/:media_id" element={<CommunityPage setUser={setUser}/>} />
           <Route path="/community/:media_id/thread/:thread_id" element={<ThreadPage setUser={setUser}/>} />
+
+          <Route path="/search" element={<SearchPageResults key={location.search} setUser={setUser}/>} />
         </Route>
 
         
