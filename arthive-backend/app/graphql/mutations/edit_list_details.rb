@@ -25,6 +25,7 @@ module Mutations
             if !list.update(updates)
                 raise GraphQL::ExecutionError, list.errors.full_messages.join(", ")
             end
+            Activity.log(user: context[:current_user], subject: list, status: "updated")
 
             return list
         rescue ActiveRecord::RecordNotFound => e

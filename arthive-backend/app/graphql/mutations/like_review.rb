@@ -15,7 +15,7 @@ module Mutations
                     review_like = ReviewLike.find_by(user_id: context[:current_user].id, review_id: review_id)
                     Activity.log(user: context[:current_user], subject: review_like, status: "created")
                 else
-                    Activity.log(user: context[:current_user], subject: existing, status: "inactive") if existing
+                    Activity.destroy(user: context[:current_user], subject: existing) if existing
                 end
                 liked
             rescue ActiveRecord::RecordNotFound => e

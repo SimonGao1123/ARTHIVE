@@ -13,4 +13,10 @@ class Activity < ApplicationRecord
     def self.log(user:, subject:, status:)
         create!(user: user, subject: subject, status: status)
     end
+    def self.destroy(user:, subject:)
+        activity = find_by(user: user, subject: subject)
+        if activity.present?
+            activity.update(status: "inactive")
+        end
+    end
 end

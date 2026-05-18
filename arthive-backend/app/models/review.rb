@@ -37,12 +37,18 @@ class Review < ApplicationRecord
             if review.present?
                 # if content is removed, delete all comments and likes
                 if content.blank?
+                    comment_ids = review.review_comments.map(&:id)
+                    like_ids = review.review_likes.map(&:id)
                     review.review_comments.delete_all
                     review.review_likes.delete_all
+                    Activity.where(activity_type: "ReviewComment", activity_id: comment_ids)
+                            .or(Activity.where(activity_type: "ReviewLike", activity_id: like_ids))
+                            .update_all(status: "inactive")
                 end
 
                 if content.blank? && rating.blank? && !if_favorite && !if_finished
                     review.destroy!
+                    Activity.destroy(user: context[:current_user], subject: review)
                     return nil
                 end
 
