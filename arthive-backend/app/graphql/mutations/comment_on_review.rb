@@ -10,7 +10,9 @@ module Mutations
             validate_user
 
             begin
-                return ReviewComment.create!(user_id: context[:current_user].id, review_id: review_id, comment: comment)
+                review_comment = ReviewComment.create!(user_id: context[:current_user].id, review_id: review_id, comment: comment)
+                Activity.log(user: context[:current_user], subject: review_comment, status: "created")
+                review_comment
             rescue ActiveRecord::RecordNotFound => e
                 raise GraphQL::ExecutionError, e.message
             rescue ActiveRecord::RecordInvalid => e

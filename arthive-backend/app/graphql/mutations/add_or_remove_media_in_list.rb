@@ -32,6 +32,7 @@ module Mutations
                     if !media_in_list.save
                         raise GraphQL::ExecutionError, media_in_list.errors.full_messages.join(", ")
                     end
+                    Activity.log(user: context[:current_user], subject: media_in_list, status: "created")
                     new_content_type << Media.find_by(id: media_id).content_type
                 else
                     media_in_list = MediaInList.find_by(list_id: list_id, media_id: media_id)
@@ -41,6 +42,7 @@ module Mutations
                     if !media_in_list.destroy
                         raise GraphQL::ExecutionError, media_in_list.errors.full_messages.join(", ")
                     end
+                    Activity.log(user: context[:current_user], subject: media_in_list, status: "inactive")
                 end
             end
 

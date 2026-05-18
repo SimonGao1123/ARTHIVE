@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_12_162334) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_17_184236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_162334) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.integer "activity_id", null: false
+    t.string "activity_type", null: false
+    t.datetime "created_at", null: false
+    t.string "status", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "idx_activities_user_id"
+    t.index ["user_id"], name: "index_activities_on_user_id"
   end
 
   create_table "communities", force: :cascade do |t|
@@ -177,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_162334) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "activities", "users"
   add_foreign_key "communities", "media", column: "media_id"
   add_foreign_key "community_threads", "communities"
   add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"

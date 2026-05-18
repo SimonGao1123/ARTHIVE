@@ -22,6 +22,8 @@ module Mutations
             if !list.save
                 raise GraphQL::ExecutionError, list.errors.full_messages.join(", ")
             end
+
+            Activity.log(user: context[:current_user], subject: list, status: "created")
             
             content_type = Set.new
             if added_media_ids.present?

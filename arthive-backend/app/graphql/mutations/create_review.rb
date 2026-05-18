@@ -16,7 +16,7 @@ module Mutations
                 raise GraphQL::ExecutionError, "ERROR IN CREATE REVIEW: ALL ARGUMENTS ARE REQUIRED"
             end
             begin
-                Review.update_review(
+                review = Review.update_review(
                     context[:current_user].id,
                     media_id,
                     content,
@@ -25,6 +25,8 @@ module Mutations
                     if_finished,
                     review_id
                 )
+                Activity.log(user: context[:current_user], subject: review, status: review_id.nil? ? "created" : "updated") if review&.persisted?
+                review
             rescue ActiveRecord::RecordNotFound => e
                 raise GraphQL::ExecutionError, e.message
             rescue ActiveRecord::RecordInvalid => e

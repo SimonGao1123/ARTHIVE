@@ -9,7 +9,15 @@ module Mutations
             validate_user
 
             begin
-                return ThreadLike.toggle_like(context[:current_user].id, thread_id)
+                existing = ThreadLike.find_by(user_id: context[:current_user].id, community_thread_id: thread_id)
+                liked = ThreadLike.toggle_like(context[:current_user].id, thread_id)
+                if liked
+                    thread_like = ThreadLike.find_by(user_id: context[:current_user].id, community_thread_id: thread_id)
+                    Activity.log(user: context[:current_user], subject: thread_like, status: "created")
+                else
+                    Activity.log(user: context[:current_user], subject: existing, status: "inactive") if existing
+                end
+                liked
             rescue ActiveRecord::RecordNotFound => e
                 raise GraphQL::ExecutionError, e.message
             rescue ActiveRecord::RecordInvalid => e

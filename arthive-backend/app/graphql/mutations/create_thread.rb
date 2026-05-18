@@ -31,7 +31,8 @@ module Mutations
                 raise GraphQL::ExecutionError, new_thread.errors.full_messages.join(", ")
             end
 
-            return new_thread
+            Activity.log(user: context[:current_user], subject: new_thread, status: "created")
+            new_thread
             
             
         end

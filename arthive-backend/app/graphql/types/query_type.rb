@@ -36,5 +36,6 @@ module Types
     field :obtain_user_profile, resolver: Resolvers::ObtainUserProfileResolver
     field :obtain_community, resolver: Resolvers::ObtainCommunityResolver
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
+    field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
   end
 end

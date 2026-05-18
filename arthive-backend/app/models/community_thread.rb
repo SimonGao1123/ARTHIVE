@@ -57,7 +57,6 @@ class CommunityThread < ApplicationRecord
         .query_filter(query)
         .where(root_thread_id: nil, parent_thread_id: nil)
         .where(user_id: User.visible_to(current_user_id).select(:id))
-        .includes(:user, :child_threads, :thread_likes)
         
 
         if search_filter.present?

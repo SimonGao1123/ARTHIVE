@@ -96,6 +96,6 @@ class Review < ApplicationRecord
             end
         end
 
-        return base_search.sort_by_likes.recent.preload(:user, :media)
+        return base_search.sort_by_likes.recent.includes(:user, :media)
     end
 end
