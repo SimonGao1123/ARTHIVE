@@ -12,8 +12,8 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
         <nav>
             <img width={50} height={50} onClick={() => navigate(`/profile/${user?.id}`)} src={user?.profilePicture ? user.profilePicture : "/default-ARTHIVE-pfp.png"} alt="Profile Picture" className="profile-picture" />
             <button onClick={() => navigate("/") } className={location.pathname === "/" ? "active" : ""}>Explore</button>
-            {user && <button onClick={() => navigate(`/${user.id}/all_reviews`)} className={location.pathname === `/${user.id}/all_reviews` ? "active" : ""}>All Reviews</button>}
-            {user && <button onClick={() => navigate(`/${user.id}/all_lists`)} className={location.pathname === `/${user.id}/all_lists` ? "active" : ""}>All Lists</button>}
+            {user && <button onClick={() => navigate(`/all_reviews/${user.id}`)} className={location.pathname === `/${user.id}/all_reviews` ? "active" : ""}>All Reviews</button>}
+            {user && <button onClick={() => navigate(`/all_lists/${user.id}`)} className={location.pathname === `/${user.id}/all_lists` ? "active" : ""}>All Lists</button>}
             {user?.ifAdmin && <button onClick={() => navigate("/admin")} className={location.pathname === "/admin" ? "active" : ""}>Admin Panel</button>}
 
             {!location.pathname.includes("/search") ? <><input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />

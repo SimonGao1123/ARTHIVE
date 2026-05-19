@@ -6,7 +6,7 @@ import { ObtainUserProfileFetch } from "../data/obtain_user_profile"
 import { useNavigate, useParams } from "react-router-dom"
 import SendFollowButton from "../lib/SendFollowButton"
 import ManipulateFollowButton from "../lib/ManipulateFollowButton"
-
+import RecentUserActivity from "../lib/RecentUserActivity"
 type UserProfilePageProps = {
     setUser: (user: User | null) => void,
     user: User | null
@@ -58,6 +58,11 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
             {userProfileData?.seriesFinishedCount !== null ? <p>Series Finished: {userProfileData?.seriesFinishedCount}</p> : <></>}
             {userProfileData?.bookFinishedCount !== null ? <p>Book Finished: {userProfileData?.bookFinishedCount}</p> : <></>}
             {userProfileData?.gameFinishedCount !== null ? <p>Game Finished: {userProfileData?.gameFinishedCount}</p> : <></>}
+        
+
+            {userProfileData?.isVisibleToUser ? <><h3>Recent Activity</h3>
+            {user ? <RecentUserActivity user={user} setUser={setUser} navigate={navigate} /> : <></>}
+            </> : <></>}
         </div>
     )
 }

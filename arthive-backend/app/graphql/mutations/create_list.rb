@@ -36,9 +36,11 @@ module Mutations
                         list: list,
                         media_id: media_id
                     )
+
                     if !media_in_list.save
                         raise GraphQL::ExecutionError, media_in_list.errors.full_messages.join(", ")
                     end
+                    Activity.log(user: context[:current_user], subject: media_in_list, status: "created")
 
                     content_type << Media.find_by(id: media_id).content_type
                 end
