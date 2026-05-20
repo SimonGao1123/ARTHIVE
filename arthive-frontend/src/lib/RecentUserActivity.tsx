@@ -31,10 +31,10 @@ export default function RecentUserActivity({ user, setUser, navigate }: RecentUs
             {error && <p>Error: {error.message}</p>}
             {recentUserActivity.map((activity) => {
                 return (
-                    <>
+                    <div key={activity.id}>
                         <ActivityCard activity={activity} />
                         <hr />
-                    </>
+                    </div>
                 )
             })}
             {hasNextPage && <button onClick={() => setLoadCount(loadCount + 1)}>Load More</button>}
@@ -45,6 +45,9 @@ export default function RecentUserActivity({ user, setUser, navigate }: RecentUs
 function ActivityCard({ activity }: { activity: Activity }) {
     const navigate = useNavigate()
     const subject = () => {
+        if (!activity.subject) {
+            return <p>Unknown Subject</p>
+        }
         switch (activity.subject.__typename) {
             case "Review":
                 return <ReviewCard review={activity.subject as any} navigate={navigate} />
@@ -68,7 +71,8 @@ function ActivityCard({ activity }: { activity: Activity }) {
         <div>
             <p>STATUS: {activity.status}</p>
             <p>{activity.createdAt}</p>
-            <p>SUBJECT: {activity.subject.__typename}</p>
+            <p>{activity.activityType}</p>
+            {activity.subject && <p>SUBJECT: {activity.subject.__typename}</p>}
             {subject()}
         </div>
     )

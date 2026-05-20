@@ -19,7 +19,11 @@ export function createReviewFunction(
 ) {
     createReview({ variables: { input: { mediaId, content: reviewContent === "" ? null : reviewContent, rating: rating === 0 ? null : rating, ifFavorite, ifFinished, reviewId: userReview ? userReview.id : null } } })
     .then((data: any) => {
-        setUserReview(data.data.createReview)
+        if (data.data.createReview.deleted) {
+            setUserReview(null)
+        } else {
+            setUserReview(data.data.createReview.review)
+        }
     })
     .catch((error: any) => {
         if (unauth_messages.includes(error.message)) {

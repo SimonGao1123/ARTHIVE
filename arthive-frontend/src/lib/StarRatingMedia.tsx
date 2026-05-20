@@ -1,9 +1,11 @@
 export default function StarRatingMedia({
     rating,
     setRating,
+    createReviewFunctionWrapper,
   }: {
     rating: number
     setRating: (rating: number) => void
+    createReviewFunctionWrapper: (params: {newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) => void
   }) {
     const stars = [1, 2, 3, 4, 5]
   
@@ -56,7 +58,7 @@ export default function StarRatingMedia({
               <button
                 type="button"
                 aria-label={`Set rating to ${star - 0.5}`}
-                onClick={() => setRating(star - 0.5)}
+                onClick={() => createReviewFunctionWrapper({newRating: star - 0.5})}
                 style={{
                   position: "absolute",
                   left: 0,
@@ -72,7 +74,7 @@ export default function StarRatingMedia({
               <button
                 type="button"
                 aria-label={`Set rating to ${star}`}
-                onClick={() => setRating(star)}
+                onClick={() => createReviewFunctionWrapper({newRating: star})}
                 style={{
                   position: "absolute",
                   right: 0,
@@ -86,7 +88,7 @@ export default function StarRatingMedia({
             </div>
           ))}
   
-          <button type="button" onClick={() => setRating(0)}>
+          <button type="button" onClick={() => createReviewFunctionWrapper({newRating: 0})}>
             Clear
           </button>
         </div>

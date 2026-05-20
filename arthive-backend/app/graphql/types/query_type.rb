@@ -37,5 +37,6 @@ module Types
     field :obtain_community, resolver: Resolvers::ObtainCommunityResolver
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
     field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
+    field :obtain_liked_or_finished_media, resolver: Resolvers::ObtainLikedOrFinishedMediaResolver
   end
 end

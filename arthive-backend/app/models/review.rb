@@ -43,21 +43,24 @@ class Review < ApplicationRecord
                     review.review_likes.delete_all
                     Activity.where(activity_type: "ReviewComment", activity_id: comment_ids)
                             .or(Activity.where(activity_type: "ReviewLike", activity_id: like_ids))
-                            .update_all(status: "inactive")
+                            .destroy_all
                 end
 
                 if content.blank? && rating.blank? && !if_favorite && !if_finished
                     review.destroy!
-                    Activity.destroy(user: context[:current_user], subject: review)
-                    return nil
+                    Activity.where(user_id: user_id, activity_type: "Review", activity_id: review.id).destroy_all
+                    return {review: nil, deleted: true}
                 end
 
                 review.update!(content: content, rating: rating, if_favorite: if_favorite, if_finished: if_finished)
-                return review
+                return {review: review, deleted: false}
             else
                 raise ActiveRecord::RecordNotFound, "Review not found with the given ID, user ID, and media ID"
             end
         else
+            if content.blank? && rating.blank? && !if_favorite && !if_finished
+                raise GraphQL::ExecutionError, "ERROR IN CREATE REVIEW: ALL ARGUMENTS ARE REQUIRED"
+            end
             new_review = new(
                 user_id: user_id, 
                 media_id: media_id, 
@@ -67,7 +70,7 @@ class Review < ApplicationRecord
                 if_finished: if_finished
             )
             if new_review.save
-                return new_review
+                return {review: new_review, deleted: false}
             else
                 raise ActiveRecord::RecordInvalid.new(new_review)
             end

@@ -1,6 +1,6 @@
 module Mutations
     class CreateReview < BaseMutation
-        type Types::ReviewType, null: false
+        type Types::CreateReviewType, null: false
 
         argument :media_id, ID, required: true
         argument :content, String, required: false
@@ -16,7 +16,7 @@ module Mutations
                 raise GraphQL::ExecutionError, "ERROR IN CREATE REVIEW: ALL ARGUMENTS ARE REQUIRED"
             end
             begin
-                review = Review.update_review(
+                review_result = Review.update_review(
                     context[:current_user].id,
                     media_id,
                     content,
@@ -25,8 +25,11 @@ module Mutations
                     if_finished,
                     review_id
                 )
-                Activity.log(user: context[:current_user], subject: review, status: review_id.nil? ? "created" : "updated") if review&.persisted?
-                review
+                Activity.log(user: context[:current_user], subject: review_result[:review], status: review_id.nil? ? "created" : "updated") if review_result[:review]&.persisted?
+                
+                
+                review_result
+
             rescue ActiveRecord::RecordNotFound => e
                 raise GraphQL::ExecutionError, e.message
             rescue ActiveRecord::RecordInvalid => e

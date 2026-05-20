@@ -8,6 +8,7 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                     id
                     status
                     createdAt
+                    activityType
 
                     subject {
                         __typename
@@ -140,6 +141,7 @@ export type Activity = {
     status: string,
     createdAt: string,
     subject: any
+    activityType: string
 }
 
 export type RecentUserActivityResponse = {

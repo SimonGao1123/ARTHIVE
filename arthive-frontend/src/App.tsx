@@ -29,6 +29,7 @@ import CreateListPage from './pages/CreateListPage'
 import CommunityPage from './pages/CommunityPage'
 import ThreadPage from './pages/ThreadPage'
 import SearchPageResults from './pages/SearchPageResults'
+import UserLikedOrFinishedMediaPage from './pages/UserLikedOrFinishedMediaPage'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -66,6 +67,8 @@ function App() {
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
           <Route path="/all_reviews/:user_id" element={<AllUserReviewsPage setUser={setUser}/>} />
           <Route path="/all_lists/:user_id" element={<AllUserListsPage setUser={setUser}/>} />
+          <Route path="/liked/:user_id" element={<UserLikedOrFinishedMediaPage type="liked" setUser={setUser}/>} />
+          <Route path="/finished/:user_id" element={<UserLikedOrFinishedMediaPage type="finished" setUser={setUser}/>} />
 
           <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />

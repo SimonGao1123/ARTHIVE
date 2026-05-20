@@ -14,6 +14,8 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
             <button onClick={() => navigate("/") } className={location.pathname === "/" ? "active" : ""}>Explore</button>
             {user && <button onClick={() => navigate(`/all_reviews/${user.id}`)} className={location.pathname === `/${user.id}/all_reviews` ? "active" : ""}>All Reviews</button>}
             {user && <button onClick={() => navigate(`/all_lists/${user.id}`)} className={location.pathname === `/${user.id}/all_lists` ? "active" : ""}>All Lists</button>}
+            {user && <button onClick={() => navigate(`/liked/${user.id}`)} className={location.pathname === `/liked/${user.id}` ? "active" : ""}>Liked</button>}
+            {user && <button onClick={() => navigate(`/finished/${user.id}`)} className={location.pathname === `/finished/${user.id}` ? "active" : ""}>Finished</button>}
             {user?.ifAdmin && <button onClick={() => navigate("/admin")} className={location.pathname === "/admin" ? "active" : ""}>Admin Panel</button>}
 
             {!location.pathname.includes("/search") ? <><input type="text" placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
