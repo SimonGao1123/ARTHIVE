@@ -47,7 +47,7 @@ class Media < ApplicationRecord
 
     # most reviews/threads on the media within the last week (hottest)        
     scope :hottest_explore_page, ->(content_type: "all", user_id: nil) {
-        select(<<~SQL)
+        select(<<~SQL
           media.*,
           (
             (SELECT COUNT(*) FROM reviews

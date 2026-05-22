@@ -14,7 +14,6 @@ module Mutations
         argument :page_count, Int, required: false
         argument :series_title, String, required: false
         argument :organization, String, required: false
-        argument :cover_image, String, required: false
 
 
         def resolve(**args)

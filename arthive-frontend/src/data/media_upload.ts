@@ -4,7 +4,7 @@ import { uploadFileToS3 } from "./upload_file_to_s3"
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 
-export async function mediaUpload(mediaData: any, setUser: any, navigate: any, createMedia: any) {
+export async function mediaUpload(mediaData: any, setUser: any, navigate: any, createMedia: any, uploadImageToS3: any) {
     if (!mediaData.title) {
         alert("Title is required")
         return
@@ -39,18 +39,7 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         return
     }
 
-    const jwt = localStorage.getItem("authToken")
-    if (!jwt) {
-        logout(setUser, navigate)
-        return
-    }
     
-    
-    const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
-    if (!signedId) {
-        alert("Error uploading cover image to S3")
-        return
-    }
 
     createMedia({variables: {
         title: mediaData.title,
@@ -65,8 +54,26 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         pageCount: Number(mediaData.page_count),
         seriesTitle: mediaData.series_title,
         organization: mediaData.organization,
-        coverImage: signedId,
-    }}).then((data: unknown) => {
+    }}).then(async(data: any) => {
+        console.log(data)
+        if (data.data.createMedia.id) {
+            const jwt = localStorage.getItem("authToken")
+            if (!jwt) {
+                logout(setUser, navigate)
+                return
+            }
+            
+            
+            const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
+            if (!signedId) {
+                alert("Error uploading cover image to S3")
+                return
+            }
+
+            // ensures that the image is uploaded to database before s3 image attached
+            // avoids orphaned images in s3 bucket
+            uploadImageToS3({variables: {signedId, resourceId: data.data.createMedia.id, resourceType: "media"}})
+        }
     }).catch((error: { message?: string }) => {
         console.error("Error: ", error)
         if (error.message && unauth_messages.includes(error.message)) {

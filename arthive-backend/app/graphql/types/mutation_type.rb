@@ -23,5 +23,7 @@ module Types
     field :create_thread, mutation: Mutations::CreateThread
     field :like_thread, mutation: Mutations::LikeThread
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
+
+    field :attach_s3_image, mutation: Mutations::AttachS3Image
   end
 end

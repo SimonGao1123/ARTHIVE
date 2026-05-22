@@ -4,8 +4,8 @@ import type { Review } from "../review_type"
 
 // returns the media for the explore page, only need cover image for now
 export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
-    query NewestExplorePageMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
-        newestExplorePageMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
+    query NewestExploreMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
+        newestExploreMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
             edges {
                 node {
                     id
@@ -23,7 +23,7 @@ export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
 `
 
 export type NewestExplorePageMediaResponse = {
-    newestExplorePageMedia: {
+    newestExploreMedia: {
         edges: {
             node: {
                 id: number
@@ -112,3 +112,42 @@ export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
         }
     }
 `;
+
+export const HOTTEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
+    query HottestExploreMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
+        hottestExploreMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
+            edges {
+                node {
+                    id
+                    coverImage
+                }
+            }
+        
+            pageInfo {
+                hasNextPage
+                endCursor
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+`;
+export type HottestExplorePageMediaResponse = {
+    hottestExploreMedia: {
+        edges: {
+            node: {
+                id: number
+                coverImage: string
+            }
+        }[]
+        pageInfo: {
+            hasNextPage: boolean
+            endCursor: string
+            hasPreviousPage: boolean
+            startCursor: string
+        }
+    }
+}
+export type HottestExplorePageMediaInput =
+    | { contentType: "book" | "film" | "series" | "game" | "all"; first: number; after?: string; last?: never; before?: never }
+    | { contentType: "book" | "film" | "series" | "game" | "all"; last: number; before?: string; first?: never; after?: never }

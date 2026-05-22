@@ -27,11 +27,11 @@ export function NewestExplorePageDataFetch(
         before: cursor
     } })
     .then((data: any) => {
-        setAllMedia(data.data.newestExplorePageMedia.edges.map((e: any) => e.node) ?? [])
-        setNextCursor(data.data.newestExplorePageMedia.pageInfo.endCursor)
-        setPrevCursor(data.data.newestExplorePageMedia.pageInfo.startCursor)
-        setIfPrevPage(data.data.newestExplorePageMedia.pageInfo.hasPreviousPage ?? false)
-        setIfNextPage(data.data.newestExplorePageMedia.pageInfo.hasNextPage ?? false)
+        setAllMedia(data.data.newestExploreMedia.edges.map((e: any) => e.node) ?? [])
+        setNextCursor(data.data.newestExploreMedia.pageInfo.endCursor)
+        setPrevCursor(data.data.newestExploreMedia.pageInfo.startCursor)
+        setIfPrevPage(data.data.newestExploreMedia.pageInfo.hasPreviousPage ?? false)
+        setIfNextPage(data.data.newestExploreMedia.pageInfo.hasNextPage ?? false)
     })
     .catch((error: any) => {
         if (unauth_messages.includes(error.message)) {

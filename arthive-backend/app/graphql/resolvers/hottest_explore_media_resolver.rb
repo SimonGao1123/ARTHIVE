@@ -2,7 +2,7 @@ module Resolvers
     class HottestExploreMediaResolver < BaseResolver
         type Types::MediaType.connection_type, null: false
 
-        argument :content_type, String, required: false, default_value: "all"
+        argument :content_type, Types::ContentTypeEnum, required: false, default_value: "all"
 
         def resolve(content_type:)
             validate_user

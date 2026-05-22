@@ -1,17 +1,15 @@
 // displays all the media on explore page
 import { useEffect, useState } from "react"
 import { useLazyQuery } from "@apollo/client/react"
-import { NEWEST_EXPLORE_PAGE_MEDIA_QUERY, type NewestExplorePageMediaResponse, type NewestExplorePageMediaInput } from "../types/queries/media_request_query"
+import { NEWEST_EXPLORE_PAGE_MEDIA_QUERY, type NewestExplorePageMediaResponse, type NewestExplorePageMediaInput } from "../types/queries/media_request_query.ts"
 import { NewestExplorePageDataFetch } from "../data/newest_explore_page_data.ts"
-import type { User } from "../types/user_types"
+import type { User } from "../types/user_types.ts"
 import { useNavigate } from "react-router-dom"
-import { MediaCard } from "./MediaCard"
-import ContentFilter from "./ContentFilter"
+import { MediaCard } from "./MediaCard.tsx"
 const EXPLORE_MEDIA_LIMIT = 1
 
-export default function ExplorePageMediaLibrary({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
+export default function NewestExplorePageMediaLibrary({user, setUser, currContentType}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all"}) {
     const navigate = useNavigate()
-    const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
     
     const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -33,7 +31,6 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
 
     return (
         <div>
-            <ContentFilter currContentType={currContentType} setContentType={setCurrContentType} />
             <div>{loading ? "Loading..." : <></>}</div>
             <div>{error ? error.message : <></>}</div>
             {allMedia.map((media) => (

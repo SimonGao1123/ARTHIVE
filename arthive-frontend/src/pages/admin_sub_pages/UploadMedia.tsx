@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom"
 import type { User } from "../../types/user_types"
 import { mediaUpload } from "../../data/media_upload"
 import { useMutation } from "@apollo/client/react"
-import { UPLOAD_MEDIA_MUTATION } from "../../types/mutations/upload_media_mutation"
+import { UPLOAD_IMAGE_TO_S3_MUTATION, UPLOAD_MEDIA_MUTATION } from "../../types/mutations/upload_media_mutation"
 
 const allGenres = ["Drama", "Comedy", "Romance", 
     "Action", "Adventure", "Horror", "Thriller", 
@@ -19,6 +19,8 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
     const navigate = useNavigate()
 
     const [createMedia, {loading, error}] = useMutation(UPLOAD_MEDIA_MUTATION);
+
+    const [uploadImageToS3] = useMutation(UPLOAD_IMAGE_TO_S3_MUTATION);
 
     // check if the user is logged in and is an admin
     useEffect(() => {
@@ -61,7 +63,7 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
             {error && <p>Error: {error.message}</p>}
             <form onSubmit={(e) => {
                 e.preventDefault()
-                mediaUpload({title, creator, year, content_type, language, summary, genre, ongoing, actors, page_count, series_title, organization, cover_image}, setUser, navigate, createMedia)
+                mediaUpload({title, creator, year, content_type, language, summary, genre, ongoing, actors, page_count, series_title, organization, cover_image}, setUser, navigate, createMedia, uploadImageToS3)
             }}>
             <InputField title="Title" type="text" value={title} setter={setTitle} can_be_empty={false}/>
             <InputField title="Creator" type="text" value={creator} setter={setCreator} can_be_empty={false}/>

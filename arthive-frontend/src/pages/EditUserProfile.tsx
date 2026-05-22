@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from "react"
 import { LOGIN_USER, type LoginInput, type LoginUserMutation} from "../types/mutations/user_login_mutations"
 import { EditUserProfileDataFetch } from "../data/edit_user_profile"
 import { useNavigate } from "react-router-dom"
+import { UPLOAD_IMAGE_TO_S3_MUTATION } from "../types/mutations/upload_media_mutation"
 
 type EditUserProfileProps = {
     setUser: (user: User | null) => void
@@ -16,6 +17,7 @@ export default function EditUserProfile({ setUser, user }: EditUserProfileProps)
 
     const [editUserProfile, { loading, error }] = useMutation<EditUserProfileResponse, EditUserProfileInput>(EDIT_USER_PROFILE_MUTATION)
 
+    const [uploadImageToS3] = useMutation(UPLOAD_IMAGE_TO_S3_MUTATION);
     const [username, setUsername] = useState<string | null>(user?.username || null)
     const [description, setDescription] = useState<string | null>(user?.description || null)
     const [email, setEmail] = useState<string | null>(user?.email || null)
@@ -63,7 +65,7 @@ export default function EditUserProfile({ setUser, user }: EditUserProfileProps)
 
             <form onSubmit={(e) => {
                 e.preventDefault()
-                EditUserProfileDataFetch(setUser, navigate, username, description, email, visibility, profilePicture, password, editUserProfile)
+                EditUserProfileDataFetch(setUser, navigate, username, description, email, visibility, profilePicture, password, editUserProfile, uploadImageToS3)
                 clearChanges()
             }}>
                 <InputField label="Username" value={username} onChange={setUsername} type="text" />
