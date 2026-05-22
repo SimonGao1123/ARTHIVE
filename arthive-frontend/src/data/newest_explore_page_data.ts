@@ -3,7 +3,7 @@ import type { User } from "../types/user_types"
 
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
-export function ExplorePageDataFetch(
+export function NewestExplorePageDataFetch(
 
     navigate: any, 
     setUser: (user: User | null) => void, 
@@ -16,8 +16,8 @@ export function ExplorePageDataFetch(
     setIfPrevPage: (ifPrevPage: boolean) => void,
     setIfNextPage: (ifNextPage: boolean) => void,
     setAllMedia: any, 
-    getExplorePageMedia: any) {
-    getExplorePageMedia({ variables: go_next_page ? { 
+    getNewestExplorePageMedia: any) {
+    getNewestExplorePageMedia({ variables: go_next_page ? { 
         contentType, 
         first: limit, 
         after: cursor
@@ -27,11 +27,11 @@ export function ExplorePageDataFetch(
         before: cursor
     } })
     .then((data: any) => {
-        setAllMedia(data.data.exploreMedia.edges.map((e: any) => e.node) ?? [])
-        setNextCursor(data.data.exploreMedia.pageInfo.endCursor)
-        setPrevCursor(data.data.exploreMedia.pageInfo.startCursor)
-        setIfPrevPage(data.data.exploreMedia.pageInfo.hasPreviousPage ?? false)
-        setIfNextPage(data.data.exploreMedia.pageInfo.hasNextPage ?? false)
+        setAllMedia(data.data.newestExplorePageMedia.edges.map((e: any) => e.node) ?? [])
+        setNextCursor(data.data.newestExplorePageMedia.pageInfo.endCursor)
+        setPrevCursor(data.data.newestExplorePageMedia.pageInfo.startCursor)
+        setIfPrevPage(data.data.newestExplorePageMedia.pageInfo.hasPreviousPage ?? false)
+        setIfNextPage(data.data.newestExplorePageMedia.pageInfo.hasNextPage ?? false)
     })
     .catch((error: any) => {
         if (unauth_messages.includes(error.message)) {

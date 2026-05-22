@@ -32,7 +32,8 @@ class Media < ApplicationRecord
 
     
 
-    scope :explore_page, -> (content_type: "all", user_id: nil) {
+    # currently just searches for media that were recently created and not reviewed by user yet
+    scope :newest_explore_page, -> (content_type: "all", user_id: nil) {
         joins(
         sanitize_sql_array([
             "LEFT JOIN reviews ON reviews.media_id = #{table_name}.id AND reviews.user_id = ?",
@@ -43,6 +44,31 @@ class Media < ApplicationRecord
         .content_type_filter(content_type)
         .recent
     }
+
+    # most reviews/threads on the media within the last week (hottest)        
+    scope :hottest_explore_page, ->(content_type: "all", user_id: nil) {
+        select(<<~SQL)
+          media.*,
+          (
+            (SELECT COUNT(*) FROM reviews
+               WHERE reviews.media_id = media.id) * 2
+            +
+            (SELECT COUNT(*) FROM community_threads
+               JOIN communities ON community_threads.community_id = communities.id
+               WHERE communities.media_id = media.id) * 3
+            +
+            COALESCE(
+              (SELECT AVG(rating) FROM reviews WHERE reviews.media_id = media.id),
+              0
+            ) * 5
+          ) AS hotness_score
+        SQL
+        )
+        .order("hotness_score DESC")
+        .content_type_filter(content_type)
+        .recent
+    }
+
 
     scope :query_filter, -> (query) {
         where('title ILIKE ?', "%#{query}%")

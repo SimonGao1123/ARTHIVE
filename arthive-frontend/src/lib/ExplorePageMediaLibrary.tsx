@@ -1,8 +1,8 @@
 // displays all the media on explore page
 import { useEffect, useState } from "react"
 import { useLazyQuery } from "@apollo/client/react"
-import { EXPLORE_PAGE_MEDIA_QUERY, type ExplorePageMediaResponse, type ExplorePageMediaInput } from "../types/queries/media_request_query"
-import { ExplorePageDataFetch } from "../data/explore_page_data"
+import { NEWEST_EXPLORE_PAGE_MEDIA_QUERY, type NewestExplorePageMediaResponse, type NewestExplorePageMediaInput } from "../types/queries/media_request_query"
+import { NewestExplorePageDataFetch } from "../data/newest_explore_page_data.ts"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "./MediaCard"
@@ -19,12 +19,12 @@ export default function ExplorePageMediaLibrary({user, setUser}: {user: User, se
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(false);
     const [ifNextPage, setIfNextPage] = useState<boolean>(false);
 
-    const [getExplorePageMedia, {error, loading}] = useLazyQuery<ExplorePageMediaResponse, ExplorePageMediaInput>(EXPLORE_PAGE_MEDIA_QUERY, {
+    const [getNewestExplorePageMedia, {error, loading}] = useLazyQuery<NewestExplorePageMediaResponse, NewestExplorePageMediaInput>(NEWEST_EXPLORE_PAGE_MEDIA_QUERY, {
         fetchPolicy: "no-cache",
     })
     
     const fetchPage = (goNext: boolean, cursor: string | null) => {
-        ExplorePageDataFetch(navigate, setUser, currContentType, EXPLORE_MEDIA_LIMIT, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getExplorePageMedia)
+        NewestExplorePageDataFetch(navigate, setUser, currContentType, EXPLORE_MEDIA_LIMIT, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getNewestExplorePageMedia)
     }
 
     useEffect(() => {

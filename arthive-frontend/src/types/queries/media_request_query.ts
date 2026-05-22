@@ -3,9 +3,9 @@ import type { Media } from "../media_type"
 import type { Review } from "../review_type"
 
 // returns the media for the explore page, only need cover image for now
-export const EXPLORE_PAGE_MEDIA_QUERY = gql`
-    query ExplorePageMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
-        exploreMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
+export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
+    query NewestExplorePageMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
+        newestExplorePageMedia(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
             edges {
                 node {
                     id
@@ -22,8 +22,8 @@ export const EXPLORE_PAGE_MEDIA_QUERY = gql`
     }
 `
 
-export type ExplorePageMediaResponse = {
-    exploreMedia: {
+export type NewestExplorePageMediaResponse = {
+    newestExplorePageMedia: {
         edges: {
             node: {
                 id: number
@@ -39,7 +39,7 @@ export type ExplorePageMediaResponse = {
     }
 }
 
-export type ExplorePageMediaInput =
+export type NewestExplorePageMediaInput =
     | { contentType: "book" | "film" | "series" | "game" | "all"; first: number; after?: string; last?: never; before?: never }
     | { contentType: "book" | "film" | "series" | "game" | "all"; last: number; before?: string; first?: never; after?: never }
 
