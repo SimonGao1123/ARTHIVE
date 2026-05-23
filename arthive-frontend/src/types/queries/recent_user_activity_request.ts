@@ -38,6 +38,11 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                                 ifFinished
                                 updatedAt
 
+                                user {
+                                    id
+                                    username
+                                }
+
                                 media {
                                     id
                                     coverImage
@@ -56,6 +61,11 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                                 ifFinished
                                 updatedAt
 
+                                user {
+                                    id
+                                    username
+                                }
+
                                 media {
                                     id
                                     coverImage
@@ -71,6 +81,10 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                             createdAt
                             updatedAt
 
+                            user {
+                                id
+                                username
+                            }
                             community {
                                 id
                                 media {

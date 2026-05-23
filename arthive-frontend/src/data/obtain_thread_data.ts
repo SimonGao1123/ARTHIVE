@@ -40,6 +40,8 @@ export function obtainThreadData(
             childThreadsCount: batch.childThreadsCount,
             title: batch.title,
             updatedAt: batch.updatedAt,
+            imageDetails: batch.imageDetails,
+            review: batch.review,
         })
         setChildThreads((prev) => {
             const existingIds = new Set(prev.map((t) => t.id))

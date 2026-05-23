@@ -96,7 +96,7 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
                     )}
                 </aside>
 
-                <main className="flex-1 min-w-0">
+                <main key={location.key} className="flex-1 min-w-0 arthive-page-in">
                     <Outlet/>
                 </main>
             </div>

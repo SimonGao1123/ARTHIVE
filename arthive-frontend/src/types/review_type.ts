@@ -11,7 +11,8 @@ export type UserReview = {
 }
 
 type ImageDetail = {
-    signedId: string
+    signedId: 
+    string
     url: string
 }
 

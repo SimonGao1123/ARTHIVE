@@ -31,6 +31,24 @@ export const CREATE_THREAD_MUTATION = gql`
             ifLiked
             parentThreadId
             rootThreadId
+            review {
+                id
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+                media {
+                    id
+                    title
+                    coverImage
+                }
+            }
         }
     }
 `
@@ -41,6 +59,7 @@ export type CreateThreadInput = {
         title?: string,
         parentThreadId?: string,
         rootThreadId?: string
+        reviewId?: string
     }
 }
 export type CreateThreadResponse = {

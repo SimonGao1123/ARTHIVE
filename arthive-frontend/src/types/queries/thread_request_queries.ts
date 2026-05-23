@@ -2,6 +2,7 @@ import { gql } from "@apollo/client"
 import type { User } from "../user_types"
 import type { CommunityThread } from "./community_request_queries"
 import type { Community } from "./community_request_queries"  
+import type { Review } from "../review_type"
 
 export const OBTAIN_THREAD_QUERY = gql`
     query ObtainThread($threadId: ID!, $after: String, $first: Int) {
@@ -30,23 +31,83 @@ export const OBTAIN_THREAD_QUERY = gql`
             likesCount
             ifLiked
             childThreadsCount
+
+            imageDetails {
+                signedId
+                url
+            }
+
+            review {
+                id
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+                media {
+                    id
+                    title
+                    coverImage
+                }
+                likeCount
+                commentCount
+                ifLiked
+                imageDetails {
+                    signedId
+                    url
+                }
+            }
             
             childThreads(after: $after, first: $first) {
                 edges {
                     node {
-                    id
-                    content
-                    title
-                
-                    user {
-                        profilePicture
                         id
-                        username
-                    }
-                    createdAt
-                    likesCount
-                    ifLiked
-                    childThreadsCount
+                        content
+                        title
+                    
+                        user {
+                            profilePicture
+                            id
+                            username
+                        }
+                        createdAt
+                        likesCount
+                        ifLiked
+                        childThreadsCount
+                        imageDetails {
+                            signedId
+                            url
+                        }
+                        review {
+                            id
+                            content
+                            rating
+                            ifFavorite
+                            ifFinished
+                            updatedAt
+                            user {
+                                id
+                                username
+                                profilePicture
+                            }
+                            media {
+                                id
+                                title
+                                coverImage
+                            }
+                            likeCount
+                            commentCount
+                            ifLiked
+                            imageDetails {
+                                signedId
+                                url
+                            }
+                        }
                     }
                 }
                 pageInfo {
@@ -71,6 +132,11 @@ export type ObtainThreadResponse = {
         likesCount: number
         ifLiked: boolean
         childThreadsCount: number
+        imageDetails: {
+            signedId: string,
+            url: string
+        }[]
+        review: Review
         childThreads: {
             edges: {
                 node: CommunityThread

@@ -19,8 +19,10 @@ class CommunityThread < ApplicationRecord
     validates :root_thread_id, presence: true, if: -> { parent_thread_id.present? }
     validates :root_thread_id, absence: true, if: -> { parent_thread_id.blank? }
 
-    # TODO: add attachments feature
-    # has_many_attached :attachments
+    has_many_attached :images
+
+    belongs_to :review, optional: true
+
 
     private
 

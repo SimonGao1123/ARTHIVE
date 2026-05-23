@@ -6,6 +6,63 @@ import { useState } from "react"
 import type { User } from "../types/user_types"
 import { likeReviewFunction } from "../data/like_review"
 
+// for community threads referencing reviews only
+export function ReviewReferenceCard({review}: {review: any}) {
+    const navigate = useNavigate()
+    const hasContent = !!review?.content
+    return (
+        <button
+            onClick={() => hasContent && navigate(`/review_info/${review.id}`)}
+            disabled={!hasContent}
+            className={`w-full text-left border rounded-xl p-4 transition-all duration-200 flex gap-3 items-start group mx-auto ${hasContent ? "bg-white/[0.03] hover:bg-white/[0.07] border-white/10 hover:border-violet-500/30 cursor-pointer" : "bg-white/[0.02] border-white/5 cursor-default opacity-60"}`}
+        >
+            {review?.media?.coverImage && (
+                <img 
+                    src={review.media.coverImage ?? "/default-ARTHIVE-cover.png"}
+                    alt={review.media.title}
+                    className="w-10 h-auto rounded-md object-cover flex-shrink-0"
+                />
+            )}
+
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-violet-400 uppercase tracking-wider">Referenced Review</span>
+                    <span className="text-xs text-gray-500 group-hover:text-violet-400 transition">View →</span>
+                </div>
+
+                {review?.media?.title && (
+                    <p className="text-xs text-gray-400 truncate">{review.media.title}</p>
+                )}
+
+                <div className="flex items-center gap-2">
+                    {review?.user?.profilePicture !== undefined && (
+                        <img
+                            src={review.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
+                            alt="Profile"
+                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                        />
+                    )}
+                    {review?.user?.username && (
+                        <span className="text-xs font-medium text-white">{review.user.username}</span>
+                    )}
+                    {review?.rating != null && (
+                        <span className="scale-75 origin-left"><DisplayRating rating={review.rating} /></span>
+                    )}
+                </div>
+
+                {review?.content && (
+                    <p className="text-gray-400 text-xs leading-relaxed line-clamp-2">{review.content}</p>
+                )}
+
+                <div className="flex items-center gap-4 text-gray-500 text-xs mt-0.5">
+                    <span>🤍 {review.likeCount}</span>
+                    <span>💬 {review.commentCount}</span>
+                </div>
+            </div>
+        </button>
+    )
+}
+
 export default function ReviewCard({review, setUser}: {review: any, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
 

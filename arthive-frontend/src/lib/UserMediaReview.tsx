@@ -197,16 +197,16 @@ function ReviewImages({newReviewImages, setNewReviewImages, existingReviewImages
     return (
         <div className="flex gap-2">
             {newReviewImages.map((image) => (
-                <>
-                    <img key={image.uuid} src={image.url} alt={image.file.name} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
+                <div key={image.uuid}>
+                    <img src={image.url} alt={image.file.name} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
                     <button onClick={() => setNewReviewImages((prev) => prev.filter((prevImage) => prevImage.uuid !== image.uuid))} className="text-gray-400 hover:text-white text-2xl leading-none transition">
                         <TrashIcon />
                     </button>
-                </>
+                </div>
             ))}
             {userReviewId && existingReviewImages.map((image) => (
-                <>
-                    <img key={image.signedId} src={image.url} alt={image.signedId} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
+                <div key={image.signedId}>
+                    <img src={image.url} alt={image.signedId} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
                     <button onClick={() => {
                         removeAttachedImageFunction(removeAttachedImage, [image.signedId], userReviewId, "review")
                         setExistingReviewImages((prev) => prev.filter((prevImage) => prevImage.signedId !== image.signedId))} 
@@ -214,7 +214,7 @@ function ReviewImages({newReviewImages, setNewReviewImages, existingReviewImages
 
                         <TrashIcon />
                     </button>
-                </>
+                </div>
             ))}
         </div>
     )
@@ -249,7 +249,6 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
     const [removeAttachedImage] = useMutation<RemoveAttachedImageResponse, RemoveAttachedImageInput>(REMOVE_ATTACHED_IMAGE_MUTATION)
 
     const handleUploadImages = (files: File[]) => {
-        console.log("i see the files", files)
         for (const file of files) {
             if (newReviewImages.length >= 5) return
             if (file.type.split("/")[0] !== "image") continue
@@ -347,10 +346,12 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
                             <button
                                 onClick={() => {
                                     createReviewFunctionWrapper({newReviewContent: ""})
-                                    setShowWriteReviewContent(false)
-                                    removeAttachedImageFunction(removeAttachedImage, existingReviewImages.map((image) => image.signedId), userReviewId, "review")
+                                    if (existingReviewImages.length > 0) {
+                                        removeAttachedImageFunction(removeAttachedImage, existingReviewImages.map((img) => img.signedId), userReviewId, "review")
+                                    }
                                     setExistingReviewImages([])
                                     setNewReviewImages([])
+                                    setShowWriteReviewContent(false)
                                 }
                                 
                                 }

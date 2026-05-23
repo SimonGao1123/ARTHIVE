@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_021902) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_23_185701) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -65,12 +65,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_021902) do
     t.text "content", null: false
     t.datetime "created_at", null: false
     t.bigint "parent_thread_id"
+    t.bigint "review_id"
     t.bigint "root_thread_id"
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_community_threads_on_community_id"
     t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
+    t.index ["review_id"], name: "index_community_threads_on_review_id"
     t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
     t.index ["user_id"], name: "index_community_threads_on_user_id"
   end
@@ -193,6 +195,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_021902) do
   add_foreign_key "community_threads", "communities"
   add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"
   add_foreign_key "community_threads", "community_threads", column: "root_thread_id"
+  add_foreign_key "community_threads", "reviews"
   add_foreign_key "community_threads", "users"
   add_foreign_key "follows", "users", column: "receiver_id"
   add_foreign_key "follows", "users", column: "sender_id"

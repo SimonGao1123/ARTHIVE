@@ -4,5 +4,6 @@ module Types
         value "media", "Media"
         value "user", "User"
         value "review", "Review"
+        value "community_thread", "Community Thread"
     end
 end

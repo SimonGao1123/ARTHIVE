@@ -11,27 +11,43 @@ type ExplorePageProps = {
     user: User | null
 }
 
-const LIMIT = 5;
+const LIMIT = 10
 export default function ExplorePage({ setUser, user }: ExplorePageProps) {
     const navigate = useNavigate()
-
     const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
+
     return (
-        <div>
-            <h1 className="text-2xl font-bold">Explore</h1>
-            {user && <p>Welcome, {user.username}</p>}
+        <div className="flex flex-col gap-8">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-white">Explore</h1>
+                    {user && <p className="text-sm text-gray-400 mt-0.5">Welcome back, {user.username}</p>}
+                </div>
+                <button
+                    onClick={() => logout(setUser, navigate)}
+                    className="text-sm text-gray-500 hover:text-white transition"
+                >
+                    Sign out
+                </button>
+            </div>
 
             <ContentFilter currContentType={currContentType} setContentType={setCurrContentType} />
 
-            <h3>Newest</h3>
-            {user && <NewestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            <section className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-white">Newest</span>
+                    <span className="text-xs text-gray-500">Recently added</span>
+                </div>
+                {user && <NewestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            </section>
 
-            <h3>Trending</h3>
-            {user && <HottestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
-            <button onClick={() => {
-                logout(setUser, navigate)
-            }}>Logout</button>
-            
+            <section className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-white">Trending</span>
+                    <span className="text-xs text-gray-500">Most active this week</span>
+                </div>
+                {user && <HottestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            </section>
         </div>
     )
 }

@@ -58,6 +58,9 @@ class Review < ApplicationRecord
                     like_ids = review.review_likes.map(&:id)
                     review.review_comments.delete_all
                     review.review_likes.delete_all
+                    review.images.purge # delete all images on an empty review
+
+                    puts "deleting images!!!!"
                     Activity.where(activity_type: "ReviewComment", activity_id: comment_ids)
                             .or(Activity.where(activity_type: "ReviewLike", activity_id: like_ids))
                             .destroy_all

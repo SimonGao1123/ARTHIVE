@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client"
 import type { User } from "../user_types"
+import type { Review } from "../review_type"
 export type CommunityThread = {
     id: string,
     title: string | null,
@@ -13,6 +14,11 @@ export type CommunityThread = {
     rootThreadId: string | null,
     ifLiked: boolean,
     community: Community | null,
+    imageDetails: {
+        signedId: string,
+        url: string
+    }[]
+    review: Review | null,
 }
 export type Community = {
     id: number,
@@ -67,19 +73,49 @@ export const OBTAIN_COMMUNITY_QUERY = gql`
             rootThreads(first: $first, after: $after, query: $query) {
                 edges {
                     node {
-                    id
-                    title
-                    content
-                    createdAt
-                    updatedAt
-                    user {
                         id
-                        username
-                        profilePicture
-                    }
-                    likesCount
-                    childThreadsCount
-                    ifLiked
+                        title
+                        content
+                        createdAt
+                        updatedAt
+                        user {
+                            id
+                            username
+                            profilePicture
+                        }
+                        likesCount
+                        childThreadsCount
+                        ifLiked
+                        imageDetails {
+                            signedId
+                            url
+                        }
+                        review {
+                            id
+                            content
+                            rating
+                            ifFavorite
+                            ifFinished
+                            updatedAt
+                            user {
+                                id
+                                username
+                                profilePicture
+                            }
+                            media {
+                                id
+                                title
+                                coverImage
+                            }
+                            likeCount
+                            commentCount
+                            ifLiked
+                            imageDetails {
+                                signedId
+                                url
+                            }
+                        }
+    
                     }
                 }
                 pageInfo {

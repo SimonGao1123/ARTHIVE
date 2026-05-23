@@ -29,6 +29,12 @@ module Mutations
                     raise GraphQL::ExecutionError, "Review not found"
                 end
                 review.images.attach(signed_ids)
+            when "community_thread"
+                community_thread = CommunityThread.find_by(id: resource_id)
+                if community_thread.nil?
+                    raise GraphQL::ExecutionError, "Community thread not found"
+                end
+                community_thread.images.attach(signed_ids)
             else
                 raise GraphQL::ExecutionError, "Invalid resource type"
             end

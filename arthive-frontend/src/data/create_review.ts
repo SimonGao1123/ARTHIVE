@@ -26,10 +26,12 @@ export function createReviewFunction(
         } else {
             
             const updated_review = data.data.createReview.review
+            console.log("updated_review", updated_review)
             setUserReview(updated_review)
 
             // only upload if there is accompanying content
-            if (reviewContent === "") {
+            if (reviewContent === "" || !updated_review.content) {
+                console.log("no content")
                 return
             }
             if (newReviewImages.length > 0) {
@@ -48,6 +50,7 @@ export function createReviewFunction(
                     alert("Error attaching images to review")
                     return
                 }
+                navigate(0)
             }
         }
     })
