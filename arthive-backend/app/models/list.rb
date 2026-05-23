@@ -9,6 +9,8 @@ class List < ApplicationRecord
     validates :user_id, presence: true
     validates :description, length: { maximum: 280 }
 
+    
+
     validate :content_type_validation
 
     

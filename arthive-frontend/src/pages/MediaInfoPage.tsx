@@ -11,6 +11,7 @@ import { useEffect, useState } from "react"
 import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
 import { MediaInfoArticle } from "../lib/MediaInfoArticle"
 import UserMediaReview from "../lib/UserMediaReview"
+import { contentTypeColor } from "../lib/contentTypeColors"
 
 import MediaReviews from "./MediaReviewsPage"
 import AddMediaToList from "../lib/AddMediaToList"
@@ -20,7 +21,7 @@ type MediaInfoPageProps = {
     user: User | null
 }
 
-export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
+export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
     const { id } = useParams()
 
     const navigate = useNavigate()
@@ -46,6 +47,7 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
             )
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err)
+            void message
             navigate("/", { replace: true })
         }
     }, [id])
@@ -54,33 +56,79 @@ export default function MediaInfoPage({ user,setUser }: MediaInfoPageProps) {
 
     const [showAddMediaToList, setShowAddMediaToList] = useState<boolean>(false)
 
+    const borderColor = mediaInfo ? contentTypeColor(mediaInfo.contentType) : "#3a3a4a"
+
     return (
-        <main>
+        <main className="max-w-6xl">
             {loading ? (
-                <p role="status" aria-live="polite">
+                <p role="status" aria-live="polite" className="text-gray-400 text-sm">
                     Loading…
                 </p>
             ) : null}
 
             {error ? (
-                <div role="alert">
+                <div role="alert" className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg p-4 mb-4">
                     <p>{error.message}</p>
                 </div>
             ) : null}
 
-
             {showContent && mediaInfo ? (
-                <>
-                    <UserMediaReview mediaId={Number(id)} setUser={setUser} mediaInfo={mediaInfo}/>
+                <div className="grid grid-cols-[20rem_1fr] gap-6 items-start">
+                    {/* Top-left: cover image with content-type border */}
+                    <div className="flex justify-center">
+                        {mediaInfo.coverImage ? (
+                            <img
+                                src={mediaInfo.coverImage}
+                                alt={`Cover image for ${mediaInfo.title}`}
+                                className="w-72 h-auto rounded-lg object-cover"
+                                style={{
+                                    border: `4px solid ${borderColor}`,
+                                    boxShadow: `0 0 24px ${borderColor}33`,
+                                }}
+                            />
+                        ) : (
+                            <div
+                                className="w-72 aspect-[2/3] rounded-lg bg-[#171519] flex items-center justify-center text-gray-500 text-sm"
+                                style={{ border: `4px solid ${borderColor}` }}
+                            >
+                                No cover image
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Top-right: media info text */}
                     <MediaInfoArticle media={mediaInfo} setUser={setUser} setMediaInfo={setMediaInfo}/>
-                </>
+
+                    {/* Bottom-left: user actions (under cover) */}
+                    <UserMediaReview
+                        mediaId={Number(id)}
+                        setUser={setUser}
+                        mediaInfo={mediaInfo}
+                        onOpenAddToLists={() => setShowAddMediaToList(true)}
+                    />
+
+                    {/* Bottom-right: reviews list (under info) */}
+                    <MediaReviews id={id ?? ""} setUser={setUser} />
+                </div>
             ) : null}
 
-            {showAddMediaToList && <AddMediaToList setUser={setUser} mediaId={id ?? ""} user_id={user?.id ?? ""} />}
-            <button onClick={() => setShowAddMediaToList(!showAddMediaToList)}>{showAddMediaToList ? "Hide Add Media to List" : "Add Media to List"}</button>
-            
-            <MediaReviews id={id ?? ""} setUser={setUser} />
-
+            {showAddMediaToList && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 arthive-fade-in">
+                    <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-lg font-semibold text-white">Add to Lists</h2>
+                            <button
+                                onClick={() => setShowAddMediaToList(false)}
+                                className="text-gray-400 hover:text-white text-xl"
+                                aria-label="Close"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <AddMediaToList setUser={setUser} mediaId={id ?? ""} user_id={user?.id ?? ""} />
+                    </div>
+                </div>
+            )}
         </main>
     )
 }

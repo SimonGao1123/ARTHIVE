@@ -87,6 +87,22 @@ class Media < ApplicationRecord
     scope :content_type_filter, -> (type) {
         type == "all" ? all : where(content_type: type)
     }
+    
+    def self.obtain_media_reviews(media_id, query, current_user_id, sort_by)
+        reviews = Review.includes(:user)
+        .where(media_id: media_id)
+        .where.not(content: [nil, ""])
+        .query_filter(query)
+        .in_order_of(:user_id, [current_user_id], filter: false)
+
+        if sort_by == "newest"
+            reviews = reviews.recent
+        elsif sort_by == "trending"
+            reviews = reviews.sort_by_trending
+        end
+
+        return reviews
+    end
 
     def self.search(query:, search_filter:)
         base_search = Media.query_filter(query)

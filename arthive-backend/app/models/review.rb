@@ -23,11 +23,20 @@ class Review < ApplicationRecord
         end
     end
 
-    scope :sort_by_likes, -> {
-        left_joins(:review_likes)
-        .select("reviews.*, COUNT(review_likes.id) AS likes_count")
-        .group("reviews.id")
-        .order(Arel.sql("likes_count DESC"))
+    scope :sort_by_trending, -> {
+        select(<<~SQL
+            reviews.*,
+            (
+                (SELECT COUNT(*) FROM review_likes WHERE review_likes.review_id = reviews.id)
+                +
+                (SELECT COUNT(*) FROM review_comments WHERE review_comments.review_id = reviews.id)
+                * 2
+            ) 
+            AS trending_score
+        SQL
+        )
+        .order("trending_score DESC")
+        .includes(:user, :media)
     }
 
     # updates review if review_id is provided, otherwise creates a new review
@@ -107,4 +116,5 @@ class Review < ApplicationRecord
 
         return base_search.sort_by_likes.recent.includes(:user, :media)
     end
+
 end

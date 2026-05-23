@@ -70,7 +70,6 @@ function App() {
           <Route path="/liked/:user_id" element={<UserLikedOrFinishedMediaPage type="liked" setUser={setUser}/>} />
           <Route path="/finished/:user_id" element={<UserLikedOrFinishedMediaPage type="finished" setUser={setUser}/>} />
 
-          <Route path="/register" element={<RegisterPage/>}/>
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/media/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
           <Route path="/review_info/:review_id" element={<ReviewPage setUser={setUser}/>} />
@@ -90,6 +89,7 @@ function App() {
 
         
         <Route path="/login" element={<LoginPage setUser={setUser}/>} />
+        <Route path="/register" element={<RegisterPage/>}/>
         
       </Routes>
     </>

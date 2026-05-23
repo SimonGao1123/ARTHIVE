@@ -4,8 +4,9 @@ module Resolvers
 
         argument :media_id, Int, required: true
         argument :query, String, required: false, default_value: null
+        argument :sort_by, Types::ReviewsMediaSortEnum, required: false, default_value: "newest"
 
-        def resolve(media_id:, query:)
+        def resolve(media_id:, query:, sort_by:)
             validate_user
 
             media = Media.find_by(id: media_id)
@@ -13,10 +14,7 @@ module Resolvers
                 raise GraphQL::ExecutionError, "Media not found"
             end
 
-            reviews = media.reviews.where.not(content: [nil, ""]).includes(:user)
-            .in_order_of(:user_id, [context[:current_user].id], filter: false)
-            .sort_by_likes
-            .query_filter(query)
+            reviews = Media.obtain_media_reviews(media_id, query, context[:current_user].id, sort_by)
 
             return reviews
         end

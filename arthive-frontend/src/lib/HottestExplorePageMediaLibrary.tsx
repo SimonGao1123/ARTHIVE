@@ -6,8 +6,7 @@ import { useEffect, useState } from "react"
 import { hottestExplorePageData } from "../data/hottest_explore_page_data"
 import { MediaCard } from "./MediaCard.tsx"
 
-const EXPLORE_MEDIA_LIMIT = 1
-export default function HottestExplorePageMediaLibrary({user, setUser, currContentType}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all"}) {
+export default function HottestExplorePageMediaLibrary({user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
 
     const [getHottestExplorePageMedia, { error, loading }] = useLazyQuery<HottestExplorePageMediaResponse, HottestExplorePageMediaInput>(HOTTEST_EXPLORE_PAGE_MEDIA_QUERY, {
@@ -23,7 +22,7 @@ export default function HottestExplorePageMediaLibrary({user, setUser, currConte
     const [ifNextPage, setIfNextPage] = useState<boolean>(false)
 
     function fetchPage(goNext: boolean, cursor: string | null) {
-        hottestExplorePageData(navigate, setUser, currContentType, EXPLORE_MEDIA_LIMIT, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getHottestExplorePageMedia)
+        hottestExplorePageData(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getHottestExplorePageMedia)
     }
 
     useEffect(() => {

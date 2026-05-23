@@ -6,9 +6,8 @@ import { NewestExplorePageDataFetch } from "../data/newest_explore_page_data.ts"
 import type { User } from "../types/user_types.ts"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "./MediaCard.tsx"
-const EXPLORE_MEDIA_LIMIT = 1
 
-export default function NewestExplorePageMediaLibrary({user, setUser, currContentType}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all"}) {
+export default function NewestExplorePageMediaLibrary({user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
     
@@ -22,7 +21,7 @@ export default function NewestExplorePageMediaLibrary({user, setUser, currConten
     })
     
     const fetchPage = (goNext: boolean, cursor: string | null) => {
-        NewestExplorePageDataFetch(navigate, setUser, currContentType, EXPLORE_MEDIA_LIMIT, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getNewestExplorePageMedia)
+        NewestExplorePageDataFetch(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getNewestExplorePageMedia)
     }
 
     useEffect(() => {

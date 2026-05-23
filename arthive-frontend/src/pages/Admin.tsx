@@ -24,10 +24,18 @@ export default function AdminPage({user, setUser}: {user: User, setUser: (user: 
     return (
         <div>
             {location.pathname === "/admin" && (
-                <>
-                    <h1>Admin Panel</h1>
-                    <Link to="/admin/upload_media">Upload Media</Link>
-                </>
+                <div className="max-w-2xl">
+                    <h1 className="text-2xl font-bold text-white mb-6">Admin Panel</h1>
+                    <div className="bg-[#171519] rounded-2xl border border-white/5 p-2">
+                        <Link
+                            to="/admin/upload_media"
+                            className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition"
+                        >
+                            <span className="text-sm font-medium">Upload Media</span>
+                            <span className="text-gray-500 text-xs">→</span>
+                        </Link>
+                    </div>
+                </div>
             )}
 
             <Outlet />

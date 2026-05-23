@@ -82,11 +82,15 @@ export type ObtainMediaReviewsInput = {
     mediaId: number
     pageNum: number
     limit: number
+    query: string
+    after: string | null
+    first: number
+    sortBy: ReviewsMediaSortEnum
 }
-
+export type ReviewsMediaSortEnum = "newest" | "trending"
 export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
-    query ObtainMediaReviews($mediaId: Int!, $query: String, $first: Int, $after: String) {
-        obtainMediaReviews(mediaId: $mediaId, query: $query, first: $first, after: $after) {
+    query ObtainMediaReviews($mediaId: Int!, $query: String, $first: Int, $after: String, $sortBy: ReviewsMediaSortEnum) {
+        obtainMediaReviews(mediaId: $mediaId, query: $query, first: $first, after: $after, sortBy: $sortBy) {
             edges {
                 node {
                     id

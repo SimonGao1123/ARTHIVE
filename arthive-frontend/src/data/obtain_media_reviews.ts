@@ -1,3 +1,4 @@
+import type { ReviewsMediaSortEnum } from "../types/queries/media_request_query"
 import type { Review } from "../types/review_type"
 import { logout } from "./logout"
 import type { Dispatch, SetStateAction } from "react"
@@ -13,13 +14,15 @@ export function obtainMediaReviewsFunction(
     setReviews: Dispatch<SetStateAction<Review[]>>,
     navigate: any,
     setUser: any,
-    setIfNextPage: Dispatch<SetStateAction<boolean>>
+    setIfNextPage: Dispatch<SetStateAction<boolean>>,
+    sortBy: ReviewsMediaSortEnum
 ) {
     obtainMediaReviews({ variables: {
         mediaId: mediaId,
         query: query,
         first: limit,
         after: cursor,
+        sortBy: sortBy
      } })
         .then((data: any) => {
             const batch = data.data.obtainMediaReviews.edges.map((edge: any) => edge.node)
