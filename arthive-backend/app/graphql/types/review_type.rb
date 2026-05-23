@@ -19,6 +19,17 @@ module Types
 
         field :if_liked, Boolean, null: false
 
+        field :image_details, [Types::ImageDetailsType], null: true
+
+        def image_details
+            object.images_blobs.map do |blob|
+                {
+                    signed_id: blob.signed_id,
+                    url: blob.url(expires_in: 1.hour)
+                }
+            end
+        end
+
         def if_liked
             object.review_likes.exists?(user_id: context[:current_user].id)
         end

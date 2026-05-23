@@ -1,14 +1,17 @@
 import type { UserReview } from "../types/review_type";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLazyQuery } from "@apollo/client/react";
 import { OBTAIN_USER_REVIEW_QUERY, type ObtainUserReviewResponse, type ObtainUserReviewInput } from "../types/queries/review_request_queries";
 import { obtainUserMediaReview } from "../data/obtain_user_media_review";
 import StarRatingMedia from "./StarRatingMedia";
 import { useMutation } from "@apollo/client/react";
-import { CREATE_REVIEW_MUTATION, type CreateReviewInput, type CreateReviewResponse } from "../types/mutations/create_review_mutation";
+import { CREATE_REVIEW_MUTATION, REMOVE_ATTACHED_IMAGE_MUTATION, type CreateReviewInput, type CreateReviewResponse, type RemoveAttachedImageInput, type RemoveAttachedImageResponse } from "../types/mutations/create_review_mutation";
 import { createReviewFunction } from "../data/create_review.ts";
 import DeleteReviewPopup from "./DeleteReviewPopup.tsx";
+import { EyeIcon, EyeOffIcon, PencilIcon, ListIcon, HeartIcon, TrashIcon, ImageIcon } from "./StyledComponents.tsx";
+import { UPLOAD_IMAGE_TO_S3_MUTATION } from "../types/mutations/upload_media_mutation";
+import { removeAttachedImageFunction } from "../data/remove_image_attachment.ts";
 
 type UserMediaReviewProps = {
     mediaId: number
@@ -33,6 +36,14 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
 
     const [showWriteReviewContent, setShowWriteReviewContent] = useState<boolean>(false)
 
+    const [uploadImageToS3] = useMutation(UPLOAD_IMAGE_TO_S3_MUTATION)
+
+    
+
+    // stores all important information about the review images going to be ADDED
+    const [newReviewImages, setNewReviewImages] = useState<{file: File, url: string, uuid: string}[]>([])
+
+    const [existingReviewImages, setExistingReviewImages] = useState<{signedId: string, url: string}[]>([])
     useEffect(() => {
         obtainUserMediaReview(setUserReview, getUserMediaReview, mediaId, navigate, setUser)
     }, [mediaId])
@@ -43,19 +54,23 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
             setRating(userReview.rating || 0)
             setIfFavorite(userReview.ifFavorite)
             setIfFinished(userReview.ifFinished)
+            setExistingReviewImages(userReview.imageDetails || [])
         } else {
             setUserReview(null)
             setReviewContent("")
             setRating(0)
             setIfFavorite(false)
             setIfFinished(false)
+            setExistingReviewImages([])
         }
     }, [userReview])
 
+    console.log(existingReviewImages)
+
     const [createReview] = useMutation<CreateReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
 
-    function createReviewFunctionWrapper({newIfFavorite = ifFavorite, newIfFinished = ifFinished, newReviewContent = reviewContent, newRating = rating}: {newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) {
-        createReviewFunction(newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
+    function createReviewFunctionWrapper({newReviewImages = [], newIfFavorite = ifFavorite, newIfFinished = ifFinished, newReviewContent = reviewContent, newRating = rating}: {newReviewImages?: {file: File, url: string, uuid: string}[], newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) {
+        createReviewFunction(uploadImageToS3, newReviewImages, newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
     }
 
     const [showDeleteReviewPopup, setShowDeleteReviewPopup] = useState<boolean>(false)
@@ -114,6 +129,7 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
 
             {showWriteReviewContent && (
                 <WriteReviewModal
+                    userReviewId={userReview?.id || null}
                     reviewContent={reviewContent}
                     title={title}
                     coverImage={coverImage}
@@ -121,6 +137,10 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
                     year={year}
                     setShowWriteReviewContent={setShowWriteReviewContent}
                     createReviewFunctionWrapper={createReviewFunctionWrapper}
+                    newReviewImages={newReviewImages}
+                    setNewReviewImages={setNewReviewImages}
+                    existingReviewImages={existingReviewImages}
+                    setExistingReviewImages={setExistingReviewImages}
                 />
             )}
         </>
@@ -165,15 +185,82 @@ function SelectionButton({ active, activeColor, icon, label, onClick }: Selectio
     )
 }
 
-function WriteReviewModal({reviewContent, title, coverImage, creator, year, setShowWriteReviewContent, createReviewFunctionWrapper}:
-    {reviewContent: string, title: string, coverImage: string, creator: string, year: number, setShowWriteReviewContent: (showWriteReviewContent: boolean) => void, createReviewFunctionWrapper: (params: {newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) => void}) {
+type ReviewImagesProps = {
+    newReviewImages: {file: File, url: string, uuid: string}[]
+    setNewReviewImages: React.Dispatch<React.SetStateAction<{file: File, url: string, uuid: string}[]>>
+    existingReviewImages: {signedId: string, url: string}[]
+    setExistingReviewImages: React.Dispatch<React.SetStateAction<{signedId: string, url: string}[]>>
+    userReviewId: number | null
+    removeAttachedImage: any
+}
+function ReviewImages({newReviewImages, setNewReviewImages, existingReviewImages, setExistingReviewImages, userReviewId, removeAttachedImage}: ReviewImagesProps) {
+    return (
+        <div className="flex gap-2">
+            {newReviewImages.map((image) => (
+                <>
+                    <img key={image.uuid} src={image.url} alt={image.file.name} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
+                    <button onClick={() => setNewReviewImages((prev) => prev.filter((prevImage) => prevImage.uuid !== image.uuid))} className="text-gray-400 hover:text-white text-2xl leading-none transition">
+                        <TrashIcon />
+                    </button>
+                </>
+            ))}
+            {userReviewId && existingReviewImages.map((image) => (
+                <>
+                    <img key={image.signedId} src={image.url} alt={image.signedId} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
+                    <button onClick={() => {
+                        removeAttachedImageFunction(removeAttachedImage, [image.signedId], userReviewId, "review")
+                        setExistingReviewImages((prev) => prev.filter((prevImage) => prevImage.signedId !== image.signedId))} 
+                        } className="text-gray-400 hover:text-white text-2xl leading-none transition">
+
+                        <TrashIcon />
+                    </button>
+                </>
+            ))}
+        </div>
+    )
+}
+
+type WriteReviewModalProps = {
+    userReviewId: number | null
+    reviewContent: string
+    title: string
+    coverImage: string
+    creator: string
+    year: number
+    setShowWriteReviewContent: (showWriteReviewContent: boolean) => void
+    createReviewFunctionWrapper: (params: {newReviewImages?: {file: File, url: string, uuid: string}[], newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) => void
+    newReviewImages: {file: File, url: string, uuid: string}[]
+    setNewReviewImages: React.Dispatch<React.SetStateAction<{file: File, url: string, uuid: string}[]>>
+    existingReviewImages: {signedId: string, url: string}[]
+    setExistingReviewImages: React.Dispatch<React.SetStateAction<{signedId: string, url: string}[]>>
+}
+function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creator, year, setShowWriteReviewContent, createReviewFunctionWrapper, newReviewImages, setNewReviewImages, existingReviewImages, setExistingReviewImages}: WriteReviewModalProps) {
     const [content, setContent] = useState<string>(reviewContent)
     const remaining = 1000 - content.length
 
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const submit = () => {
         if (content.length > 1000) return
-        createReviewFunctionWrapper({newReviewContent: content.trim()})
+        createReviewFunctionWrapper({newReviewContent: content.trim(), newReviewImages: newReviewImages})
         setShowWriteReviewContent(false)
+        setNewReviewImages([])
+    }
+
+    const [removeAttachedImage] = useMutation<RemoveAttachedImageResponse, RemoveAttachedImageInput>(REMOVE_ATTACHED_IMAGE_MUTATION)
+
+    const handleUploadImages = (files: File[]) => {
+        console.log("i see the files", files)
+        for (const file of files) {
+            if (newReviewImages.length >= 5) return
+            if (file.type.split("/")[0] !== "image") continue
+            if (file.size > 2 * 1024 * 1024) {
+                alert("Image is too large (max 2MB)") 
+                continue
+            }
+            const url = URL.createObjectURL(file)
+            const uuid = crypto.randomUUID()
+            setNewReviewImages((prev) => [...prev, {file, url, uuid}])
+        }
     }
 
     return (
@@ -201,6 +288,8 @@ function WriteReviewModal({reviewContent, title, coverImage, creator, year, setS
                     </button>
                 </div>
 
+                <ReviewImages removeAttachedImage={removeAttachedImage} newReviewImages={newReviewImages} setNewReviewImages={setNewReviewImages} existingReviewImages={existingReviewImages} setExistingReviewImages={setExistingReviewImages} userReviewId={userReviewId} />
+
                 <div className="flex gap-4">
                     {coverImage ? (
                         <img src={coverImage} alt={title} loading="lazy" className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
@@ -218,12 +307,26 @@ function WriteReviewModal({reviewContent, title, coverImage, creator, year, setS
                     onChange={(e) => setContent(e.target.value)}
                     placeholder="Share your thoughts…"
                     className="w-full min-h-48 bg-[#0a090c] border border-white/10 rounded-lg p-4 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 resize-y transition-colors"
+                    onPaste={(e) => handleUploadImages(Array.from(e.clipboardData.files || []))}
                 />
 
+                <input ref={fileInputRef} type="file" multiple onChange={(e) => { handleUploadImages(Array.from(e.target.files || [])); e.target.value = "" }} accept="image/*" className="hidden" />
+
                 <div className="flex items-center justify-between gap-3">
-                    <span className={"text-xs " + (remaining < 0 ? "text-red-400" : remaining < 100 ? "text-amber-400" : "text-gray-500")}>
-                        {remaining} characters left
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className={"text-xs " + (remaining < 0 ? "text-red-400" : remaining < 100 ? "text-amber-400" : "text-gray-500")}>
+                            {remaining} characters left
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={newReviewImages.length >= 5}
+                            className="text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition"
+                            aria-label="Upload images"
+                        >
+                            <ImageIcon />
+                        </button>
+                    </div>
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowWriteReviewContent(false)}
@@ -240,11 +343,14 @@ function WriteReviewModal({reviewContent, title, coverImage, creator, year, setS
                         </button>
 
                         {
-                            reviewContent &&
+                            reviewContent && userReviewId &&
                             <button
                                 onClick={() => {
                                     createReviewFunctionWrapper({newReviewContent: ""})
                                     setShowWriteReviewContent(false)
+                                    removeAttachedImageFunction(removeAttachedImage, existingReviewImages.map((image) => image.signedId), userReviewId, "review")
+                                    setExistingReviewImages([])
+                                    setNewReviewImages([])
                                 }
                                 
                                 }
@@ -258,63 +364,5 @@ function WriteReviewModal({reviewContent, title, coverImage, creator, year, setS
                 </div>
             </div>
         </div>
-    )
-}
-
-function TrashIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M3 6h18"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-        </svg>
-    )
-}
-function EyeIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/>
-            <circle cx="12" cy="12" r="3"/>
-        </svg>
-    )
-}
-
-function EyeOffIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94"/>
-            <path d="M9.9 4.24A10 10 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/>
-            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
-            <line x1="2" y1="2" x2="22" y2="22"/>
-        </svg>
-    )
-}
-
-function HeartIcon({ filled }: { filled: boolean }) {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transition: "fill 200ms ease-out" }}>
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-    )
-}
-
-function PencilIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M12 20h9"/>
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
-    )
-}
-
-function ListIcon() {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <line x1="8" y1="6" x2="21" y2="6"/>
-            <line x1="8" y1="12" x2="21" y2="12"/>
-            <line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/>
-            <line x1="3" y1="12" x2="3.01" y2="12"/>
-            <line x1="3" y1="18" x2="3.01" y2="18"/>
-        </svg>
     )
 }

@@ -53,6 +53,19 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                 <p className="text-gray-300 text-sm leading-relaxed mb-3">{review.content}</p>
             ) : null}
 
+            {review?.imageDetails?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                    {review.imageDetails.map((img: {signedId: string, url: string}) => (
+                        <img
+                            key={img.signedId}
+                            src={img.url}
+                            alt="Review image"
+                            className="h-32 w-auto rounded-lg object-cover"
+                        />
+                    ))}
+                </div>
+            )}
+
             {review.content && (
                 <div className="flex items-center gap-6 text-gray-400 text-sm">
                     <button

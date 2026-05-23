@@ -104,6 +104,13 @@ function MainReviewComponent({commentCount, mainReview, setUser}: {commentCount:
         <img width={50} height={50} src={mainReview.user.profilePicture ?? "/default-ARTHIVE-pfp.png"} alt="Profile Picture" loading="lazy"/>
         <DisplayRating rating={mainReview.rating ?? 0} />
         <p>{mainReview.content}</p>
+        {mainReview.imageDetails?.length > 0 && (
+            <div className="flex flex-wrap gap-2 my-2">
+                {mainReview.imageDetails.map((img) => (
+                    <img key={img.signedId} src={img.url} alt="Review image" className="h-32 w-auto rounded-lg object-cover" />
+                ))}
+            </div>
+        )}
         <p onClick={() => likeReviewFunction(setCurrLiked, likeReview, mainReview.id, setUser, navigate, setLikeCount)}>Likes: {likeCount} {currLiked ? "❤️" : "🤍"}</p>
         <p>Comments: {commentCount} 💬</p>
         <p>If finished: {mainReview.ifFinished ? "Yes" : "No"}</p>

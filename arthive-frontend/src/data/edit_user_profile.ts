@@ -26,16 +26,17 @@ export async function EditUserProfileDataFetch(
                 return
             }
             
-            let signedId = null;
             if (profilePicture) {
-                signedId = await uploadFileToS3(profilePicture, jwt);
+                const signedId = await uploadFileToS3(profilePicture, jwt);
                 if (!signedId) {
                     alert("Error uploading profile picture to S3")
                     return
                 }
-                // ensures that the image is uploaded to database before s3 image attached
-                // avoids orphaned images in s3 bucket
-                uploadImageToS3({variables: {signedId, resourceId: data.data.editUserProfile.id, resourceType: "user"}})
+                const attachResult = await uploadImageToS3({variables: {signedIds: [signedId], resourceId: data.data.editUserProfile.id, resourceType: "user"}})
+                if (!attachResult.data?.attachS3Image?.success) {
+                    alert("Error attaching profile picture")
+                    return
+                }
             }
             setUser(data.data.editUserProfile)
             alert("Profile updated successfully")

@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    background-color: #050407;
+  }
   body {
     @apply text-white min-h-screen antialiased;
     background: linear-gradient(180deg, #0a090c 0%, #050407 100%);

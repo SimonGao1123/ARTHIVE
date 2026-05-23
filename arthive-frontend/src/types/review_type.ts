@@ -4,6 +4,15 @@ export type UserReview = {
     rating?: number
     ifFavorite: boolean
     ifFinished: boolean
+    imageDetails: {
+        signedId: string
+        url: string
+    }[]
+}
+
+type ImageDetail = {
+    signedId: string
+    url: string
 }
 
 export type Review = {
@@ -23,6 +32,7 @@ export type Review = {
     likeCount: number,
     commentCount: number,
     ifLiked: boolean,
+    imageDetails: ImageDetail[]
     media: {
         id: number
         title: string
@@ -51,7 +61,7 @@ export type AllReview = {
         contentType: "book" | "film" | "series" | "game"
     }
 
-    
+    imageDetails: ImageDetail[]
     likeCount: number,
     commentCount: number,
     ifLiked: boolean,
@@ -80,6 +90,7 @@ export type MainReview = {
         genre: string[]
         contentType: "book" | "film" | "series" | "game"
     }
+    imageDetails: ImageDetail[]
     likeCount: number
     commentCount: number
     ifLiked: boolean

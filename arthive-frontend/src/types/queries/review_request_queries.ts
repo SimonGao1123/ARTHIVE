@@ -25,10 +25,14 @@ export const OBTAIN_ALL_USER_REVIEWS_QUERY = gql`
                 likeCount
                 commentCount
                 ifLiked
+                imageDetails {
+                    signedId
+                    url
+                }
             }
             user {
                 id
-                username   
+                username
             }
             pageInfo {
                 totalPages
@@ -67,6 +71,10 @@ export const OBTAIN_USER_REVIEW_QUERY = gql`
             rating
             ifFavorite
             ifFinished
+            imageDetails {
+                signedId
+                url
+            }
         }
     }
 `
@@ -107,7 +115,10 @@ export const OBTAIN_REVIEW_PAGE_QUERY = gql`
                 likeCount
                 commentCount
                 ifLiked
-            
+                imageDetails {
+                    signedId
+                    url
+                }
             }
 
             reviewComments(first: $first, after: $after) {

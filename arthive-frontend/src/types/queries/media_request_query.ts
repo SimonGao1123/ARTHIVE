@@ -107,6 +107,10 @@ export const OBTAIN_MEDIA_REVIEWS_QUERY = gql`
                     likeCount
                     commentCount
                     ifLiked
+                    imageDetails {
+                        signedId
+                        url
+                    }
                 }
             }
             pageInfo {

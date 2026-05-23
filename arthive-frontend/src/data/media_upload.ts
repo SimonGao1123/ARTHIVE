@@ -72,7 +72,12 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
 
             // ensures that the image is uploaded to database before s3 image attached
             // avoids orphaned images in s3 bucket
-            uploadImageToS3({variables: {signedId, resourceId: data.data.createMedia.id, resourceType: "media"}})
+            const attachResult = await uploadImageToS3({variables: {signedIds: [signedId], resourceId: data.data.createMedia.id, resourceType: "media"}})
+            if (!attachResult.data?.attachS3Image?.success) {
+                alert("Error attaching cover image")
+                return
+            }
+            alert("Media uploaded successfully")
         }
     }).catch((error: { message?: string }) => {
         console.error("Error: ", error)

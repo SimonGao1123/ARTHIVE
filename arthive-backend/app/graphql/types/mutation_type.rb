@@ -25,5 +25,6 @@ module Types
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
 
     field :attach_s3_image, mutation: Mutations::AttachS3Image
+    field :remove_attached_image, mutation: Mutations::RemoveAttachedImage
   end
 end

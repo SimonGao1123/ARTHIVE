@@ -2,11 +2,11 @@ module Mutations
     class AttachS3Image < BaseMutation
         field :success, Boolean, null: false
 
-        argument :signed_id, String, required: true
+        argument :signed_ids, [String], required: true
         argument :resource_id, ID, required: true
         argument :resource_type, Types::PossibleResourceImageTypesEnum, required: true
 
-        def resolve(signed_id:, resource_id:, resource_type:)
+        def resolve(signed_ids:, resource_id:, resource_type:)
             validate_user
             
             case resource_type
@@ -15,13 +15,20 @@ module Mutations
                 if media.nil?
                     raise GraphQL::ExecutionError, "Media not found"
                 end
-                media.cover_image.attach(signed_id)
+                # media and users only have one image attached
+                media.cover_image.attach(signed_ids[0])
             when "user"
                 user = User.find_by(id: resource_id)
                 if user.nil?
                     raise GraphQL::ExecutionError, "User not found"
                 end
-                user.profile_picture.attach(signed_id)
+                user.profile_picture.attach(signed_ids[0])
+            when "review"
+                review = Review.find_by(id: resource_id)
+                if review.nil?
+                    raise GraphQL::ExecutionError, "Review not found"
+                end
+                review.images.attach(signed_ids)
             else
                 raise GraphQL::ExecutionError, "Invalid resource type"
             end

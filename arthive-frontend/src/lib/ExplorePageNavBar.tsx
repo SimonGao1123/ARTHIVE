@@ -100,15 +100,6 @@ export default function ExplorePageNavBar({user}: {user: User | null}) {
                     <Outlet/>
                 </main>
             </div>
-
-            <footer className="px-12 py-6 border-t border-white/5">
-                <div className="flex gap-6 text-gray-500 text-sm">
-                    <span>About</span>
-                    <span>Community Policy</span>
-                    <span>Press Kit</span>
-                    <span>Contact</span>
-                </div>
-            </footer>
         </div>
     )
 }

@@ -24,3 +24,7 @@ export function uploadFileToS3(file: File, jwt: string): Promise<string> {
         });
     });
 }
+
+export function uploadMultipleFilesToS3(files: File[], jwt: string): Promise<string[]> {
+    return Promise.all(files.map(file => uploadFileToS3(file, jwt)))
+}

@@ -32,3 +32,21 @@ export type CreateReviewResponse = {
         deleted: boolean,
     }
 }
+
+export const REMOVE_ATTACHED_IMAGE_MUTATION = gql`
+    mutation RemoveAttachedImage($input: RemoveAttachedImageInput!) {
+        removeAttachedImage(input: $input)
+    }
+`
+
+export type RemoveAttachedImageInput = {
+    input: {
+        signedIds: string[],
+        resourceId: number,
+        resourceType: "review" | "user" | "media",
+    }
+}
+
+export type RemoveAttachedImageResponse = {
+    removeAttachedImage: boolean
+}

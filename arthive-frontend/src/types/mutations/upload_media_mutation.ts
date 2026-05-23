@@ -22,9 +22,9 @@ export const UPLOAD_MEDIA_MUTATION = gql`
 `;
 
 export const UPLOAD_IMAGE_TO_S3_MUTATION = gql`
-  mutation UploadImageToS3($signedId: String!, $resourceId: ID!, $resourceType: PossibleResourceImageTypesEnum!) {
+  mutation attachS3Image($signedIds: [String!]!, $resourceId: ID!, $resourceType: PossibleResourceImageTypesEnum!) {
     attachS3Image(input: {
-      signedId: $signedId, resourceId: $resourceId, resourceType: $resourceType
+      signedIds: $signedIds, resourceId: $resourceId, resourceType: $resourceType
     }) {
       success
     }

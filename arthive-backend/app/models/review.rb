@@ -13,6 +13,14 @@ class Review < ApplicationRecord
 
     # guarentees that a review is unique for a user and a media
     validates :user_id, uniqueness: { scope: :media_id }
+
+    has_many_attached :images
+
+    def presigned_images_url
+        images.map do |image|
+            PresignedUrlAttachment.presigned_url(image)
+        end
+    end
     
     def self.retrieve_review(user_id, media_id)
         review = find_by(user_id: user_id, media_id: media_id)
