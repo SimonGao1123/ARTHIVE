@@ -21,7 +21,7 @@ export function addOrRemoveMediaData(
             }
         }
     })
-    .then((data: any) => {
+    .then(() => {
     })
     .catch((error: any) => {
         if (unauth_messages.includes(error.message)) {

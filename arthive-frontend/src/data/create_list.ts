@@ -24,9 +24,8 @@ export function createList(
             }
         }
     })
-    .then((data: any) => {
+    .then((_data: any) => {
     }).catch((error: any) => {
-        console.error("Error creating list: ", error)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

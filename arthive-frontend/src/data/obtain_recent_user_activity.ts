@@ -13,7 +13,6 @@ export function obtainRecentUserActivityFunction(
     limit: number,
     setHasNextPage: Dispatch<SetStateAction<boolean>>,
 ) {
-    console.log("userId", userId)
     obtainRecentUserActivity({
         variables: {
             userId: userId,

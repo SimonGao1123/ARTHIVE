@@ -12,7 +12,11 @@ export default function SendFollowButton({receiverId, setUser, setCurrOutgoingFo
         sendFollowRequest(sendFollow, receiverId, navigate, setUser, setCurrOutgoingFollowStatus)
     }
     return (
-
-        <button onClick={() => handleFollow()}>Send Follow</button>
+        <button
+            onClick={() => handleFollow()}
+            className="bg-violet-500 hover:bg-violet-400 text-white px-4 py-1.5 rounded-full text-sm transition"
+        >
+            Follow
+        </button>
     )
 }

@@ -3,7 +3,7 @@ import { logout } from "./logout"
 
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
-export function likeReviewFunction(setCurrLiked: (currLiked: boolean) => void, likeReview: any, reviewId: number, setUser: (user: User | null) => void, navigate: any, setLikeCount: (likeCount: number) => void) {
+export function likeReviewFunction(setCurrLiked: (currLiked: boolean) => void, likeReview: any, reviewId: number, setUser: (user: User | null) => void, navigate: any, setLikeCount: (updater: number | ((prev: number) => number)) => void) {
     likeReview({
         variables: {
             input: {

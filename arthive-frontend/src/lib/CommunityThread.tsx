@@ -7,7 +7,7 @@ import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
 import { ReviewReferenceCard } from "./ReviewCard"
 
-export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
+export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user: _user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [currLiked, setCurrLiked] = useState(thread.ifLiked)
     const [likeCount, setLikeCount] = useState(thread.likesCount)

@@ -39,7 +39,5 @@ export function obtainReviewPageFunction(
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }
-
-        console.error(error)
     })
 }

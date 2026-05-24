@@ -66,8 +66,6 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
         }
     }, [userReview])
 
-    console.log(existingReviewImages)
-
     const [createReview] = useMutation<CreateReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
 
     function createReviewFunctionWrapper({newReviewImages = [], newIfFavorite = ifFavorite, newIfFinished = ifFinished, newReviewContent = reviewContent, newRating = rating}: {newReviewImages?: {file: File, url: string, uuid: string}[], newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) {

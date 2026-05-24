@@ -110,7 +110,7 @@ class Review < ApplicationRecord
     }
 
     def self.search(query:, search_filter:, current_user_id:)
-        base_search = Review.query_filter(query)
+        base_search = Review.query_filter(query).sort_by_trending
             .where.not(content: nil)
             .where(user_id: User.visible_to(current_user_id).select(:id))
         if search_filter.present?
@@ -125,7 +125,7 @@ class Review < ApplicationRecord
             end
         end
 
-        return base_search.sort_by_likes.recent.includes(:user, :media)
+        return base_search.recent.includes(:user, :media)
     end
 
 end

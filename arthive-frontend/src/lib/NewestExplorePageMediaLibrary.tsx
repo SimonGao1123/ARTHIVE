@@ -6,7 +6,7 @@ import type { User } from "../types/user_types.ts"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "./MediaCard.tsx"
 
-export default function NewestExplorePageMediaLibrary({user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
+export default function NewestExplorePageMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
     const [nextCursor, setNextCursor] = useState<string | null>(null)

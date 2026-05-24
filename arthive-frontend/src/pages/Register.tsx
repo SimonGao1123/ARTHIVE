@@ -98,8 +98,7 @@ async function handleRegister(email: string, username: string, password: string,
         }
         return null
         
-    } catch (error) {
-        console.error(error);
-        
+    } catch (_error) {
+        // error surfaced via useMutation's error state
     }
 }

@@ -55,13 +55,9 @@ export default function Login({ setUser }: LoginPageProps) {
                                     setUser(loginData.data.login.user)
                                     localStorage.setItem("authToken", loginData.data.login.token)
                                     navigate("/")
-                                } else {
-                                    console.error(loginData.data?.login.errors)
                                 }
                             })
-                            .catch((error: any) => {
-                                console.error(error)
-                            })
+                            .catch(() => {})
                     }}
                     className="w-full bg-violet-500 hover:bg-violet-400 disabled:bg-violet-500/30 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-full transition mt-2"
                 >

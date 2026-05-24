@@ -47,7 +47,6 @@ export function editCommunityThread (
 
     })
     .catch((error: any) => {
-        console.error("Error: ", error)
         if (error.message && unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
             return

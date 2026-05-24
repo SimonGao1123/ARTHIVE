@@ -11,6 +11,7 @@ import {
 import { obtainLikedOrFinishedMediaFunction } from "../data/obtain_liked_or_finished_media"
 import ContentFilter from "../lib/ContentFilter"
 import { NumberedPagination } from "../lib/NumberedPagination"
+import { contentTypeColor } from "../lib/contentTypeColors"
 
 const LIMIT = 10
 
@@ -54,21 +55,56 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     }, [type, user_id, contentType, pageNum, query])
 
     return (
-        <div>
-            <h1>{type === "liked" ? "Liked Media" : "Finished Media"}</h1>
-            <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
-            <input type="text" placeholder="Search" value={currQuery} onChange={(e) => setCurrQuery(e.target.value)} />
-            <button disabled={currQuery === query} onClick={() => setQuery(currQuery)}>Search</button>
+        <div className="flex flex-col gap-6">
+            <h1 className="text-2xl font-bold text-white">
+                {type === "liked" ? "Liked Media" : "Finished Media"}
+            </h1>
 
-            <div className="flex gap-2 flex-wrap">
-                {media.map((m) => (
-                    <div key={m.id} onClick={() => navigate(`/media/${m.id}`)} style={{ cursor: "pointer" }}>
-                        <img width={120} height={180} src={m.coverImage ?? "/default-ARTHIVE-pfp.png"} alt={m.title} />
-                        <div>{m.title}</div>
-                        <div>{m.creator} ({m.year})</div>
-                    </div>
-                ))}
+            <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
+
+            <div className="flex gap-2">
+                <input
+                    type="text"
+                    placeholder="Search"
+                    value={currQuery}
+                    onChange={(e) => setCurrQuery(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") setQuery(currQuery) }}
+                    className="flex-1 bg-[#0a090c] border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
+                />
+                <button
+                    disabled={currQuery === query}
+                    onClick={() => setQuery(currQuery)}
+                    className="bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-full px-5 py-2 text-sm transition"
+                >
+                    Search
+                </button>
             </div>
+
+            {media.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-8">No media found.</p>
+            ) : (
+                <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))" }}>
+                    {media.map((m) => (
+                        <div
+                            key={m.id}
+                            onClick={() => navigate(`/media/${m.id}`)}
+                            className="group cursor-pointer flex flex-col gap-1.5"
+                        >
+                            <div className="relative overflow-hidden rounded-lg">
+                                <img
+                                    src={m.coverImage ?? "/default-ARTHIVE-pfp.png"}
+                                    alt={m.title}
+                                    className="w-full aspect-[2/3] object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
+                                    style={{ border: `2px solid ${contentTypeColor(m.contentType)}` }}
+                                />
+                                <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+                            </div>
+                            <p className="text-xs text-white font-medium leading-tight line-clamp-2">{m.title}</p>
+                            <p className="text-xs text-gray-500">{m.creator} {m.year ? `(${m.year})` : ""}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>

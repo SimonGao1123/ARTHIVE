@@ -51,7 +51,6 @@ export function obtainThreadData(
         setCursor(batch.childThreads.pageInfo.endCursor)
     })
     .catch((error: any) => {
-        console.error(error)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

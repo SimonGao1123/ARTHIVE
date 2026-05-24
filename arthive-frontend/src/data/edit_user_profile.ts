@@ -42,7 +42,6 @@ export async function EditUserProfileDataFetch(
             alert("Profile updated successfully")
         }
     }).catch((error: { message?: string }) => {
-        console.error("Error: ", error)
         if (error.message && unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } else {

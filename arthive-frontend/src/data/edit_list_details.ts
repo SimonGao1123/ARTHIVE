@@ -33,7 +33,6 @@ export function editListDetails(
         alert("List details edited successfully")
     })
     .catch((error: any) => {
-        console.error("Error editing list details: ", error)
         if (unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         }

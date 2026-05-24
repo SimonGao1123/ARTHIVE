@@ -55,7 +55,6 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         seriesTitle: mediaData.series_title,
         organization: mediaData.organization,
     }}).then(async(data: any) => {
-        console.log(data)
         if (data.data.createMedia.id) {
             const jwt = localStorage.getItem("authToken")
             if (!jwt) {
@@ -80,7 +79,6 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
             alert("Media uploaded successfully")
         }
     }).catch((error: { message?: string }) => {
-        console.error("Error: ", error)
         if (error.message && unauth_messages.includes(error.message)) {
             logout(setUser, navigate)
         } else {
