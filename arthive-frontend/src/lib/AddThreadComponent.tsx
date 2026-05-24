@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { UPLOAD_IMAGE_TO_S3_MUTATION } from "../types/mutations/upload_media_mutation"
 import { TrashIcon } from "./StyledComponents"
+import { handleAttachImages } from "./HandleImageUpload"
 
 type AddThreadComponentProps = {
     media_id: string
@@ -72,19 +73,7 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
         onClose()
     }
 
-    function handleAttachImages(files: File[]) {
-        for (const file of files) {
-            if (newImages.length >= 5) return
-            if (file.type.split("/")[0] !== "image") continue
-            if (file.size > 2 * 1024 * 1024) {
-                alert("Image is too large (max 2MB)")
-                continue
-            }
-            const url = URL.createObjectURL(file)
-            const uuid = crypto.randomUUID()
-            setNewImages((prev) => [...prev, {file, url, uuid}])
-        }
-    }
+
 
     return (
         <div
@@ -94,7 +83,7 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
             <div
                 className="bg-[#171519] rounded-2xl border border-white/5 p-6 max-w-xl w-full shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
-                onPaste={(e) => handleAttachImages(Array.from(e.clipboardData.files))}
+                onPaste={(e) => handleAttachImages({files: Array.from(e.clipboardData.files), newImages: newImages, setNewImages: setNewImages})}
             >
                 <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-400 uppercase tracking-wider">
@@ -177,7 +166,7 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
                     accept="image/*"
                     hidden
                     onChange={(e) => {
-                        handleAttachImages(Array.from(e.target.files || []))
+                        handleAttachImages({files: Array.from(e.target.files || []), newImages: newImages, setNewImages: setNewImages})
                         fileInputRef.current!.value = ""
                     }}
                 />

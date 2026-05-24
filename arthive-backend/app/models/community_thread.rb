@@ -3,14 +3,15 @@ class CommunityThread < ApplicationRecord
     belongs_to :community
     belongs_to :user
 
-    has_many :thread_likes, dependent: :delete_all
+    has_many :thread_likes, dependent: :destroy
+    has_many :activities, -> { where(activity_type: "CommunityThread") }, foreign_key: :activity_id, dependent: :delete_all
 
     # NOTE: if parent_thread/root_thread is present, then the current thread is NOT the root thread
     # else if they are BOTH nil then the current thread is the root thread
     belongs_to :parent_thread, class_name: "CommunityThread", optional: true
     belongs_to :root_thread, class_name: "CommunityThread", optional: true
 
-    has_many :child_threads, class_name: "CommunityThread", foreign_key: "parent_thread_id"
+    has_many :child_threads, class_name: "CommunityThread", foreign_key: "parent_thread_id", dependent: :destroy
     validates :content, presence: true
 
 

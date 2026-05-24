@@ -115,6 +115,8 @@ export const OBTAIN_COMMUNITY_QUERY = gql`
                                 url
                             }
                         }
+                        parentThreadId
+                        rootThreadId
     
                     }
                 }

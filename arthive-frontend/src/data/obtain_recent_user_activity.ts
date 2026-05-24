@@ -26,8 +26,8 @@ export function obtainRecentUserActivityFunction(
         setCursor(data.data.recentUserActivity.pageInfo.endCursor)
         setHasNextPage(data.data.recentUserActivity.pageInfo.hasNextPage)
         setRecentUserActivity((prev: any) => {
-            const existingIds = new Set(prev.map((r: any) => r.id))
-            return [...prev, ...batch.filter((r: any) => !existingIds.has(r.id))]
+            const existingKeys = new Set(prev.map((r: any) => `${r.id}-${r.subject?.__typename}`))
+            return [...prev, ...batch.filter((r: any) => !existingKeys.has(`${r.id}-${r.subject?.__typename}`))]
         })
     })
     .catch((error: any) => {

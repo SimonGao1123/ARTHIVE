@@ -10,7 +10,7 @@ import { CommunityThreads } from "../lib/CommunityThread"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
 
 const LIMIT = 1
-export default function CommunityPage({setUser}: {setUser: (user: User | null) => void}) {
+export default function CommunityPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
     const { media_id } = useParams()
     if (!media_id) {
@@ -68,7 +68,7 @@ export default function CommunityPage({setUser}: {setUser: (user: User | null) =
                     </button>
                 </div>
 
-                <CommunityThreads threads={rootThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} />
+                <CommunityThreads threads={rootThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} user={user} />
             </div>
         </div>
     )

@@ -12,8 +12,9 @@ import { likeThreadFunction } from "../data/like_thread_function"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
 import type { Review } from "../types/review_type"
 import { ReviewReferenceCard } from "../lib/ReviewCard"
+import EditThreadComponent from "../lib/EditThreadComponent"
 const LIMIT = 2
-export default function ThreadPage({setUser}: {setUser: (user: User | null) => void}) {
+export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
     const {thread_id} = useParams()
     const {media_id} = useParams()
@@ -62,7 +63,7 @@ export default function ThreadPage({setUser}: {setUser: (user: User | null) => v
                 )}
             </div>
 
-            {mainThread && <ThreadPageContent mainThread={mainThread} media_id={media_id!} setUser={setUser} review={mainThread.review ?? null} />}
+            {mainThread && <ThreadPageContent mainThread={mainThread} media_id={media_id!} setUser={setUser} user={user} review={mainThread.review ?? null} />}
 
             {mainThread && (
                 <AddThreadComponent
@@ -77,7 +78,7 @@ export default function ThreadPage({setUser}: {setUser: (user: User | null) => v
             {childThreads.length > 0 && (
                 <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Replies</p>
-                    <CommunityThreads threads={childThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} />
+                    <CommunityThreads threads={childThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
                 </div>
             )}
         </div>
@@ -88,13 +89,15 @@ type ThreadPageContentProps = {
     mainThread: CommunityThread
     media_id: string
     setUser: (user: User | null) => void
+    user: User | null
     review: Review | null
 }
-export function ThreadPageContent({mainThread, media_id, setUser, review}: ThreadPageContentProps) {
+export function ThreadPageContent({mainThread, media_id, setUser, user, review}: ThreadPageContentProps) {
     const navigate = useNavigate()
     const [currLiked, setCurrLiked] = useState(mainThread.ifLiked)
     const [likeCount, setLikeCount] = useState(mainThread.likesCount)
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
+    const [editPopupOpen, setEditPopupOpen] = useState(false)
 
     function handleLikeThread() {
         likeThreadFunction(setCurrLiked, likeThread, mainThread.id, setUser, navigate, setLikeCount)
@@ -125,16 +128,26 @@ export function ThreadPageContent({mainThread, media_id, setUser, review}: Threa
                 <h2 className="text-xl font-bold text-white">{mainThread.title}</h2>
             )}
 
-            <div className="flex items-center gap-3">
-                <img
-                    src={mainThread.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
-                    alt="Profile Picture"
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                />
-                <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-white">{mainThread.user.username}</span>
-                    <span className="text-xs text-gray-500">{new Date(mainThread.createdAt).toLocaleDateString()}</span>
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <img
+                        src={mainThread.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
+                        alt="Profile Picture"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-white">{mainThread.user.username}</span>
+                        <span className="text-xs text-gray-500">{new Date(mainThread.createdAt).toLocaleDateString()}</span>
+                    </div>
                 </div>
+                {user && user.id === mainThread.user.id && (
+                    <button
+                        onClick={() => setEditPopupOpen(true)}
+                        className="text-xs text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full transition flex-shrink-0"
+                    >
+                        Edit
+                    </button>
+                )}
             </div>
 
             <p className="text-gray-300 text-sm leading-relaxed">{mainThread.content}</p>
@@ -159,6 +172,8 @@ export function ThreadPageContent({mainThread, media_id, setUser, review}: Threa
             </div>
 
             {review && <ReviewReferenceCard review={review} />}
+
+            {editPopupOpen && <EditThreadComponent thread={mainThread} setUser={setUser} setEditPopupOpen={setEditPopupOpen} />}
         </div>
     )
 }

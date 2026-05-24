@@ -65,3 +65,61 @@ export type CreateThreadInput = {
 export type CreateThreadResponse = {
     createThread: CommunityThread
 }
+
+export type EditThreadInput = {
+    input: {
+        threadId: string,
+        content: string,
+        title?: string,
+        reviewId?: string,
+        deleteThread: boolean
+    }
+}
+export type EditThreadResponse = {
+    editThread: CommunityThread
+}
+export const EDIT_THREAD_MUTATION = gql`
+    mutation EditThread($input: EditThreadInput!) {
+        editThread(input: $input) {
+            id
+            title
+            content
+            createdAt
+            user {
+                id
+                username
+                profilePicture
+            }
+            likesCount
+            childThreadsCount
+            ifLiked
+            parentThreadId
+            rootThreadId
+            review {
+                id
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+                media {
+                    id
+                    title
+                    coverImage
+                }
+            }
+            community {
+                media {
+                id
+                title
+                coverImage
+                }
+            }
+        }
+    }
+`

@@ -12,6 +12,7 @@ import DeleteReviewPopup from "./DeleteReviewPopup.tsx";
 import { EyeIcon, EyeOffIcon, PencilIcon, ListIcon, HeartIcon, TrashIcon, ImageIcon } from "./StyledComponents.tsx";
 import { UPLOAD_IMAGE_TO_S3_MUTATION } from "../types/mutations/upload_media_mutation";
 import { removeAttachedImageFunction } from "../data/remove_image_attachment.ts";
+import PreviewImageDisplay from "./PreviewImageDisplay.tsx";
 
 type UserMediaReviewProps = {
     mediaId: number
@@ -185,41 +186,6 @@ function SelectionButton({ active, activeColor, icon, label, onClick }: Selectio
     )
 }
 
-type ReviewImagesProps = {
-    newReviewImages: {file: File, url: string, uuid: string}[]
-    setNewReviewImages: React.Dispatch<React.SetStateAction<{file: File, url: string, uuid: string}[]>>
-    existingReviewImages: {signedId: string, url: string}[]
-    setExistingReviewImages: React.Dispatch<React.SetStateAction<{signedId: string, url: string}[]>>
-    userReviewId: number | null
-    removeAttachedImage: any
-}
-function ReviewImages({newReviewImages, setNewReviewImages, existingReviewImages, setExistingReviewImages, userReviewId, removeAttachedImage}: ReviewImagesProps) {
-    return (
-        <div className="flex gap-2">
-            {newReviewImages.map((image) => (
-                <div key={image.uuid}>
-                    <img src={image.url} alt={image.file.name} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
-                    <button onClick={() => setNewReviewImages((prev) => prev.filter((prevImage) => prevImage.uuid !== image.uuid))} className="text-gray-400 hover:text-white text-2xl leading-none transition">
-                        <TrashIcon />
-                    </button>
-                </div>
-            ))}
-            {userReviewId && existingReviewImages.map((image) => (
-                <div key={image.signedId}>
-                    <img src={image.url} alt={image.signedId} className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
-                    <button onClick={() => {
-                        removeAttachedImageFunction(removeAttachedImage, [image.signedId], userReviewId, "review")
-                        setExistingReviewImages((prev) => prev.filter((prevImage) => prevImage.signedId !== image.signedId))} 
-                        } className="text-gray-400 hover:text-white text-2xl leading-none transition">
-
-                        <TrashIcon />
-                    </button>
-                </div>
-            ))}
-        </div>
-    )
-}
-
 type WriteReviewModalProps = {
     userReviewId: number | null
     reviewContent: string
@@ -287,7 +253,7 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
                     </button>
                 </div>
 
-                <ReviewImages removeAttachedImage={removeAttachedImage} newReviewImages={newReviewImages} setNewReviewImages={setNewReviewImages} existingReviewImages={existingReviewImages} setExistingReviewImages={setExistingReviewImages} userReviewId={userReviewId} />
+                <PreviewImageDisplay newImages={newReviewImages} setNewImages={setNewReviewImages} existingImages={existingReviewImages} setExistingImages={setExistingReviewImages} resourceId={userReviewId || null} resourceType="review" />
 
                 <div className="flex gap-4">
                     {coverImage ? (

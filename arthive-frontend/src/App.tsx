@@ -81,8 +81,8 @@ function App() {
           <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
 
           <Route path="/create_list" element={<CreateListPage setUser={setUser} user={user}/>} />
-          <Route path="/community/:media_id" element={<CommunityPage setUser={setUser}/>} />
-          <Route path="/community/:media_id/thread/:thread_id" element={<ThreadPage setUser={setUser}/>} />
+          <Route path="/community/:media_id" element={<CommunityPage setUser={setUser} user={user}/>} />
+          <Route path="/community/:media_id/thread/:thread_id" element={<ThreadPage setUser={setUser} user={user}/>} />
 
           <Route path="/search" element={<SearchPageResults key={location.search} setUser={setUser}/>} />
         </Route>

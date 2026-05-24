@@ -176,7 +176,7 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
     )
 }
 
-function InputField({title, type, value, setter, can_be_empty}: {title: string, type: string, value: any, setter: any, can_be_empty: boolean}) {
+export function InputField({title, type, value, setter, can_be_empty}: {title: string, type: string, value: any, setter: any, can_be_empty: boolean}) {
     const id = title.toLowerCase().replaceAll(" ", "_")
     const handleChange = (val: string) => {
         if (can_be_empty && val === "") {

@@ -60,7 +60,7 @@ export default function RecentUserActivity({ user, setUser, navigate }: RecentUs
             )}
             <div className="flex flex-col divide-y divide-white/5">
                 {recentUserActivity.map((activity) => (
-                    <ActivityCard key={activity.id} activity={activity} />
+                    <ActivityCard key={`${activity.id}-${activity.subject?.__typename}`} activity={activity} />
                 ))}
             </div>
             {hasNextPage && (

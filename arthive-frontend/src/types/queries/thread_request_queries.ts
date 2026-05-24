@@ -66,6 +66,8 @@ export const OBTAIN_THREAD_QUERY = gql`
             childThreads(after: $after, first: $first) {
                 edges {
                     node {
+                        parentThreadId
+                        rootThreadId
                         id
                         content
                         title
