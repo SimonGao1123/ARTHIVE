@@ -80,7 +80,8 @@ export type EditListDetailsInput = {
     name: string | null,
     ifPrivate: boolean | null,
     tags: string[] | null,
-    description: string | null
+    description: string | null,
+    deleteList: boolean
 }
 export type EditListDetailsResponse = {
     editListDetails: ListType

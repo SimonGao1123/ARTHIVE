@@ -6,6 +6,8 @@ class ReviewLike < ApplicationRecord
     validates :user_id, presence: true
     validates :review_id, uniqueness: { scope: :user_id }
 
+    has_many :activities, -> { where(activity_type: "ReviewLike") }, foreign_key: :activity_id, dependent: :delete_all
+
     def self.toggle_like(user_id, review_id)
         like = find_by(user_id: user_id, review_id: review_id)
 

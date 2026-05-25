@@ -42,7 +42,6 @@ module Mutations
                     if !media_in_list.destroy
                         raise GraphQL::ExecutionError, media_in_list.errors.full_messages.join(", ")
                     end
-                    Activity.destroy(user: context[:current_user], subject: media_in_list)
                 end
             end
 

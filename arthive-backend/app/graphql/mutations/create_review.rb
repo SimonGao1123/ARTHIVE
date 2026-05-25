@@ -25,7 +25,7 @@ module Mutations
                     if_finished,
                     review_id
                 )
-                Activity.log(user: context[:current_user], subject: review_result[:review], status: review_id.nil? ? "created" : "updated") if review_result[:review]&.persisted?
+                Activity.log(user: context[:current_user], subject: review_result[:review], status: review_id.nil? ? "created" : "updated") if review_result[:review]&.persisted? && review_result[:deleted] == false
                 
                 
                 review_result

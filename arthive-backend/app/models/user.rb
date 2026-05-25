@@ -121,14 +121,6 @@ class User < ApplicationRecord
         }
     end
 
-    def get_finished_count(content_type)
-        if content_type == "all"
-            self.reviews.where(if_finished: true).count
-        else
-            self.reviews.joins(:media).where(media: { content_type: content_type }, if_finished: true).count
-        end
-    end
-
     def self.if_visible_to_user(user_id, target_user_id)
         target_user = User.find_by(id: target_user_id)
         if target_user.nil?
@@ -156,12 +148,19 @@ class User < ApplicationRecord
         is_visible = if_visible_to_user(current_user_id, target_user_id)
 
 
-        total_reviews_count = is_visible ? user.reviews.where.not(content: nil).count : nil
-        all_finished_count = is_visible ? user.get_finished_count("all") : nil
-        film_finished_count = is_visible ? user.get_finished_count("film") : nil
-        series_finished_count = is_visible ? user.get_finished_count("series") : nil
-        book_finished_count = is_visible ? user.get_finished_count("book") : nil
-        game_finished_count = is_visible ? user.get_finished_count("game") : nil
+        total_reviews_count = is_visible ? user.reviews.count : nil
+        
+        film_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "film" }).count : nil
+        series_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "series" }).count : nil
+        book_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "book" }).count : nil
+        game_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "game" }).count : nil
+        
+        all_finished_count = is_visible ? user.reviews.where.not(if_finished: true).count : nil
+        all_liked_count = is_visible ? user.reviews.where(if_favorite: true).count : nil
+
+        total_lists_count = is_visible ? user.lists.count : nil
+        total_community_threads_count = is_visible ? user.community_threads.count : nil
+
         return {
             user: user,
             current_outgoing_follow: outgoing_follow,
@@ -170,10 +169,15 @@ class User < ApplicationRecord
 
             total_reviews_count: total_reviews_count,
             all_finished_count: all_finished_count,
-            film_finished_count: film_finished_count,
-            series_finished_count: series_finished_count,
-            book_finished_count: book_finished_count,
-            game_finished_count: game_finished_count,
+            all_liked_count: all_liked_count,
+
+            total_lists_count: total_lists_count,
+            total_community_threads_count: total_community_threads_count,
+
+            film_reviews_count: film_reviews_count,
+            series_reviews_count: series_reviews_count,
+            book_reviews_count: book_reviews_count,
+            game_reviews_count: game_reviews_count,
         }
     end
 

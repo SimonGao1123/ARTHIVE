@@ -6,6 +6,8 @@ class Review < ApplicationRecord
     has_many :review_comments, dependent: :delete_all
     has_many :review_likes, dependent: :delete_all
 
+    has_many :activities, -> { where(activity_type: "Review") }, foreign_key: :activity_id, dependent: :delete_all
+
     validates :content, length: { maximum: 5000 }
     validates :rating, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }, allow_nil: true
     validates :if_favorite, inclusion: { in: [true, false] }
@@ -58,17 +60,14 @@ class Review < ApplicationRecord
                     like_ids = review.review_likes.map(&:id)
                     review.review_comments.delete_all
                     review.review_likes.delete_all
-                    review.images.purge # delete all images on an empty review
 
-                    puts "deleting images!!!!"
-                    Activity.where(activity_type: "ReviewComment", activity_id: comment_ids)
-                            .or(Activity.where(activity_type: "ReviewLike", activity_id: like_ids))
-                            .destroy_all
+                    Activity.where(activity_type: "ReviewComment", activity_id: comment_ids).destroy_all
+                    Activity.where(activity_type: "ReviewLike", activity_id: like_ids).destroy_all
+                    review.images.purge # delete all images on an empty review
                 end
 
                 if content.blank? && rating.blank? && !if_favorite && !if_finished
                     review.destroy!
-                    Activity.where(user_id: user_id, activity_type: "Review", activity_id: review.id).destroy_all
                     return {review: nil, deleted: true}
                 end
 

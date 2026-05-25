@@ -9,6 +9,8 @@ class List < ApplicationRecord
     validates :user_id, presence: true
     validates :description, length: { maximum: 280 }
 
+    has_many :activities, -> { where(activity_type: "List") }, foreign_key: :activity_id, dependent: :delete_all
+
     
 
     validate :content_type_validation

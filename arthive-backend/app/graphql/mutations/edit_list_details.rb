@@ -1,13 +1,14 @@
 module Mutations
     class EditListDetails < BaseMutation
-        type Types::ListType, null: false
+        type Types::ListType, null: true
 
         argument :list_id, ID, required: true
 
-        argument :name, String, required: false
-        argument :if_private, Boolean, required: false
+        argument :name, String, required: true
+        argument :if_private, Boolean, required: true
         argument :tags, [String], required: false
         argument :description, String, required: false
+        argument :delete_list, Boolean, required: true
 
         def resolve(**args)
             validate_user
@@ -20,7 +21,12 @@ module Mutations
                 raise GraphQL::ExecutionError, "You are not the owner of list #{args[:list_id]}"
             end
 
-            updates = args.except(:list_id).compact
+            if args[:delete_list]
+                list.destroy!
+                return nil
+            end
+
+            updates = args.except(:list_id, :delete_list)
 
             if !list.update(updates)
                 raise GraphQL::ExecutionError, list.errors.full_messages.join(", ")

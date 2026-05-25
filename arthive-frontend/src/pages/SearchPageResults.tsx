@@ -35,14 +35,6 @@ export default function SearchPageResults({ setUser }: { setUser: (user: User) =
     const [searchParams] = useSearchParams()
 
     const [searchType, setSearchType] = useState(searchParams.get("searchType"))
-
-    if (!searchParams.get("query") || !(searchType === "all" || searchType === "media" || searchType === "user" || searchType === "review" || searchType === "list" || searchType === "thread")) {
-        navigate("/")
-        return
-    }
-
-    const LIMIT = searchType === "all" ? 1 : 5
-
     const [cursors, setCursors] = useState({ medias: null, users: null, reviews: null, lists: null, threads: null })
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [loadCount, setLoadCount] = useState(0)
@@ -56,13 +48,22 @@ export default function SearchPageResults({ setUser }: { setUser: (user: User) =
         fetchPolicy: "no-cache",
     })
 
+    const isValidSearchType = searchType === "all" || searchType === "media" || searchType === "user" || searchType === "review" || searchType === "list" || searchType === "thread"
+    const LIMIT = searchType === "all" ? 2 : 10
+
     useEffect(() => {
+        if (!searchParams.get("query") || !isValidSearchType) navigate("/")
+    }, [])
+
+    useEffect(() => {
+        if (!query || !isValidSearchType) return
         const contentFilter = contentTypes.length > 0 ? { filter: "content_type", values: contentTypes } : null
         const genreFilter = genres.length > 0 ? { filter: "genre", values: genres } : null
         const normalizedFilters = [contentFilter, genreFilter].filter(Boolean)
-        if (!query) return
         searchBarObtain(query, searchType, cursors, LIMIT, normalizedFilters, setCursors, setSearchResults, setHasNextPage, setUser, navigate, obtainSearchBar)
     }, [query, searchType, contentTypes, genres, loadCount])
+
+    if (!searchParams.get("query") || !isValidSearchType) return null
 
     const resetState = () => {
         setSearchResults([])

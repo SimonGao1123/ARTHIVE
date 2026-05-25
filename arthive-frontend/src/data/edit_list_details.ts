@@ -14,8 +14,17 @@ export function editListDetails(
     setUser: (user: User | null) => void,
     navigate: any,
     editListDetails: any,
-    setListData: Dispatch<SetStateAction<ListType | null>>
+    setListData: Dispatch<SetStateAction<ListType | null>>,
+    deleteList: boolean
 ) {
+    if (name === null || name === "") {
+        alert("Name is required")
+        return
+    }
+    if (ifPrivate === null) {
+        alert("If private is required")
+        return
+    }
     const normalizedTags = tags?.split(",").map((tag: string) => tag.trim())
     editListDetails({
         variables: {
@@ -23,12 +32,19 @@ export function editListDetails(
                 listId: listId,
                 name: name,
                 ifPrivate: ifPrivate,
-                tags: normalizedTags,
-                description: description
+                tags: !normalizedTags || normalizedTags.length === 0 ? null : normalizedTags,
+                description: description === "" || description === null ? null : description,
+                deleteList: deleteList
             }
         }
     })
     .then((data: any) => {
+        if (deleteList) {
+            setListData(null)
+            alert("List deleted successfully")
+            navigate(-1)
+            return
+        }
         setListData(data.data.editListDetails)
         alert("List details edited successfully")
     })

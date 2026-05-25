@@ -129,10 +129,13 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
                             {([
                                 { label: "Reviews", value: userProfileData.totalReviewsCount, path: `/all_reviews/${id}` },
                                 { label: "All Logged", value: userProfileData.allFinishedCount, path: `/finished/${id}` },
-                                { label: "Films", value: userProfileData.filmFinishedCount, path: undefined },
-                                { label: "Series", value: userProfileData.seriesFinishedCount, path: undefined },
-                                { label: "Books", value: userProfileData.bookFinishedCount, path: undefined },
-                                { label: "Games", value: userProfileData.gameFinishedCount, path: undefined },
+                                { label: "Liked", value: userProfileData.allLikedCount, path: `/liked/${id}` },
+                                { label: "Lists", value: userProfileData.totalListsCount, path: `/all_lists/${id}` },
+                                { label: "Threads", value: userProfileData.totalCommunityThreadsCount, path: undefined },
+                                { label: "Film Reviews", value: userProfileData.filmReviewsCount, path: undefined },
+                                { label: "Series Reviews", value: userProfileData.seriesReviewsCount, path: undefined },
+                                { label: "Book Reviews", value: userProfileData.bookReviewsCount, path: undefined },
+                                { label: "Game Reviews", value: userProfileData.gameReviewsCount, path: undefined },
                             ] as { label: string; value: number | null; path?: string }[])
                                 .filter(s => s.value != null)
                                 .map((stat) => (
@@ -153,7 +156,7 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
                     {userProfileData.isVisibleToUser && user && (
                         <div className="flex flex-col gap-3">
                             <p className="text-xs text-gray-500 uppercase tracking-wider">Recent Activity</p>
-                            <RecentUserActivity user={user} setUser={setUser} navigate={navigate} />
+                            <RecentUserActivity targetUserId={id!} setUser={setUser} navigate={navigate} />
                         </div>
                     )}
 

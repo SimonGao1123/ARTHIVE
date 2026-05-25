@@ -21,35 +21,36 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
     const { list_id } = useParams()
     const navigate = useNavigate()
 
-    if (!list_id) { navigate("/"); return }
-
     const [totalPages, setTotalPages] = useState(0)
     const [mediaInLists, setMediaInLists] = useState<Media[]>([])
     const [listData, setListData] = useState<ListType | null>(null)
     const [targetUser, setTargetUser] = useState<User | null>(null)
     const [pageNum, setPageNum] = useState(1)
-
     const [query, setQuery] = useState<string | null>(null)
     const [currQuery, setCurrQuery] = useState<string>("")
+    const [removeMediaId, setRemoveMediaId] = useState<string>("")
+    const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
 
     const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY)
-
     const [addOrRemoveMediaInListMutation, { loading: removeLoading, error: removeError }] =
         useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
 
-    const [removeMediaId, setRemoveMediaId] = useState<string>("")
     useEffect(() => {
-        if (removeMediaId !== "") {
-            addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id as string, [removeMediaId], setUser, navigate, false)
-            setRemoveMediaId("")
-        }
+        if (!list_id) navigate("/")
+    }, [list_id])
+
+    useEffect(() => {
+        if (!list_id || removeMediaId === "") return
+        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false)
+        setRemoveMediaId("")
     }, [removeMediaId])
 
     useEffect(() => {
-        obtainListDetails(list_id as string, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+        if (!list_id) return
+        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
     }, [list_id, pageNum, query])
 
-    const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
+    if (!list_id) return null
 
     return (
         <div className="flex flex-col gap-6">
@@ -105,7 +106,7 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                     placeholder="Search in list"
                     value={currQuery}
                     onChange={(e) => setCurrQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") setQuery(currQuery || null) }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && currQuery !== (query ?? "")) setQuery(currQuery || null) }}
                     className="flex-1 bg-[#0a090c] border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
                 />
                 <button
@@ -292,7 +293,7 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
             <div className="flex gap-3">
                 <button
                     onClick={() => {
-                        editListDetails(listData?.id as string, newName, newIfPrivate, newTags, newDescription, setUser, navigate, editListDetailsMutation, setListData)
+                        editListDetails(listData?.id as string, newName, newIfPrivate, newTags, newDescription, setUser, navigate, editListDetailsMutation, setListData, false)
                         setIfEditListDetails(false)
                     }}
                     className="bg-violet-500 hover:bg-violet-400 text-white px-6 py-2 rounded-full text-sm transition"
@@ -312,6 +313,15 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
                 >
                     Cancel
                 </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        editListDetails(listData?.id as string, newName, newIfPrivate, newTags, newDescription, setUser, navigate, editListDetailsMutation, setListData, true)
+                        setIfEditListDetails(false)
+                    }}
+                    className="bg-red-500 hover:bg-red-400 text-white px-6 py-2 rounded-full text-sm transition"
+                >
+                    Delete List</button>
             </div>
         </div>
     )

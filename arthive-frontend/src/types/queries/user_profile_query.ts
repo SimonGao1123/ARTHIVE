@@ -25,10 +25,13 @@ export const USER_PROFILE_QUERY = gql`
             }
             totalReviewsCount
             allFinishedCount
-            filmFinishedCount
-            seriesFinishedCount
-            bookFinishedCount
-            gameFinishedCount
+            allLikedCount
+            totalListsCount
+            totalCommunityThreadsCount
+            filmReviewsCount
+            seriesReviewsCount
+            bookReviewsCount
+            gameReviewsCount
             editAccess
         }
     }
@@ -66,9 +69,12 @@ export type UserProfileType = {
     } | null,
     totalReviewsCount: number | null,
     allFinishedCount: number | null,
-    filmFinishedCount: number | null,
-    seriesFinishedCount: number | null,
-    bookFinishedCount: number | null,
-    gameFinishedCount: number | null,
+    allLikedCount: number | null,
+    totalListsCount: number | null,
+    totalCommunityThreadsCount: number | null,
+    filmReviewsCount: number | null,
+    seriesReviewsCount: number | null,
+    bookReviewsCount: number | null,
+    gameReviewsCount: number | null,
     editAccess: boolean,
 }

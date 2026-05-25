@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom"
 import DisplayRating from "./DisplayRating"
 
 type RecentUserActivityProps = {
-    user: User,
+    targetUserId: string,
     setUser: (user: User | null) => void,
     navigate: any
 }
@@ -27,16 +27,18 @@ function timeAgo(iso: string): string {
     return new Date(iso).toLocaleDateString()
 }
 
-export default function RecentUserActivity({ user, setUser, navigate }: RecentUserActivityProps) {
+export default function RecentUserActivity({ targetUserId, setUser, navigate }: RecentUserActivityProps) {
     const [recentUserActivity, setRecentUserActivity] = useState<Activity[]>([])
     const [cursor, setCursor] = useState<string | null>(null)
     const [hasNextPage, setHasNextPage] = useState<boolean>(false)
     const [loadCount, setLoadCount] = useState<number>(0)
 
-    const [obtainRecentUserActivity, { error, loading }] = useLazyQuery<RecentUserActivityResponse, RecentUserActivityInput>(RECENT_USER_ACTIVITY_REQUEST)
+    const [obtainRecentUserActivity, { error, loading }] = useLazyQuery<RecentUserActivityResponse, RecentUserActivityInput>(RECENT_USER_ACTIVITY_REQUEST, {
+        fetchPolicy: "no-cache",
+    })
 
     useEffect(() => {
-        obtainRecentUserActivityFunction(user.id, setRecentUserActivity, setUser, navigate, obtainRecentUserActivity, cursor, setCursor, LIMIT, setHasNextPage)
+        obtainRecentUserActivityFunction(targetUserId, setRecentUserActivity, setUser, navigate, obtainRecentUserActivity, cursor, setCursor, LIMIT, setHasNextPage)
     }, [loadCount])
 
     return (
@@ -230,7 +232,7 @@ function ThreadRow({ thread, createdAt, navigate }: RowProps & { thread: any }) 
             coverImage={thread?.community?.media?.coverImage}
             mediaId={thread?.community?.media?.id}
             label="Posted thread"
-            title={thread?.title ?? "Unknown thread"}
+            title={thread?.title ?? "Community For " + thread.community?.media?.title}
             subtitle={thread?.content}
             onRowClick={() => navigate(`/community/${thread?.community?.media?.id}/thread/${thread?.id}`)}
             createdAt={createdAt}

@@ -16,7 +16,8 @@ export function obtainLikedOrFinishedMediaFunction(
     obtainLikedOrFinishedMedia: any,
     setMedia: Dispatch<SetStateAction<LikedOrFinishedMediaCard[]>>,
     navigate: any,
-    setUser: (user: User | null) => void) {
+    setUser: (user: User | null) => void,
+    setPageUser?: Dispatch<SetStateAction<{ id: string; username: string } | null>>) {
 
         obtainLikedOrFinishedMedia({
             variables: {
@@ -31,6 +32,7 @@ export function obtainLikedOrFinishedMediaFunction(
             const batch = res.data.obtainLikedOrFinishedMedia
             setMedia(batch.media)
             setTotalPages(batch.pageInfo.totalPages)
+            setPageUser?.(batch.user)
         }).catch((err: any) => {
             if (unauth_messages.includes(err.message)) {
                 logout(setUser, navigate)

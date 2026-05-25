@@ -15,8 +15,6 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     const { user_id } = useParams()
     const navigate = useNavigate()
 
-    if (!user_id) { navigate("/"); return }
-
     const [reviews, setReviews] = useState<AllReview[]>([])
     const [targetUser, setTargetUser] = useState<User | null>(null)
     const [pageNum, setPageNum] = useState<number>(1)
@@ -27,6 +25,10 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
 
     const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY)
 
+    useEffect(() => {
+        if (!user_id) navigate("/")
+    }, [user_id])
+
     const handleContentTypeChange = (next: "book" | "film" | "series" | "game" | "all") => {
         if (next === contentType) return
         setReviews([])
@@ -35,6 +37,7 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     }
 
     useEffect(() => {
+        if (!user_id) return
         obtainAllUserReviewsFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getAllReviews, setReviews, setTargetUser, navigate, setUser)
     }, [contentType, pageNum, query])
 
@@ -55,7 +58,7 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
                             placeholder="Search reviews"
                             value={currQuery}
                             onChange={(e) => setCurrQuery(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") setQuery(currQuery) }}
+                            onKeyDown={(e) => { if (e.key === "Enter" && currQuery !== query) setQuery(currQuery) }}
                             className="w-full bg-[#0a090c] border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
                         />
                     </div>

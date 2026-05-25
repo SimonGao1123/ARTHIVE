@@ -19,24 +19,22 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     const { user_id } = useParams()
     const navigate = useNavigate()
 
-    if (!user_id) {
-        navigate("/")
-        return
-    }
-
     const [media, setMedia] = useState<LikedOrFinishedMediaCard[]>([])
     const [pageNum, setPageNum] = useState<number>(1)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
     const [totalPages, setTotalPages] = useState<number>(0)
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
+    const [pageUser, setPageUser] = useState<{ id: string; username: string } | null>(null)
 
     const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY)
 
+    useEffect(() => {
+        if (!user_id) navigate("/")
+    }, [user_id])
+
     const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "game" | "all") => {
-        if (nextContentType === contentType) {
-            return
-        }
+        if (nextContentType === contentType) return
         setMedia([])
         setPageNum(1)
         setContentType(nextContentType)
@@ -51,13 +49,14 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     }, [type, user_id])
 
     useEffect(() => {
-        obtainLikedOrFinishedMediaFunction(user_id, type, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser)
+        if (!user_id) return
+        obtainLikedOrFinishedMediaFunction(user_id, type, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser, setPageUser)
     }, [type, user_id, contentType, pageNum, query])
 
     return (
         <div className="flex flex-col gap-6">
             <h1 className="text-2xl font-bold text-white">
-                {type === "liked" ? "Liked Media" : "Finished Media"}
+                {pageUser ? `${pageUser.username}'s ${type === "liked" ? "Liked Media" : "Logged Media"}` : (type === "liked" ? "Liked Media" : "Logged Media")}
             </h1>
 
             <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
@@ -68,7 +67,7 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
                     placeholder="Search"
                     value={currQuery}
                     onChange={(e) => setCurrQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") setQuery(currQuery) }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && currQuery !== query) setQuery(currQuery) }}
                     className="flex-1 bg-[#0a090c] border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
                 />
                 <button

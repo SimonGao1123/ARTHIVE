@@ -40,6 +40,10 @@ export function searchBarObtain(
         }
     })
     .then((data: any) => {
+        if (query === null ||query === "") {
+            alert("Please enter a search query")
+            return
+        }
         const batch = data.data.searchBar
         
         const newItems = [

@@ -3,6 +3,10 @@ import { gql } from "@apollo/client"
 export const OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY = gql`
     query ObtainLikedOrFinishedMedia($userId: ID!, $type: String!, $contentType: ContentTypeEnum!, $pageNum: Int, $limit: Int, $query: String) {
         obtainLikedOrFinishedMedia(userId: $userId, type: $type, contentType: $contentType, pageNum: $pageNum, limit: $limit, query: $query) {
+            user {
+                id
+                username
+            }
             media {
                 id
                 title
@@ -41,6 +45,10 @@ export type ObtainLikedOrFinishedMediaInput = {
 
 export type ObtainLikedOrFinishedMediaResponse = {
     obtainLikedOrFinishedMedia: {
+        user: {
+            id: string
+            username: string
+        }
         media: LikedOrFinishedMediaCard[]
         pageInfo: {
             totalPages: number

@@ -132,12 +132,18 @@ class Media < ApplicationRecord
             raise GraphQL::ExecutionError, "Invalid type"
         end
 
+        user = User.find_by(id: user_id)
+        if !user.present?
+            raise GraphQL::ExecutionError, "User #{user_id} not found"
+        end
+
         base_search = Media.where(id: reviews.pluck(:media_id)).content_type_filter(content_type).query_filter(query).recent
 
         total_count = base_search.count
         total_pages = (total_count.to_f / limit).ceil
         base_search = base_search.page(page_num, limit)
         return {
+            user: user,
             media: base_search,
             page_info: {
                 total_pages: total_pages,

@@ -16,10 +16,11 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
     const { user_id } = useParams()
     const navigate = useNavigate()
 
-    if (!user_id) {
-        navigate("/")
-        return
-    }
+    useEffect(() => {
+        if (!user_id) navigate("/")
+    }, [user_id])
+
+    if (!user_id) return null
 
     return (
         <div className="flex flex-col gap-4">
@@ -88,7 +89,7 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
                     placeholder="Search lists"
                     value={currQuery}
                     onChange={(e) => setCurrQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") setQuery(currQuery) }}
+                    onKeyDown={(e) => { if (e.key === "Enter" && currQuery !== query) setQuery(currQuery) }}
                     className="flex-1 bg-[#0a090c] border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50"
                 />
                 <button
