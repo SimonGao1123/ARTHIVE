@@ -16,9 +16,17 @@ export default function HottestExplorePageMediaLibrary({user: _user, setUser, cu
     const [prevCursor, setPrevCursor] = useState<string | null>(null)
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
     const [ifNextPage, setIfNextPage] = useState<boolean>(false)
+    const [slideDir, setSlideDir] = useState<"next" | "prev">("next")
+    const [pageKey, setPageKey] = useState(0)
 
     function fetchPage(goNext: boolean, cursor: string | null) {
         hottestExplorePageData(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getHottestExplorePageMedia)
+    }
+
+    const handleNav = (goNext: boolean, cursor: string | null) => {
+        setSlideDir(goNext ? "next" : "prev")
+        setPageKey(k => k + 1)
+        fetchPage(goNext, cursor)
     }
 
     useEffect(() => { fetchPage(true, null) }, [currContentType])
@@ -26,22 +34,27 @@ export default function HottestExplorePageMediaLibrary({user: _user, setUser, cu
     return (
         <div className="flex items-center gap-2">
             <button
-                onClick={() => fetchPage(false, prevCursor)}
+                onClick={() => handleNav(false, prevCursor)}
                 disabled={!ifPrevPage}
                 className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
             >
                 ‹
             </button>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide py-1 flex-1">
-                {loading
-                    ? Array.from({length: limit}).map((_, i) => (
-                        <div key={i} className="flex-shrink-0 w-32 h-48 bg-white/5 rounded-xl animate-pulse" />
-                    ))
-                    : allMedia.map((media) => <MediaCard key={media.id} media={media} />)
-                }
+            <div className="flex-1 overflow-hidden py-1">
+                <div
+                    key={pageKey}
+                    className={`flex gap-3 ${slideDir === "next" ? "slide-from-right" : "slide-from-left"}`}
+                >
+                    {loading
+                        ? Array.from({length: limit}).map((_, i) => (
+                            <div key={i} className="flex-shrink-0 w-32 h-48 bg-white/5 rounded-xl animate-pulse" />
+                        ))
+                        : allMedia.map((media) => <MediaCard key={media.id} media={media} />)
+                    }
+                </div>
             </div>
             <button
-                onClick={() => fetchPage(true, nextCursor)}
+                onClick={() => handleNav(true, nextCursor)}
                 disabled={!ifNextPage}
                 className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
             >

@@ -5,16 +5,8 @@ import type { User } from "../../types/user_types"
 import { mediaUpload } from "../../data/media_upload"
 import { useMutation } from "@apollo/client/react"
 import { UPLOAD_IMAGE_TO_S3_MUTATION, UPLOAD_MEDIA_MUTATION } from "../../types/mutations/upload_media_mutation"
+import { ALL_GENRES } from "../../lib/global_constants"
 
-const allGenres = ["Drama", "Comedy", "Romance", 
-    "Action", "Adventure", "Horror", "Thriller", 
-    "Mystery", "Crime", "Science Fiction", "Fantasy", 
-    "Animation", "Musical", "Family", "Western", 
-    "War", "Historical", "Biographical", 
-    "Documentary", "Experimental", "Superhero", 
-    "Disaster", "Survival", "Sports", "Spy", 
-    "Political", "Road Movie", "Coming of Age", 
-    "Slice of Life", "Noir"]
 export default function UploadMedia({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
 
@@ -244,7 +236,7 @@ function ContentTypeRadio({content_type, setContentType}: {content_type: string,
 
 function GenreInput({genre, setGenre}: {genre: string[], setGenre: (genre: string[]) => void}) {
     const [currGenre, setCurrGenre] = useState<string>("")
-    const visibleGenres = allGenres.filter((g) => {
+    const visibleGenres = ALL_GENRES.filter((g) => {
         const q = currGenre.toLowerCase()
         const gl = g.toLowerCase()
         return genre.includes(gl) || (currGenre !== "" && gl.startsWith(q))

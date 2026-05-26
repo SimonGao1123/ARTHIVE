@@ -11,6 +11,7 @@ import DisplayRating from "../lib/DisplayRating"
 import type { AllUserListType } from "../types/queries/lists_request_queries"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { contentTypeColor } from "../lib/contentTypeColors"
+import { ALL_GENRES, ALL_CONTENT_TYPES } from "../lib/global_constants"
 
 const SEARCH_TYPES = [
     { key: "all",    label: "All" },
@@ -21,15 +22,7 @@ const SEARCH_TYPES = [
     { key: "thread", label: "Threads" },
 ] as const
 
-const ALL_CONTENT_TYPES = ["film", "series", "book", "game"]
-const ALL_GENRES = [
-    "Drama", "Comedy", "Romance", "Action", "Adventure", "Horror", "Thriller",
-    "Mystery", "Crime", "Science Fiction", "Fantasy", "Animation", "Musical",
-    "Family", "Western", "War", "Historical", "Biographical", "Documentary",
-    "Experimental", "Superhero", "Disaster", "Survival", "Sports", "Spy",
-    "Political", "Road Movie", "Coming of Age", "Slice of Life", "Noir",
-]
-
+    
 export default function SearchPageResults({ setUser }: { setUser: (user: User) => void }) {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()

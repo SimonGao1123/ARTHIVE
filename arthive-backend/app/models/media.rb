@@ -9,6 +9,18 @@ class Media < ApplicationRecord
         game: "game"
     }.freeze
 
+    GENRES = [
+        "drama", "comedy", "romance", 
+        "action", "adventure", "horror", "thriller", 
+        "mystery", "crime", "science fiction", "fantasy", 
+        "animation", "musical", "family", "western", 
+        "war", "historical", "biographical", 
+        "documentary", "experimental", "superhero", 
+        "disaster", "survival", "sports", "spy", 
+        "political", "road movie", "coming of age", 
+        "slice of life", "noir"
+    ].freeze
+
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
     has_many :reviews
@@ -26,6 +38,21 @@ class Media < ApplicationRecord
     validates :ongoing, inclusion: { in: [true, false] }
     enum :content_type, CONTENT_TYPES, prefix: true
 
+    validate :validate_genres
+
+
+    private
+    
+    def validate_genres
+        return if genre.blank?
+
+        invalid = genre.select { |g| !GENRES.include?(g.downcase) }
+        if !invalid.blank?
+            errors.add(:genre, "Invalid genres: #{invalid.join(", ")}")
+        end
+    end
+
+    public
     def presigned_cover_image_url
         PresignedUrlAttachment.presigned_url(cover_image)
     end

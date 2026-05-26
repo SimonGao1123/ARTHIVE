@@ -33,6 +33,8 @@ class GraphqlController < ApplicationController
       auth_error = 'NO_TOKEN'
     end
 
+    ActiveStorage::Current.url_options = { host: request.host, port: request.port, protocol: request.protocol }
+
     context = {
       current_user: current_user,
       request: request,
