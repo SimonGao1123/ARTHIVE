@@ -1,0 +1,7 @@
+SQS_CLIENT = Aws::SQS::Client.new(
+    region: Rails.application.credentials.dig(:aws, :region),
+    access_key_id: Rails.application.credentials.dig(:aws, :access_key_id),
+    secret_access_key: Rails.application.credentials.dig(:aws, :secret_access_key),
+)
+
+SQS_NOTIFICATION_QUEUE_URL = Rails.application.credentials.dig(:aws, :sqs_url)

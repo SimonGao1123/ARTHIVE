@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_233613) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -129,6 +129,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_233613) do
     t.index ["media_id"], name: "index_media_in_lists_on_media_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.string "action", null: false
+    t.bigint "comment_thread_id"
+    t.datetime "created_at", null: false
+    t.bigint "follow_id"
+    t.string "message_id", null: false
+    t.bigint "parent_thread_id"
+    t.bigint "receiver_id", null: false
+    t.bigint "review_comment_id"
+    t.bigint "review_id"
+    t.bigint "sender_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_thread_id"], name: "index_notifications_on_comment_thread_id"
+    t.index ["follow_id"], name: "index_notifications_on_follow_id"
+    t.index ["parent_thread_id"], name: "index_notifications_on_parent_thread_id"
+    t.index ["receiver_id"], name: "index_notifications_on_receiver_id"
+    t.index ["review_comment_id"], name: "index_notifications_on_review_comment_id"
+    t.index ["review_id"], name: "index_notifications_on_review_id"
+    t.index ["sender_id"], name: "index_notifications_on_sender_id"
+  end
+
   create_table "review_comments", force: :cascade do |t|
     t.text "comment", null: false
     t.datetime "created_at", null: false
@@ -204,6 +225,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_233613) do
   add_foreign_key "media", "users"
   add_foreign_key "media_in_lists", "lists"
   add_foreign_key "media_in_lists", "media", column: "media_id"
+  add_foreign_key "notifications", "community_threads", column: "comment_thread_id"
+  add_foreign_key "notifications", "community_threads", column: "parent_thread_id"
+  add_foreign_key "notifications", "follows"
+  add_foreign_key "notifications", "review_comments"
+  add_foreign_key "notifications", "reviews"
+  add_foreign_key "notifications", "users", column: "receiver_id"
+  add_foreign_key "notifications", "users", column: "sender_id"
   add_foreign_key "review_comments", "reviews"
   add_foreign_key "review_comments", "users"
   add_foreign_key "review_likes", "reviews"

@@ -42,6 +42,33 @@ module Mutations
             end
 
             Activity.log(user: context[:current_user], subject: new_thread, status: "created")
+
+            if parent_thread_id.present? && new_thread.parent_thread.user.id != context[:current_user].id
+                SQS_CLIENT.send_message(
+                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    message_body: {
+                        action: "comment_on_thread",
+                        sender_id: context[:current_user].id,
+                        receiver_id: new_thread.parent_thread.user.id,
+                        parent_thread_id: parent_thread_id,
+                        comment_thread_id: new_thread.id
+                    }.to_json
+                )
+            end
+
+            if review.present? && review.user.id != context[:current_user].id
+                SQS_CLIENT.send_message(
+                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    message_body: {
+                        action: "review_quoted",
+                        sender_id: context[:current_user].id,
+                        receiver_id: review.user.id,
+                        review_id: review.id,
+                        parent_thread_id: new_thread.id
+                    }.to_json
+                )
+            end
+
             new_thread
             
             

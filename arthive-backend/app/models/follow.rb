@@ -97,11 +97,7 @@ class Follow < ApplicationRecord
     }
 
     
-    def self.manipulate_follow(user_id, follow_id, manipulation)
-        follow = Follow.find_by(id: follow_id)
-        if follow.blank?
-            raise GraphQL::ExecutionError, "Follow not found"
-        end
+    def self.manipulate_follow(user_id, follow, manipulation)
 
         case manipulation
         when "accept"

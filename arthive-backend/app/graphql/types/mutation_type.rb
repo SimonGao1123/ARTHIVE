@@ -28,5 +28,7 @@ module Types
     field :remove_attached_image, mutation: Mutations::RemoveAttachedImage
 
     field :edit_thread, mutation: Mutations::EditThread
+
+    field :read_notifications, mutation: Mutations::ReadNotifications
   end
 end

@@ -17,6 +17,7 @@ class ThreadLike < ApplicationRecord
             return false
         else
             create!(user_id: user_id, community_thread_id: thread_id)
+            
             return true
         end
     end

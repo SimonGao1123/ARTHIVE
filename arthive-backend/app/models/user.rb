@@ -8,6 +8,10 @@ class User < ApplicationRecord
     has_many :community_threads, dependent: :destroy
     has_many :thread_likes, dependent: :destroy
 
+    has_many :notifications, foreign_key: "receiver_id"
+
+    validates :last_notifications_check, presence: true
+
     has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
     has_many :received_follows, class_name: "Follow", foreign_key: "receiver_id"
 

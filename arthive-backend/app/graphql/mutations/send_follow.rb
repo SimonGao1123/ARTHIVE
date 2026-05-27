@@ -9,7 +9,18 @@ module Mutations
             validate_user
 
             begin
-                return Follow.send_follow(context[:current_user].id, receiver_id.to_i)
+                follow = Follow.send_follow(context[:current_user].id, receiver_id.to_i)
+
+                SQS_CLIENT.send_message(
+                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    message_body: {
+                        action: follow.status == Follow::STATUSES[:accepted] ? "followed" : "follow_request",
+                        sender_id: context[:current_user].id,
+                        receiver_id: receiver_id,
+                        follow_id: follow.id
+                    }.to_json
+                )
+                return follow
             rescue GraphQL::ExecutionError => e
                 raise GraphQL::ExecutionError, e.message
             rescue StandardError => e
