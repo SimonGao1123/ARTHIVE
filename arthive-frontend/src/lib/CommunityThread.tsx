@@ -13,6 +13,7 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
     const [likeCount, setLikeCount] = useState(thread.likesCount)
 
     function handleLikeThread() {
+        setCurrLiked(prev => !prev)
         likeThreadFunction(setCurrLiked, likeThread, thread.id, setUser, navigate, setLikeCount)
     }
 

@@ -30,6 +30,7 @@ import CommunityPage from './pages/CommunityPage'
 import ThreadPage from './pages/ThreadPage'
 import SearchPageResults from './pages/SearchPageResults'
 import UserLikedOrFinishedMediaPage from './pages/UserLikedOrFinishedMediaPage'
+import NotificationsPage from './pages/NotificationsPage'
 function App() {
   const location = useLocation()
   const [user, setUser] = useState<User | null>(null)
@@ -53,7 +54,7 @@ function App() {
   return (
     <>
       <Routes>
-        <Route element={<ExplorePageNavBar user={user}/>}>
+        <Route element={<ExplorePageNavBar user={user} setUser={setUser}/>}>
           {
 
             user && user.ifAdmin ? 
@@ -85,6 +86,7 @@ function App() {
           <Route path="/community/:media_id/thread/:thread_id" element={<ThreadPage setUser={setUser} user={user}/>} />
 
           <Route path="/search" element={<SearchPageResults key={location.search} setUser={setUser}/>} />
+          <Route path="/notifications" element={<NotificationsPage setUser={setUser} user={user}/>} />
         </Route>
 
         

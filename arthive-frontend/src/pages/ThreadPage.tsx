@@ -100,6 +100,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
     const [editPopupOpen, setEditPopupOpen] = useState(false)
 
     function handleLikeThread() {
+        setCurrLiked(prev => !prev)
         likeThreadFunction(setCurrLiked, likeThread, mainThread.id, setUser, navigate, setLikeCount)
     }
 

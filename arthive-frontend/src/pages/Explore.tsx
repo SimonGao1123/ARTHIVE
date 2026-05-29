@@ -11,7 +11,7 @@ type ExplorePageProps = {
     user: User | null
 }
 
-const LIMIT = 5
+const LIMIT = 10
 export default function ExplorePage({ setUser, user }: ExplorePageProps) {
     const navigate = useNavigate()
     const [currContentType, setCurrContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")

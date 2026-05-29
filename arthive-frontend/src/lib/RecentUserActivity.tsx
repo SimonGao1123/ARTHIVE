@@ -82,17 +82,17 @@ function ActivityCard({ activity }: { activity: Activity }) {
     if (!activity.subject) return null
     switch (activity.subject.__typename) {
         case "Review":
-            return <ReviewActivityRow review={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
+            return <ReviewActivityRow status={activity.status} review={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "ReviewComment":
-            return <ReviewCommentRow reviewComment={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
+            return <ReviewCommentRow status={activity.status} reviewComment={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "ReviewLike":
             return <ReviewLikeRow reviewLike={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "ThreadLike":
             return <ThreadLikeRow threadLike={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "List":
-            return <ListRow list={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
+            return <ListRow status={activity.status} list={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "CommunityThread":
-            return <ThreadRow thread={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
+            return <ThreadRow status={activity.status} thread={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         case "MediaInList":
             return <MediaInListRow mediaInList={activity.subject as any} createdAt={activity.createdAt} navigate={navigate} />
         default:
@@ -151,12 +151,12 @@ function ActivityRow({
     )
 }
 
-function ReviewActivityRow({ review, createdAt, navigate }: RowProps & { review: any }) {
+function ReviewActivityRow({ status, review, createdAt, navigate }: RowProps & { status: string; review: any }) {
     return (
         <ActivityRow
             coverImage={review.media?.coverImage}
             mediaId={review.media?.id}
-            label="Reviewed"
+            label={status === "created" ? "Reviewed" : "Updated review"}
             title={review.media?.title ?? "Unknown"}
             subtitle={review.content || undefined}
             extra={review.rating ? <DisplayRating rating={review.rating} /> : undefined}
@@ -167,13 +167,13 @@ function ReviewActivityRow({ review, createdAt, navigate }: RowProps & { review:
     )
 }
 
-function ReviewCommentRow({ reviewComment, createdAt, navigate }: RowProps & { reviewComment: any }) {
+function ReviewCommentRow({ status, reviewComment, createdAt, navigate }: RowProps & { status: string; reviewComment: any }) {
     const review = reviewComment.review
     return (
         <ActivityRow
             coverImage={review?.media?.coverImage}
             mediaId={review?.media?.id}
-            label={`Commented on ${review?.user?.username ?? "someone"}'s review`}
+            label={status === "created" ? `Commented on ${review?.user?.username ?? "someone"}'s review` : "Updated comment"}
             title={review?.media?.title ?? "Unknown"}
             subtitle={reviewComment.comment}
             onRowClick={() => review?.content ? navigate(`/review_info/${review?.id}`) : navigate(`/media/${review?.media?.id}`)}
@@ -213,10 +213,10 @@ function ThreadLikeRow({ threadLike, createdAt, navigate }: RowProps & { threadL
     )
 }
 
-function ListRow({ list, createdAt, navigate }: RowProps & { list: any }) {
+function ListRow({ status, list, createdAt, navigate }: RowProps & { status: string; list: any }) {
     return (
         <ActivityRow
-            label="Created list"
+            label={status === "created" ? "Created list" : "Updated list"}
             title={list.name}
             subtitle={list.description}
             onRowClick={() => navigate(`/list/${list.id}`)}
@@ -226,12 +226,12 @@ function ListRow({ list, createdAt, navigate }: RowProps & { list: any }) {
     )
 }
 
-function ThreadRow({ thread, createdAt, navigate }: RowProps & { thread: any }) {
+function ThreadRow({ status, thread, createdAt, navigate }: RowProps & { status: string; thread: any }) {
     return (
         <ActivityRow
             coverImage={thread?.community?.media?.coverImage}
             mediaId={thread?.community?.media?.id}
-            label="Posted thread"
+            label={status === "created" ? "Posted thread" : "Updated thread"}
             title={thread?.title ?? "Community For " + thread.community?.media?.title}
             subtitle={thread?.content}
             onRowClick={() => navigate(`/community/${thread?.community?.media?.id}/thread/${thread?.id}`)}

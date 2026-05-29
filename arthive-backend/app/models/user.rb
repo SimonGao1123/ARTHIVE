@@ -159,7 +159,7 @@ class User < ApplicationRecord
         book_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "book" }).count : nil
         game_reviews_count = is_visible ? user.reviews.joins(:media).where(media: { content_type: "game" }).count : nil
         
-        all_finished_count = is_visible ? user.reviews.where.not(if_finished: true).count : nil
+        all_finished_count = is_visible ? user.reviews.where(if_finished: true).count : nil
         all_liked_count = is_visible ? user.reviews.where(if_favorite: true).count : nil
 
         total_lists_count = is_visible ? user.lists.count : nil
