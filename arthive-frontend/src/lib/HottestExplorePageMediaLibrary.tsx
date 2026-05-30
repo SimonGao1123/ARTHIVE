@@ -1,0 +1,65 @@
+import { useNavigate } from "react-router-dom"
+import type { User } from "../types/user_types.ts"
+import { HOTTEST_EXPLORE_PAGE_MEDIA_QUERY, type HottestExplorePageMediaInput, type HottestExplorePageMediaResponse } from "../types/queries/media_request_query"
+import { useLazyQuery } from "@apollo/client/react"
+import { useEffect, useState } from "react"
+import { hottestExplorePageData } from "../data/hottest_explore_page_data"
+import { MediaCard } from "./MediaCard.tsx"
+
+export default function HottestExplorePageMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
+    const navigate = useNavigate()
+    const [getHottestExplorePageMedia, {loading}] = useLazyQuery<HottestExplorePageMediaResponse, HottestExplorePageMediaInput>(HOTTEST_EXPLORE_PAGE_MEDIA_QUERY, {
+        fetchPolicy: "no-cache",
+    })
+    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
+    const [nextCursor, setNextCursor] = useState<string | null>(null)
+    const [prevCursor, setPrevCursor] = useState<string | null>(null)
+    const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
+    const [ifNextPage, setIfNextPage] = useState<boolean>(false)
+    const [slideDir, setSlideDir] = useState<"next" | "prev">("next")
+    const [pageKey, setPageKey] = useState(0)
+
+    function fetchPage(goNext: boolean, cursor: string | null) {
+        hottestExplorePageData(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getHottestExplorePageMedia)
+    }
+
+    const handleNav = (goNext: boolean, cursor: string | null) => {
+        setSlideDir(goNext ? "next" : "prev")
+        setPageKey(k => k + 1)
+        fetchPage(goNext, cursor)
+    }
+
+    useEffect(() => { fetchPage(true, null) }, [currContentType])
+
+    return (
+        <div className="flex items-center gap-2">
+            <button
+                onClick={() => handleNav(false, prevCursor)}
+                disabled={!ifPrevPage}
+                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
+            >
+                ‹
+            </button>
+            <div className="flex-1 overflow-hidden py-1">
+                <div
+                    key={pageKey}
+                    className={`flex gap-3 ${slideDir === "next" ? "slide-from-right" : "slide-from-left"}`}
+                >
+                    {loading
+                        ? Array.from({length: limit}).map((_, i) => (
+                            <div key={i} className="flex-shrink-0 w-32 h-48 bg-white/5 rounded-xl animate-pulse" />
+                        ))
+                        : allMedia.map((media) => <MediaCard key={media.id} media={media} />)
+                    }
+                </div>
+            </div>
+            <button
+                onClick={() => handleNav(true, nextCursor)}
+                disabled={!ifNextPage}
+                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
+            >
+                ›
+            </button>
+        </div>
+    )
+}

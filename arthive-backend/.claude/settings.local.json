@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"media_in_lists\\\\|content_type_lists\\\\|query_filter\")",
+      "Bash(xargs cat)",
+      "Bash(bin/rails db:migrate:status)",
+      "Bash(bin/rails runner *)",
+      "Bash(bin/rails db:migrate)",
+      "Bash(rails generate *)",
+      "Bash(rails db:migrate:status)",
+      "Bash(docker --version)"
+    ]
+  }
+}

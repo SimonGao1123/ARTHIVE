@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_24_060242) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,202 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_24_060242) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.bigint "activity_id", null: false
+    t.string "activity_type", null: false
+    t.datetime "created_at", null: false
+    t.string "status", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "idx_activities_user_id"
+    t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
+  create_table "communities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["media_id"], name: "index_communities_on_media_id", unique: true
+  end
+
+  create_table "community_threads", force: :cascade do |t|
+    t.bigint "community_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.bigint "parent_thread_id"
+    t.bigint "review_id"
+    t.bigint "root_thread_id"
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["community_id"], name: "index_community_threads_on_community_id"
+    t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
+    t.index ["review_id"], name: "index_community_threads_on_review_id"
+    t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
+    t.index ["user_id"], name: "index_community_threads_on_user_id"
+  end
+
+  create_table "follows", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "receiver_id", null: false
+    t.bigint "sender_id", null: false
+    t.string "status"
+    t.datetime "updated_at", null: false
+    t.index ["receiver_id"], name: "index_follows_on_receiver_id"
+    t.index ["sender_id", "receiver_id"], name: "index_follows_on_sender_id_and_receiver_id", unique: true
+    t.index ["sender_id"], name: "index_follows_on_sender_id"
+  end
+
+  create_table "lists", force: :cascade do |t|
+    t.string "content_type", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.boolean "if_private", default: false, null: false
+    t.string "name", null: false
+    t.string "tags", default: [], null: false, array: true
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_lists_on_user_id"
+  end
+
+  create_table "media", force: :cascade do |t|
+    t.string "actors", array: true
+    t.string "content_type", null: false
+    t.datetime "created_at", null: false
+    t.string "creator", null: false
+    t.string "genre", default: [], null: false, array: true
+    t.string "language", null: false
+    t.boolean "ongoing", null: false
+    t.string "organization"
+    t.integer "page_count"
+    t.string "series_title"
+    t.string "summary", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "year", null: false
+    t.index ["user_id"], name: "index_media_on_user_id"
+  end
+
+  create_table "media_in_lists", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["list_id", "media_id"], name: "index_media_in_lists_on_list_id_and_media_id", unique: true
+    t.index ["list_id"], name: "index_media_in_lists_on_list_id"
+    t.index ["media_id"], name: "index_media_in_lists_on_media_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.string "action", null: false
+    t.bigint "comment_thread_id"
+    t.datetime "created_at", null: false
+    t.bigint "follow_id"
+    t.string "message_id", null: false
+    t.bigint "parent_thread_id"
+    t.bigint "receiver_id", null: false
+    t.bigint "review_comment_id"
+    t.bigint "review_id"
+    t.bigint "sender_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_thread_id"], name: "index_notifications_on_comment_thread_id"
+    t.index ["follow_id"], name: "index_notifications_on_follow_id"
+    t.index ["parent_thread_id"], name: "index_notifications_on_parent_thread_id"
+    t.index ["receiver_id"], name: "index_notifications_on_receiver_id"
+    t.index ["review_comment_id"], name: "index_notifications_on_review_comment_id"
+    t.index ["review_id"], name: "index_notifications_on_review_id"
+    t.index ["sender_id"], name: "index_notifications_on_sender_id"
+  end
+
+  create_table "review_comments", force: :cascade do |t|
+    t.text "comment", null: false
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["review_id"], name: "index_review_comments_on_review_id"
+    t.index ["user_id"], name: "index_review_comments_on_user_id"
+  end
+
+  create_table "review_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "review_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["review_id", "user_id"], name: "index_review_likes_on_review_id_and_user_id", unique: true
+    t.index ["review_id"], name: "index_review_likes_on_review_id"
+    t.index ["user_id"], name: "index_review_likes_on_user_id"
+  end
+
+  create_table "reviews", force: :cascade do |t|
+    t.string "content"
+    t.datetime "created_at", null: false
+    t.boolean "if_favorite", null: false
+    t.boolean "if_finished", null: false
+    t.bigint "media_id", null: false
+    t.float "rating"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["if_favorite"], name: "index_reviews_on_if_favorite"
+    t.index ["if_finished"], name: "index_reviews_on_if_finished"
+    t.index ["media_id"], name: "index_reviews_on_media_id"
+    t.index ["user_id", "media_id"], name: "index_reviews_on_user_id_and_media_id", unique: true
+    t.index ["user_id"], name: "index_reviews_on_user_id"
+  end
+
+  create_table "thread_likes", force: :cascade do |t|
+    t.bigint "community_thread_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["community_thread_id", "user_id"], name: "index_thread_likes_on_community_thread_id_and_user_id", unique: true
+    t.index ["community_thread_id"], name: "index_thread_likes_on_community_thread_id"
+    t.index ["user_id"], name: "index_thread_likes_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "description"
+    t.string "email", null: false
+    t.boolean "if_admin", default: false, null: false
+    t.datetime "last_notifications_check", default: "2026-05-25 23:38:42", null: false
+    t.string "password_digest", null: false
+    t.datetime "updated_at", null: false
+    t.string "username", null: false
+    t.string "visibility", default: "public", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "activities", "users"
+  add_foreign_key "communities", "media", column: "media_id"
+  add_foreign_key "community_threads", "communities"
+  add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"
+  add_foreign_key "community_threads", "community_threads", column: "root_thread_id"
+  add_foreign_key "community_threads", "reviews"
+  add_foreign_key "community_threads", "users"
+  add_foreign_key "follows", "users", column: "receiver_id"
+  add_foreign_key "follows", "users", column: "sender_id"
+  add_foreign_key "lists", "users"
+  add_foreign_key "media", "users"
+  add_foreign_key "media_in_lists", "lists"
+  add_foreign_key "media_in_lists", "media", column: "media_id"
+  add_foreign_key "notifications", "community_threads", column: "comment_thread_id"
+  add_foreign_key "notifications", "community_threads", column: "parent_thread_id"
+  add_foreign_key "notifications", "follows"
+  add_foreign_key "notifications", "review_comments"
+  add_foreign_key "notifications", "reviews"
+  add_foreign_key "notifications", "users", column: "receiver_id"
+  add_foreign_key "notifications", "users", column: "sender_id"
+  add_foreign_key "review_comments", "reviews"
+  add_foreign_key "review_comments", "users"
+  add_foreign_key "review_likes", "reviews"
+  add_foreign_key "review_likes", "users"
+  add_foreign_key "reviews", "media", column: "media_id"
+  add_foreign_key "reviews", "users"
+  add_foreign_key "thread_likes", "community_threads"
+  add_foreign_key "thread_likes", "users"
 end

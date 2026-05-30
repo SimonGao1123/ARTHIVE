@@ -21,11 +21,23 @@ module Types
     # Add root-level fields here.
     # They will be entry points for queries on your schema.
 
-    # TODO: remove me
-    field :test_field, String, null: false,
-      description: "An example field added by the generator"
-    def test_field
-      "Hello World!"
-    end
+    field :whoami, resolver: Resolvers::WhoamiResolver
+    field :newest_explore_media, resolver: Resolvers::NewestExploreMediaResolver
+    field :hottest_explore_media, resolver: Resolvers::HottestExploreMediaResolver
+    field :obtain_media_info, resolver: Resolvers::ObtainMediaInfoResolver
+    field :search_bar, resolver: Resolvers::SearchBarResolver
+    
+    field :obtain_media_reviews, resolver: Resolvers::ObtainMediaReviewsResolver
+    field :obtain_user_review, resolver: Resolvers::ObtainUserReviewResolver
+    field :obtain_all_user_reviews, resolver: Resolvers::ObtainAllUserReviewsResolver
+    field :obtain_review_page, resolver: Resolvers::ObtainReviewPageResolver
+    field :obtain_all_user_lists, resolver: Resolvers::ObtainAllUserListsResolver
+    field :obtain_follower_info, resolver: Resolvers::ObtainFollowerInfoResolver
+    field :obtain_list_page, resolver: Resolvers::ObtainListPageResolver
+    field :obtain_user_profile, resolver: Resolvers::ObtainUserProfileResolver
+    field :obtain_community, resolver: Resolvers::ObtainCommunityResolver
+    field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
+    field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
+    field :obtain_liked_or_finished_media, resolver: Resolvers::ObtainLikedOrFinishedMediaResolver
   end
 end
