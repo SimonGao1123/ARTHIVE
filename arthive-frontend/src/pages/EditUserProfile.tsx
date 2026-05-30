@@ -64,9 +64,9 @@ export default function EditUserProfile({ setUser, user }: EditUserProfileProps)
                 <h1 className="text-lg font-semibold text-white">Edit Profile</h1>
 
                 <form
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                         e.preventDefault()
-                        EditUserProfileDataFetch(setUser, navigate, username, description, email, visibility, profilePicture, password, editUserProfile, uploadImageToS3)
+                        await EditUserProfileDataFetch(setUser, navigate, username, description, email, visibility, profilePicture, password, editUserProfile, uploadImageToS3)
                         clearChanges()
                     }}
                     className="flex flex-col gap-5"
