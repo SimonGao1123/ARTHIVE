@@ -59,18 +59,6 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  primary: &primary_production
-    <<: *default
-    url: <%= ENV["PROD_DATABASE_URL"] %>
-  cache:
-    <<: *primary_production
-    url: <%= ENV["PROD_CACHE_URL"] %>
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    url: <%= ENV["PROD_QUEUE_URL"] %>
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    url: <%= ENV["PROD_CABLE_URL"] %>
-    migrations_paths: db/cable_migrate
+  <<: *default
+  url: <%= ENV["PROD_DATABASE_URL"] %>
+# LATER utilize caching, already using sqs for queueing
