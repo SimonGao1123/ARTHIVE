@@ -16,8 +16,26 @@ export async function EditUserProfileDataFetch(
     editUserProfile: any,
     uploadImageToS3: any
 ) {
+    if (username === null || username === "") {
+        alert("Username is required")
+        return
+    }
+    if (email === null || email === "") {
+        alert("Email is required")
+        return
+    }
+    if (visibility === null) {
+        alert("Visibility is required")
+        return
+    }
     
-    editUserProfile({variables: {input: {username, description, email, visibility, password}}})
+    editUserProfile({variables: {input: {
+        username, 
+        description: description ? description : null, 
+        email, 
+        visibility, 
+        password: password ? password : null,
+    }}})
     .then(async (data: any) => {
         if (data.data?.editUserProfile) {
             const jwt = localStorage.getItem("authToken")

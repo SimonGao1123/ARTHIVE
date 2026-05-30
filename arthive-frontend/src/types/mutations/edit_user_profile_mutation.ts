@@ -18,11 +18,10 @@ export const EDIT_USER_PROFILE_MUTATION = gql`
 
 export type EditUserProfileInput = {
     input: {
-        username: string | null
+        username: string
         description: string | null
-        profilePicture: string | null
-        visibility: string | null
-        email: string | null
+        visibility: string
+        email: string
         password: string | null
     }
 }
