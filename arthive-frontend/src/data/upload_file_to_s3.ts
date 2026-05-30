@@ -1,7 +1,7 @@
 import { DirectUpload, type DirectUploadDelegate } from "@rails/activestorage";
 
 // TODO: change to the production URL
-const DIRECT_UPLOAD_URL = "http://localhost:3000/rails/active_storage/direct_uploads";
+const DIRECT_UPLOAD_URL = `${import.meta.env.VITE_API_URL}/rails/active_storage/direct_uploads`;
 export function uploadFileToS3(file: File, jwt: string): Promise<string> {
     return new Promise((resolve, reject) => {
         const delegate: DirectUploadDelegate = {

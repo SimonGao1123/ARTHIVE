@@ -5,7 +5,7 @@ import { HttpLink } from "@apollo/client/link/http";
 
 // this occurs before every graphql request
 
-const httpLink = new HttpLink({uri: "http://localhost:3000/graphql"});
+const httpLink = new HttpLink({uri: `${import.meta.env.VITE_API_URL}/graphql`});
 
 // auth middleware
 const authLink = new ApolloLink((operation, forward) => {
