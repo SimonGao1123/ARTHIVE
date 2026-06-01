@@ -78,14 +78,14 @@ class Media < ApplicationRecord
           media.*,
           (
             (SELECT COUNT(*) FROM reviews
-               WHERE reviews.media_id = media.id) * 2
+               WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id) * 2
             +
             (SELECT COUNT(*) FROM community_threads
                JOIN communities ON community_threads.community_id = communities.id
-               WHERE communities.media_id = media.id) * 3
+               WHERE community_threads.created_at > NOW() - INTERVAL '1 week' AND communities.media_id = media.id) * 3
             +
             COALESCE(
-              (SELECT AVG(rating) FROM reviews WHERE reviews.media_id = media.id),
+              (SELECT AVG(rating) FROM reviews WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id),
               0
             ) * 5
           ) AS hotness_score

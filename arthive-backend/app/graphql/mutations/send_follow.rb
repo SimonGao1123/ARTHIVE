@@ -12,8 +12,9 @@ module Mutations
                 follow = Follow.send_follow(context[:current_user].id, receiver_id.to_i)
 
                 SQS_CLIENT.send_message(
-                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    queue_url: SQS_QUEUE_URL,
                     message_body: {
+                        type: "notification",
                         action: follow.status == Follow::STATUSES[:accepted] ? "followed" : "follow_request",
                         sender_id: context[:current_user].id,
                         receiver_id: receiver_id,

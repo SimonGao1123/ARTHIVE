@@ -43,8 +43,9 @@ module Mutations
                 review = Review.find_by(id: args[:review_id])
                 if review.user.id != context[:current_user].id && (!thread.review.present? || thread.review.id != review.id)
                     SQS_CLIENT.send_message(
-                        queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                        queue_url: SQS_QUEUE_URL,
                         message_body: {
+                            type: "notification",
                             action: "review_quoted",
                             sender_id: context[:current_user].id,
                             receiver_id: review.user.id,
