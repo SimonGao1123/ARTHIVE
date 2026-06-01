@@ -16,8 +16,9 @@ module Mutations
                     Activity.log(user: context[:current_user], subject: thread_like, status: "created")
                     if thread_like.community_thread.user.id != context[:current_user].id
                         SQS_CLIENT.send_message(
-                            queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                            queue_url: SQS_QUEUE_URL,
                             message_body: {
+                                type: "notification",
                                 action: "like_on_thread",
                                 sender_id: context[:current_user].id,
                                 receiver_id: thread_like.community_thread.user.id,

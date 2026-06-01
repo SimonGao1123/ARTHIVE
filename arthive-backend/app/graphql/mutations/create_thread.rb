@@ -45,8 +45,9 @@ module Mutations
 
             if parent_thread_id.present? && new_thread.parent_thread.user.id != context[:current_user].id
                 SQS_CLIENT.send_message(
-                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    queue_url: SQS_QUEUE_URL,
                     message_body: {
+                        type: "notification",
                         action: "comment_on_thread",
                         sender_id: context[:current_user].id,
                         receiver_id: new_thread.parent_thread.user.id,
@@ -58,8 +59,9 @@ module Mutations
 
             if review.present? && review.user.id != context[:current_user].id
                 SQS_CLIENT.send_message(
-                    queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                    queue_url: SQS_QUEUE_URL,
                     message_body: {
+                        type: "notification",
                         action: "review_quoted",
                         sender_id: context[:current_user].id,
                         receiver_id: review.user.id,

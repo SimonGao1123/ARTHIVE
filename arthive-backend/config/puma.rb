@@ -36,7 +36,7 @@ plugin :tmp_restart
 
 # Start SQS notification poller thread after each worker boots.
 on_worker_boot do
-  SqsNotificationPoller.start if Rails.env.production?
+  SqsWorker.start if Rails.env.production?
 end
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.

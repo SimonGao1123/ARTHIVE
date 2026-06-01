@@ -20,8 +20,9 @@ module Mutations
 
                 if review.user.id != context[:current_user].id
                     SQS_CLIENT.send_message(
-                        queue_url: SQS_NOTIFICATION_QUEUE_URL,
+                        queue_url: SQS_QUEUE_URL,
                         message_body: {
+                            type: "notification",
                             action: "comment_on_review",
                             sender_id: context[:current_user].id,
                             receiver_id: review.user_id,
