@@ -34,6 +34,15 @@ class CommunityThread < ApplicationRecord
     end
     public
 
+    scope :sort_by_trending, -> {
+        where(parent_thread_id: nil, root_thread_id: nil)
+        .select(Arel.sql(
+            "community_threads.*, " \
+            "(SELECT COUNT(*) FROM thread_likes WHERE created_at > NOW() - INTERVAL '1 week' AND thread_likes.community_thread_id = community_threads.id) * 2 + " \
+            "(SELECT COUNT(*) FROM community_threads AS ct WHERE created_at > NOW() - INTERVAL '1 week' AND ct.parent_thread_id = community_threads.id) * 3 AS hotness_score"
+        ))
+        .order(Arel.sql("hotness_score DESC"))
+    }
     scope :sort_by_likes, -> {
         left_joins(:thread_likes)
         .select("community_threads.*, COUNT(thread_likes.id) AS likes_count")

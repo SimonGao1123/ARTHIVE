@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { User } from "../types/user_types";
 import { useState } from "react";
+import { TrendingThreadsSection } from "./TrendingThreadsSection";
 
 type NavItem = {
     label: string
@@ -8,11 +9,14 @@ type NavItem = {
     isActive: (pathname: string) => boolean
 }
 
-export default function ExplorePageNavBar({user}: {user: User | null, setUser: (user: User | null) => void}) {
+export default function ExplorePageNavBar({user, setUser}: {user: User | null, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
     const location = useLocation()
 
     const [searchQuery, setSearchQuery] = useState("")
+
+    const mediaMatch = location.pathname.match(/^\/media\/([^/]+)/)
+    const mediaIdScope = mediaMatch ? mediaMatch[1] : null // for trending threads section
 
     const navItems: NavItem[] = [
         { label: "Explore", to: "/", isActive: (p) => p === "/" },
@@ -115,6 +119,19 @@ export default function ExplorePageNavBar({user}: {user: User | null, setUser: (
                 <main key={location.key} className="flex-1 min-w-0 arthive-page-in">
                     <Outlet/>
                 </main>
+
+                <aside className="w-72 flex-shrink-0 flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-white">Trending Threads</span>
+                        <span className="text-xs text-gray-500">{mediaIdScope ? `This media: ${mediaIdScope}` : "All communities"}</span>
+                    </div>
+                    <TrendingThreadsSection
+                        mediaIdScope={mediaIdScope}
+                        setUser={setUser}
+                        navigate={navigate}
+                        user={user}
+                    />
+                </aside>
             </div>
         </div>
     )
