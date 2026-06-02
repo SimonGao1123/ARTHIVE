@@ -134,7 +134,8 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
                     <img
                         src={mainThread.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
                         alt="Profile Picture"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                        onClick={() => navigate(`/profile/${mainThread.user.id}`)}
                     />
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold text-white">{mainThread.user.username}</span>

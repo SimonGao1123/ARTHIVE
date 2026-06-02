@@ -79,7 +79,7 @@ function App() {
 
           <Route path={`/edit_profile`} element={<EditUserProfile setUser={setUser} user={user}/>} />
 
-          <Route path="/list/:list_id" element={<ListPage setUser={setUser}/>} />
+          <Route path="/list/:list_id" element={<ListPage user={user} setUser={setUser}/>} />
 
           <Route path="/create_list" element={<CreateListPage setUser={setUser} user={user}/>} />
           <Route path="/community/:media_id" element={<CommunityPage setUser={setUser} user={user}/>} />

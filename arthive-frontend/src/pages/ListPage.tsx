@@ -15,9 +15,10 @@ import { editListDetails } from "../data/edit_list_details";
 import { contentTypeColor } from "../lib/contentTypeColors";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "../lib/StyledComponents";
 
-const LIMIT = 10
+const LIMIT = 3
 
-export default function ListPage({ setUser }: { setUser: (user: User | null) => void }) {
+export default function ListPage({ user, setUser }: { user: User | null, setUser: (user: User | null) => void }) {
+    if (!user) return null
     const { list_id } = useParams()
     const navigate = useNavigate()
 
@@ -31,7 +32,9 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
     const [removeMediaId, setRemoveMediaId] = useState<string>("")
     const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
 
-    const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY)
+    const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     const [addOrRemoveMediaInListMutation, { loading: removeLoading, error: removeError }] =
         useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
 
@@ -39,15 +42,19 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
         if (!list_id) navigate("/")
     }, [list_id])
 
+    function refreshList() {
+        if (!list_id) return
+        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+    }
+
     useEffect(() => {
         if (!list_id || removeMediaId === "") return
-        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false)
+        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false, refreshList)
         setRemoveMediaId("")
     }, [removeMediaId])
 
     useEffect(() => {
-        if (!list_id) return
-        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+        refreshList()
     }, [list_id, pageNum, query])
 
     if (!list_id) return null
@@ -71,6 +78,8 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                     <p className="text-sm text-gray-500 mb-0.5">{targetUser?.username}'s list</p>
                     <h1 className="text-2xl font-bold text-white">{listData?.name ?? "…"}</h1>
                 </div>
+
+                { targetUser?.id === user.id ? (
                 <button
                     type="button"
                     onClick={() => setIfEditListDetails(!ifEditListDetails)}
@@ -84,10 +93,11 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                     <PencilIcon />
                     {ifEditListDetails ? "Cancel" : "Edit"}
                 </button>
+                ) : <></>}
             </div>
 
             {/* List details / edit form */}
-            {ifEditListDetails ? (
+            {ifEditListDetails && targetUser?.id === user.id ? (
                 <EditListDetails
                     listData={listData as ListType}
                     setListData={setListData}
@@ -132,6 +142,7 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                         media_data={media}
                         setRemoveMediaId={setRemoveMediaId}
                         setMediaInLists={setMediaInLists}
+                        canRemove={targetUser?.id === user.id}
                     />
                 ))}
             </div>
@@ -179,7 +190,7 @@ function ListDetails({ listData }: { listData: ListType | null }) {
     )
 }
 
-function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists }: { media_data: Media, setRemoveMediaId: Dispatch<SetStateAction<string>>, setMediaInLists: Dispatch<SetStateAction<Media[]>> }) {
+function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists, canRemove }: { media_data: Media, setRemoveMediaId: Dispatch<SetStateAction<string>>, setMediaInLists: Dispatch<SetStateAction<Media[]>>, canRemove: boolean }) {
     const navigate = useNavigate()
     const color = contentTypeColor(media_data.contentType)
     return (
@@ -209,6 +220,8 @@ function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists }: { medi
                     </span>
                 )}
             </div>
+
+            {canRemove ? (
             <button
                 onClick={() => {
                     setRemoveMediaId(media_data.id.toString())
@@ -219,6 +232,7 @@ function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists }: { medi
             >
                 <TrashIcon />
             </button>
+            ) : <></>}
         </div>
     )
 }

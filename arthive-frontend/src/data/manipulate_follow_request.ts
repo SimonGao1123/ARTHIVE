@@ -2,6 +2,7 @@ import { logout } from "./logout"
 import type { User } from "../types/user_types"
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function manipulateFollowRequest(manipulateFollow: any, followId: string, manipulation: string, navigate: any, setFollowStatus: (followStatus: {id: string, status: string} | null) => void, setUser: (user: User) => void) {
+    
     manipulateFollow({variables: {input: {followId: parseInt(followId), manipulation: manipulation}}})
     .then((data: any) => {
         if (data.data.manipulateFollow.status === "rejected") {

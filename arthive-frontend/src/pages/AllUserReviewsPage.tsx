@@ -23,6 +23,8 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     const [totalPages, setTotalPages] = useState<number>(0)
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
 
+    console.log(reviews)
+
     const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY)
 
     useEffect(() => {

@@ -25,8 +25,9 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
                     <img
                         src={thread.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
                         alt="Profile Picture"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                         loading="lazy"
+                        onClick={() => navigate(`/profile/${thread.user.id}`)}
                     />
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold text-white">{thread.user.username}</span>
@@ -74,6 +75,12 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
                 >
                     <span>💬</span>
                     <span>{thread.childThreadsCount}</span>
+                </button>
+                <button
+                    onClick={() => navigate(`/community/${media_id}/thread/${thread.id}`)}
+                    className="hover:text-white transition text-xs ml-auto"
+                >
+                    See replies →
                 </button>
             </div>
 

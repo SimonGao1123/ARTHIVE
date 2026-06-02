@@ -197,14 +197,16 @@ function WriteCommentModal({reviewId, setReviewComments, setCommentCount, setUse
 }
 
 function UserReviewCommentComponent({comment}: {comment: ReviewComment}) {
+    const navigate = useNavigate()
     return (
         <article className="border-b border-white/5 py-4 first:pt-0 last:border-b-0 flex flex-col gap-2">
             <div className="flex items-center gap-3">
                 <img
                     src={comment.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
                     alt="Profile Picture"
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                     loading="lazy"
+                    onClick={() => navigate(`/profile/${comment.user.id}`)}
                 />
                 <div className="flex flex-col">
                     <span className="text-sm font-semibold text-white">{comment.user.username}</span>
@@ -262,8 +264,9 @@ function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment}
                 <img
                     src={mainReview.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
                     alt="Profile Picture"
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
                     loading="lazy"
+                    onClick={() => navigate(`/profile/${mainReview.user.id}`)}
                 />
                 <div className="flex flex-col">
                     <span className="text-sm font-semibold text-white">{mainReview.user.username}</span>
