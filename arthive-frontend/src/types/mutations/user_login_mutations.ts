@@ -70,6 +70,7 @@ export const WHOAMI_QUERY = gql`
             ifAdmin
             description
             visibility
+            notificationsCount
         }
     }
 `

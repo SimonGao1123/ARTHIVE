@@ -41,7 +41,11 @@ module Mutations
                 raise GraphQL::ExecutionError, new_thread.errors.full_messages.join(", ")
             end
 
-            Activity.log(user: context[:current_user], subject: new_thread, status: "created")
+            Activity.log(user: context[:current_user], subject: new_thread, status: "created", snapshot: {
+                title: new_thread.title,
+                thread_content: new_thread.content,
+                label: "Posted thread"
+            })
 
             if parent_thread_id.present? && new_thread.parent_thread.user.id != context[:current_user].id
                 SQS_CLIENT.send_message(

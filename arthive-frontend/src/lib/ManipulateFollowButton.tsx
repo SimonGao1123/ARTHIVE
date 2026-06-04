@@ -24,8 +24,7 @@ export default function ManipulateFollowButton({followId, manipulation, setFollo
     const navigate = useNavigate()
 
     function handleManipulateFollow() {
-        manipulateFollowRequest(manipulateFollow, followId, manipulation.toLowerCase(), navigate, setFollowStatus, setUser)
-        obtainFollowsDetails()
+        manipulateFollowRequest(manipulateFollow, followId, manipulation.toLowerCase(), navigate, setFollowStatus, setUser, obtainFollowsDetails)
     }
     return (
         <button

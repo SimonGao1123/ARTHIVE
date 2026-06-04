@@ -7,6 +7,8 @@ import { obtainTrendingThreadsFunction } from "../data/obtain_trending_threads"
 import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
 
+
+const LIMIT = 5
 type TrendingThreadsSectionProps = {
     mediaIdScope?: string | null
     setUser: (user: User | null) => void
@@ -16,14 +18,17 @@ type TrendingThreadsSectionProps = {
 
 export function TrendingThreadsSection({ mediaIdScope, setUser, navigate, user }: TrendingThreadsSectionProps) {
     const [threads, setThreads] = useState<CommunityThread[]>([])
-    const [getTrendingThreads] = useLazyQuery<ObtainTrendingThreadsResponse, ObtainTrendingThreadsInput>(OBTAIN_TRENDING_THREADS_QUERY)
+    const [getTrendingThreads, {loading, error}] = useLazyQuery<ObtainTrendingThreadsResponse, ObtainTrendingThreadsInput>(OBTAIN_TRENDING_THREADS_QUERY)
 
     useEffect(() => {
-        obtainTrendingThreadsFunction(getTrendingThreads, 10, mediaIdScope ?? null, setThreads, navigate, setUser)
+        obtainTrendingThreadsFunction(getTrendingThreads, LIMIT, mediaIdScope ?? null, setThreads, navigate, setUser)
     }, [mediaIdScope])
 
     return (
         <div className="flex flex-col gap-3">
+            {loading ? <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 dark:border-white"></div>
+            </div> : error ? <div className="text-red-500">{error.message}</div> : <></>}
             {threads.map((thread) => (
                 <CommunityThreadPaginated
                     key={thread.id}

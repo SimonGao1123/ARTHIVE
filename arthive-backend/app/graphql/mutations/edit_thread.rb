@@ -59,8 +59,12 @@ module Mutations
             if !thread.update(updates)
                 raise GraphQL::ExecutionError, thread.errors.full_messages.join(", ")
             end
-
-            Activity.log(user: context[:current_user], subject: thread, status: "updated")
+            
+            Activity.log(user: context[:current_user], subject: thread, status: "updated", snapshot: {
+                title: thread.title,
+                thread_content: thread.content,
+                label: "Updated thread"
+            })
             return thread
 
         rescue ActiveRecord::RecordNotFound => e

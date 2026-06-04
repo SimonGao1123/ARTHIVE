@@ -6,13 +6,13 @@ module Mutations
             validate_user
 
             begin
-                last_check = context[:current_user].last_notifications_check
-                notifications = Notification.where(
+                ids = Notification.where(
                     receiver_id: context[:current_user].id)
-                    .where("created_at > ?", last_check)
-                    .order(created_at: :desc)
-                context[:current_user].update(last_notifications_check: Time.now)
-                return notifications
+                    .where(read_at: nil)
+                    .pluck(:id)
+                
+                Notification.where(id: ids).update_all(read_at: Time.current)
+                return Notification.where(id: ids).includes(:sender, :receiver, :review, :review_comment, :parent_thread, :comment_thread, :follow).order(created_at: :desc)
             rescue StandardError => e
                 raise GraphQL::ExecutionError, e.message
             end

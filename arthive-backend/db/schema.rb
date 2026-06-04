@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_172403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -44,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
 
   create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.bigint "activity_id", null: false
+    t.jsonb "activity_snapshot"
     t.string "activity_type", null: false
     t.datetime "created_at", null: false
     t.string "status", null: false
@@ -136,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.bigint "follow_id"
     t.string "message_id", null: false
     t.bigint "parent_thread_id"
+    t.datetime "read_at"
     t.bigint "receiver_id", null: false
     t.bigint "review_comment_id"
     t.bigint "review_id"
@@ -173,12 +176,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
   create_table "reviews", force: :cascade do |t|
     t.string "content"
     t.datetime "created_at", null: false
+    t.vector "embedding", limit: 1536
     t.boolean "if_favorite", null: false
     t.boolean "if_finished", null: false
     t.bigint "media_id", null: false
     t.float "rating"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["embedding"], name: "index_reviews_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["if_favorite"], name: "index_reviews_on_if_favorite"
     t.index ["if_finished"], name: "index_reviews_on_if_finished"
     t.index ["media_id"], name: "index_reviews_on_media_id"
@@ -201,7 +206,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.string "description"
     t.string "email", null: false
     t.boolean "if_admin", default: false, null: false
-    t.datetime "last_notifications_check", default: "2026-05-25 23:38:42", null: false
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.string "username", null: false

@@ -1,5 +1,6 @@
 module Types
     class ActivityType < Types::BaseObject
+        field :activity_snapshot, Types::ActivitySnapshotType, null: true
         field :id, ID, null: false
         field :activity_type, String, null: false
         field :subject, Types::ActivitySubjectType, null: true

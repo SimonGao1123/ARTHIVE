@@ -13,7 +13,10 @@ module Mutations
                 liked = ThreadLike.toggle_like(context[:current_user].id, thread_id)
                 if liked
                     thread_like = ThreadLike.find_by(user_id: context[:current_user].id, community_thread_id: thread_id)
-                    Activity.log(user: context[:current_user], subject: thread_like, status: "created")
+                    Activity.log(user: context[:current_user], subject: thread_like, status: "created", snapshot: {
+                        thread_title: thread_like.community_thread.title,
+                        thread_author_username: thread_like.community_thread.user.username
+                    })
                     if thread_like.community_thread.user.id != context[:current_user].id
                         SQS_CLIENT.send_message(
                             queue_url: SQS_QUEUE_URL,

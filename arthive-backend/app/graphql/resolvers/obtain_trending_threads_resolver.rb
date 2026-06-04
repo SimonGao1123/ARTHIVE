@@ -12,13 +12,13 @@ module Resolvers
                 raise GraphQL::ExecutionError, "Limit must be between 1 and 100"
             end
 
-            threads = CommunityThread.sort_by_trending.limit(limit)
+            threads = CommunityThread.sort_by_trending
 
             if media_id_scope.present?
                 threads = threads.joins(:community).where(communities: { media_id: media_id_scope })
             end
 
-            threads
+            threads.limit(limit)
         rescue GraphQL::ExecutionError => e
             raise GraphQL::ExecutionError, e.message
         end
