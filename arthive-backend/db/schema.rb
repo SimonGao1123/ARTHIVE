@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_04_172403) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_06_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -176,7 +176,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_04_172403) do
   create_table "reviews", force: :cascade do |t|
     t.string "content"
     t.datetime "created_at", null: false
-    t.vector "embedding", limit: 1536
+    t.vector "embedding", limit: 1024
     t.boolean "if_favorite", null: false
     t.boolean "if_finished", null: false
     t.bigint "media_id", null: false

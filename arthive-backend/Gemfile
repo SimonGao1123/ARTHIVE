@@ -50,7 +50,7 @@ gem 'rack-cors'
 
 # pgvector / AI integration
 gem 'neighbor'
-gem 'ruby-openai'
+gem "aws-sdk-bedrockruntime"
 
 group :development, :test do
   gem 'graphiql-rails'

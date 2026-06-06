@@ -137,6 +137,13 @@ r_adm_zl   = Review.create!(user: admin_user, media: zelda,         rating: 5.0,
 r_u3_bal   = Review.create!(user: user3, media: balatro,  rating: 4.5, if_favorite: true,  if_finished: false, content: "One more hand. That's all. Just one more.")
 r_u3_arc   = Review.create!(user: user3, media: arcane,   rating: 5.0, if_favorite: true,  if_finished: true,  content: "Visually stunning. Jinx's arc is one of the best character studies in any animated series.")
 
+# ── Review Embeddings ─────────────────────────────────────────────────────────
+
+Review.where.not(content: nil).each do |review|
+  vector = EmbeddingService.embed(review.content)
+  review.update_column(:embedding, vector) if vector
+end
+
 # ── Community Threads ─────────────────────────────────────────────────────────
 
 # Harry Potter

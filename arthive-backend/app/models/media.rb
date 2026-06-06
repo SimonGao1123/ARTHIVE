@@ -116,10 +116,10 @@ class Media < ApplicationRecord
     }
     
     def self.obtain_media_reviews(media_id, query, current_user_id, sort_by)
-        reviews = Review.includes(:user)
+        reviews = Review.semantic_search(query: query) # uses semantic search fallback to query_filter if no results
         .where(media_id: media_id)
         .where.not(content: [nil, ""])
-        .query_filter(query)
+        .includes(:user)
         .in_order_of(:user_id, [current_user_id], filter: false)
 
         if sort_by == "newest"

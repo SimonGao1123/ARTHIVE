@@ -1,5 +1,8 @@
 class Review < ApplicationRecord
     include SharedScopeMethods
+
+    # POSSIBLY NEED ADJUSTMENT (higher = lax, lower = strict)
+    REQUIRED_SIMILARITY_THRESHOLD = 0.8
     belongs_to :user
     belongs_to :media
 
@@ -18,6 +21,17 @@ class Review < ApplicationRecord
 
     has_many_attached :images
 
+    has_neighbors :embedding
+
+
+    after_save :enqueue_embedding, if: :saved_change_to_content?
+
+    private
+    def enqueue_embedding
+        GenerateReviewEmbeddingJob.perform_later(self.id)
+    end
+
+    public
     def presigned_images_url
         images.map do |image|
             PresignedUrlAttachment.presigned_url(image)
@@ -32,6 +46,27 @@ class Review < ApplicationRecord
             return nil
         end
     end
+
+    # only based on vectors and content / rating similarity, fallback to query_filter if no results
+    def self.semantic_search(query:)
+        return all unless query.present? && query.length >= 3
+        embedding = EmbeddingService.embed(query)
+        return none if embedding.nil?
+
+        vector_literal = "[#{embedding.join(',')}]"
+        results = nearest_neighbors(:embedding, embedding, distance: "cosine")
+            .where("(embedding <=> '#{vector_literal}'::vector) < #{REQUIRED_SIMILARITY_THRESHOLD}")
+            .where.not(content: nil)
+            .includes(:user)
+
+        if results.empty?
+            return query_filter(query)
+        else
+            return results
+        end
+    end
+
+
 
     scope :sort_by_trending, -> {
         select(<<~SQL
@@ -109,9 +144,10 @@ class Review < ApplicationRecord
     }
 
     def self.search(query:, search_filter:, current_user_id:)
-        base_search = Review.query_filter(query).sort_by_trending
+        base_search = semantic_search(query: query)
             .where.not(content: nil)
             .where(user_id: User.visible_to(current_user_id).select(:id))
+        base_search = base_search.sort_by_trending unless query.present?
         if search_filter.present?
             search_filter.each do |filter|
                 normalized_values = Array(filter.values).map(&:downcase)
