@@ -60,6 +60,7 @@ export const OBTAIN_MEDIA_INFO_QUERY = gql`
             seriesTitle
             organization
             coverImage
+            reviewsAiSummary
 
             inLists {
                 id

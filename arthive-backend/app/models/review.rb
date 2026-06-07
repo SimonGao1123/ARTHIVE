@@ -25,10 +25,15 @@ class Review < ApplicationRecord
 
 
     after_save :enqueue_embedding, if: :saved_change_to_content?
+    after_save :enqueue_review_summary, if: :saved_change_to_content?
 
     private
     def enqueue_embedding
         GenerateReviewEmbeddingJob.perform_later(self.id)
+    end
+
+    def enqueue_review_summary
+        GenerateReviewSummaryJob.perform_later(self.media_id)
     end
 
     public
@@ -58,6 +63,8 @@ class Review < ApplicationRecord
             .where("(embedding <=> '#{vector_literal}'::vector) < #{REQUIRED_SIMILARITY_THRESHOLD}")
             .where.not(content: nil)
             .includes(:user)
+        
+        
 
         if results.empty?
             return query_filter(query)

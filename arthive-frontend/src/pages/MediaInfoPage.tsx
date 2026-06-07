@@ -107,8 +107,21 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
                         onOpenAddToLists={() => setShowAddMediaToList(true)}
                     />
 
-                    {/* Bottom-right: reviews list (under info) */}
-                    <MediaReviews id={id ?? ""} setUser={setUser} />
+                    {/* Bottom-right: AI summary + reviews list */}
+                    <div className="flex flex-col gap-4">
+                        {mediaInfo.reviewsAiSummary && (
+                            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-violet-400 text-base">✦</span>
+                                    <h2 className="text-xs font-semibold text-violet-400 uppercase tracking-wider">
+                                        Viewers Say
+                                    </h2>
+                                </div>
+                                <p className="text-gray-300 text-sm leading-relaxed">{mediaInfo.reviewsAiSummary}</p>
+                            </div>
+                        )}
+                        <MediaReviews id={id ?? ""} setUser={setUser} />
+                    </div>
                 </div>
             ) : null}
 

@@ -1,13 +1,9 @@
 module ReviewSummaryService
-  GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  GEMINI_URL = ENV['GEMINI_MODEL_URL']
 
-  def self.summarize_reviews(media_id:)
-    media = Media.find_by(id: media_id)
-    return nil unless media
-
-
+  def self.summarize_reviews(media:)
     # Update # of reviews pulled 
-    reviews = Review.where(media_id: media_id)
+    reviews = Review.where(media_id: media.id)
       .where.not(content: [nil, ""])
       .order(created_at: :desc)
       .limit(15)
@@ -19,7 +15,8 @@ module ReviewSummaryService
     end.join("\n\n")
 
     prompt = "Summarize what users think about #{media.title} based on the following reviews. Be concise.\n\nReviews:\n#{context}"
-    call_gemini(prompt)
+    return call_gemini(prompt)
+
   end
 
   def self.call_gemini(prompt)

@@ -18,4 +18,5 @@ export type Media = {
         id: string;
         name: string;
     }[];
+    reviewsAiSummary: string | null;
 }

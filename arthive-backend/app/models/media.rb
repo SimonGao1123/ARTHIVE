@@ -21,6 +21,8 @@ class Media < ApplicationRecord
         "slice of life", "noir"
     ].freeze
 
+    SUMMARY_REVIEW_COUNT_MILESTONES = [5, 10, 25, 50, 100, 500, 1000].freeze
+
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
     has_many :reviews

@@ -27,6 +27,8 @@ module Types
 
     field :community, Types::CommunityType, null: false
 
+    field :reviews_ai_summary, String, null: true
+
     # return the url of the cover image
     def cover_image
       object.presigned_cover_image_url

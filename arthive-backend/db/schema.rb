@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_06_060000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -109,9 +109,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_06_060000) do
     t.string "creator", null: false
     t.string "genre", default: [], null: false, array: true
     t.string "language", null: false
+    t.integer "last_ai_summary_review_count", default: 0
     t.boolean "ongoing", null: false
     t.string "organization"
     t.integer "page_count"
+    t.text "reviews_ai_summary"
     t.string "series_title"
     t.string "summary", null: false
     t.string "title", null: false
