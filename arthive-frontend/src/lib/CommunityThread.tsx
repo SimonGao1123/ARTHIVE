@@ -6,6 +6,7 @@ import { likeThreadFunction } from "../data/like_thread_function"
 import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
 import { ReviewReferenceCard } from "./ReviewCard"
+import { LikeButton, CommentIcon } from "./StyledComponents"
 
 export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user: _user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
@@ -48,7 +49,7 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
 
             {/* Content */}
             {thread.content && (
-                <p className="text-gray-300 text-sm leading-relaxed">{thread.content}</p>
+                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{thread.content}</p>
             )}
 
             {/* Images */}
@@ -65,15 +66,12 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
 
             {/* Footer actions */}
             <div className="flex items-center gap-5 text-gray-500 text-sm pt-1 border-t border-white/5">
-                <button onClick={handleLikeThread} className="hover:text-white transition flex items-center gap-1.5">
-                    <span>{currLiked ? "❤️" : "🤍"}</span>
-                    <span>{likeCount}</span>
-                </button>
+                <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeThread} />
                 <button
                     onClick={() => navigate(`/community/${media_id}/thread/${thread.id}`)}
                     className="hover:text-white transition flex items-center gap-1.5"
                 >
-                    <span>💬</span>
+                    <CommentIcon />
                     <span>{thread.childThreadsCount}</span>
                 </button>
                 <button

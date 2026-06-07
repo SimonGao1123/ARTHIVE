@@ -5,6 +5,7 @@ import { LIKE_REVIEW_MUTATION, type LikeReviewInput, type LikeReviewResponse } f
 import { useState } from "react"
 import type { User } from "../types/user_types"
 import { likeReviewFunction } from "../data/like_review"
+import { LikeButton, CommentIcon, HeartIcon } from "./StyledComponents"
 
 // for community threads referencing reviews only
 export function ReviewReferenceCard({review}: {review: any}) {
@@ -57,8 +58,8 @@ export function ReviewReferenceCard({review}: {review: any}) {
                 )}
 
                 <div className="flex items-center gap-4 text-gray-500 text-xs mt-0.5">
-                    <span>🤍 {review.likeCount}</span>
-                    <span>💬 {review.commentCount}</span>
+                    <span className="flex items-center gap-1"><HeartIcon filled={false} />{review.likeCount}</span>
+                    <span className="flex items-center gap-1"><CommentIcon />{review.commentCount}</span>
                 </div>
             </div>
         </button>
@@ -129,7 +130,7 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
             </div>
 
             {review?.content !== null && review?.content !== "" ? (
-                <p className="text-gray-300 text-sm leading-relaxed mb-3">{review.content}</p>
+                <p className="text-gray-300 text-sm leading-relaxed mb-3 whitespace-pre-wrap">{review.content}</p>
             ) : null}
 
             {review?.imageDetails?.length > 0 && (
@@ -149,18 +150,17 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                 <div className="flex items-center gap-6 text-gray-400 text-sm">
                     <button
                         onClick={() => navigate(`/review_info/${review.id}`)}
-                        className="hover:text-white transition flex items-center gap-1"
+                        className="hover:text-white transition flex items-center gap-1.5"
                     >
-                        <span>💬</span>
+                        <CommentIcon />
                         <span>{review.commentCount}</span>
                     </button>
-                    <button
+                    <LikeButton
+                        liked={currLiked}
+                        count={likeCount}
+                        loading={loading}
                         onClick={() => likeReviewFunction(setCurrLiked, likeReview, review.id, setUser, navigate, setLikeCount)}
-                        className="hover:text-white transition flex items-center gap-1"
-                    >
-                        <span>{loading ? "…" : currLiked ? "❤️" : "🤍"}</span>
-                        <span>{likeCount}</span>
-                    </button>
+                    />
                     <button
                         onClick={() => navigate(`/review_info/${review.id}`)}
                         className="hover:text-white transition text-xs ml-auto"

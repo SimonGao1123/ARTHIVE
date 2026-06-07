@@ -8,7 +8,7 @@ import { MediaCard } from "./MediaCard.tsx"
 
 export default function NewestExplorePageMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
-    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string}[]>([])
+    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean}[]>([])
     const [nextCursor, setNextCursor] = useState<string | null>(null)
     const [prevCursor, setPrevCursor] = useState<string | null>(null)
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
@@ -33,31 +33,32 @@ export default function NewestExplorePageMediaLibrary({user: _user, setUser, cur
     useEffect(() => { fetchPage(true, null) }, [currContentType])
 
     return (
-        <div className="flex items-center gap-2">
-            <button
-                onClick={() => handleNav(false, prevCursor)}
-                disabled={!ifPrevPage}
-                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
-            >
-                ‹
-            </button>
-            <div className="flex-1 overflow-hidden py-1">
+        <div className="relative group/carousel">
+            <div className="overflow-x-hidden overflow-y-visible py-1 px-1">
                 <div
                     key={pageKey}
-                    className={`flex gap-3 ${slideDir === "next" ? "slide-from-right" : "slide-from-left"}`}
+                    className={slideDir === "next" ? "slide-from-right" : "slide-from-left"}
+                    style={{ display: "grid", gridTemplateColumns: `repeat(${limit}, 1fr)`, gap: "0.75rem" }}
                 >
                     {loading
                         ? Array.from({length: limit}).map((_, i) => (
-                            <div key={i} className="flex-shrink-0 w-32 h-48 bg-white/5 rounded-xl animate-pulse" />
+                            <div key={i} className="aspect-[2/3] bg-white/5 rounded-xl animate-pulse" />
                         ))
                         : allMedia.map((media) => <MediaCard key={media.id} media={media} />)
                     }
                 </div>
             </div>
             <button
+                onClick={() => handleNav(false, prevCursor)}
+                disabled={!ifPrevPage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 text-white text-2xl transition opacity-0 group-hover/carousel:opacity-100 disabled:hidden shadow-lg"
+            >
+                ‹
+            </button>
+            <button
                 onClick={() => handleNav(true, nextCursor)}
                 disabled={!ifNextPage}
-                className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 disabled:opacity-20 disabled:cursor-not-allowed text-white transition text-lg"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 text-white text-2xl transition opacity-0 group-hover/carousel:opacity-100 disabled:hidden shadow-lg"
             >
                 ›
             </button>

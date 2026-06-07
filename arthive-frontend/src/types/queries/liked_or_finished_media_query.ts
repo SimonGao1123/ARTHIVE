@@ -15,6 +15,8 @@ export const OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY = gql`
                 genre
                 contentType
                 coverImage
+                ifFavorite
+                ifFinished
             }
             pageInfo {
                 totalPages
@@ -32,6 +34,8 @@ export type LikedOrFinishedMediaCard = {
     genre: string[]
     contentType: "book" | "film" | "series" | "game"
     coverImage: string | null
+    ifFavorite: boolean
+    ifFinished: boolean
 }
 
 export type ObtainLikedOrFinishedMediaInput = {

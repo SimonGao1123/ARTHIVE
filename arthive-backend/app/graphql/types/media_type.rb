@@ -29,6 +29,21 @@ module Types
 
     field :reviews_ai_summary, String, null: true
 
+    field :if_favorite, Boolean, null: false
+    field :if_finished, Boolean, null: false
+    field :review_count, Int, null: false
+
+    def if_favorite
+      object.reviews.exists?(user_id: context[:current_user].id, if_favorite: true)
+    end
+
+    def if_finished
+      object.reviews.exists?(user_id: context[:current_user].id, if_finished: true)
+    end
+
+    def review_count
+      object.reviews.where.not(content: [nil, ""]).count
+    end
     # return the url of the cover image
     def cover_image
       object.presigned_cover_image_url

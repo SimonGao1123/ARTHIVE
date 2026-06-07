@@ -110,28 +110,31 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
                     />
                 )}
 
-                <textarea
-                    autoFocus
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder={isRoot ? "Start a discussion…" : "Write a reply…"}
-                    rows={4}
-                    className="w-full bg-[#0a090c] border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 resize-y transition-colors"
-                />
+                <div className="w-full bg-[#0a090c] border border-white/10 rounded-lg focus-within:border-violet-500/50 transition-colors">
+                    <textarea
+                        autoFocus
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder={isRoot ? "Start a discussion…" : "Write a reply…"}
+                        rows={4}
+                        className="w-full bg-transparent px-4 pt-3 pb-2 text-sm text-white placeholder-gray-500 focus:outline-none resize-y transition-colors"
+                    />
+                    {newImages.length > 0 && (
+                        <div className="border-t border-white/5 px-4 py-3">
+                            <ImagesPreview images={newImages} setNewImages={setNewImages} />
+                        </div>
+                    )}
+                </div>
 
                 <div className="flex flex-col gap-2">
-                    <input 
-                    type="url" 
-                    value={reviewRef ?? ""} 
-                    
-                    onChange={(e) => setReviewRef(e.target.value || null)} 
-                    placeholder="Paste Review Link (optional)" 
-                    className="w-full bg-[#0a090c] border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 transition-colors"
+                    <input
+                        type="url"
+                        value={reviewRef ?? ""}
+                        onChange={(e) => setReviewRef(e.target.value || null)}
+                        placeholder="Paste Review Link (optional)"
+                        className="w-full bg-[#0a090c] border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 transition-colors"
                     />
                 </div>
-                {newImages.length > 0 && (
-                    <ImagesPreview images={newImages} setNewImages={setNewImages} />
-                )}
 
                 <div className="flex items-center justify-between gap-3">
                     <button

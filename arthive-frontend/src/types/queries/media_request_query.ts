@@ -10,6 +10,9 @@ export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
                 node {
                     id
                     coverImage
+                    contentType
+                    ifFavorite
+                    ifFinished
                 }
             }
             pageInfo {
@@ -28,6 +31,9 @@ export type NewestExplorePageMediaResponse = {
             node: {
                 id: number
                 coverImage: string
+                contentType: string
+                ifFavorite: boolean
+                ifFinished: boolean
             }
         }[]
         pageInfo: {
@@ -61,6 +67,7 @@ export const OBTAIN_MEDIA_INFO_QUERY = gql`
             organization
             coverImage
             reviewsAiSummary
+            reviewCount
 
             inLists {
                 id
@@ -129,9 +136,12 @@ export const HOTTEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
                 node {
                     id
                     coverImage
+                    contentType
+                    ifFavorite
+                    ifFinished
                 }
             }
-        
+
             pageInfo {
                 hasNextPage
                 endCursor
@@ -147,6 +157,9 @@ export type HottestExplorePageMediaResponse = {
             node: {
                 id: number
                 coverImage: string
+                contentType: string
+                ifFavorite: boolean
+                ifFinished: boolean
             }
         }[]
         pageInfo: {

@@ -29,9 +29,33 @@ export function EyeOffIcon() {
 
 export function HeartIcon({ filled }: { filled: boolean }) {
     return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transition: "fill 200ms ease-out" }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transition: "fill 150ms ease-out" }}>
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
+    )
+}
+
+export function CommentIcon() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+    )
+}
+
+export function LikeButton({ liked, count, loading, onClick }: { liked: boolean; count: number; loading?: boolean; onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`transition flex items-center gap-1.5 ${liked ? "text-pink-400 hover:text-pink-300" : "text-gray-400 hover:text-white"}`}
+        >
+            {loading ? (
+                <span className="w-4 h-4 flex items-center justify-center text-xs leading-none">…</span>
+            ) : (
+                <HeartIcon filled={liked} />
+            )}
+            <span>{count}</span>
+        </button>
     )
 }
 

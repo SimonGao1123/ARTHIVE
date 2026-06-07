@@ -10,6 +10,7 @@ import { LIKE_REVIEW_MUTATION, type LikeReviewInput, type LikeReviewResponse } f
 import { likeReviewFunction } from "../data/like_review"
 import { WRITE_COMMENT_MUTATION, type WriteCommentInput, type WriteCommentResponse } from "../types/mutations/write_comment_mutation"
 import { writeReviewCommentFunction } from "../data/write_review_comment"
+import { LikeButton, CommentIcon } from "../lib/StyledComponents"
 
 const LIMIT = 10
 
@@ -289,7 +290,7 @@ function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment}
 
             {/* Content */}
             {mainReview.content && (
-                <p className="text-gray-300 text-sm leading-relaxed">{mainReview.content}</p>
+                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{mainReview.content}</p>
             )}
 
             {/* Images */}
@@ -303,18 +304,16 @@ function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment}
 
             {/* Footer actions */}
             <div className="border-t border-white/5 pt-4 flex items-center gap-6 text-sm text-gray-400">
-                <button
+                <LikeButton
+                    liked={currLiked}
+                    count={likeCount}
                     onClick={() => likeReviewFunction(setCurrLiked, likeReview, mainReview.id, setUser, navigate, setLikeCount)}
-                    className="hover:text-white transition flex items-center gap-1.5"
-                >
-                    <span>{currLiked ? "❤️" : "🤍"}</span>
-                    <span>{likeCount}</span>
-                </button>
+                />
                 <button
                     onClick={onWriteComment}
                     className="hover:text-white transition flex items-center gap-1.5"
                 >
-                    <span>💬</span>
+                    <CommentIcon />
                     <span>{commentCount}</span>
                 </button>
             </div>

@@ -13,6 +13,7 @@ import { AddThreadComponent } from "../lib/AddThreadComponent"
 import type { Review } from "../types/review_type"
 import { ReviewReferenceCard } from "../lib/ReviewCard"
 import EditThreadComponent from "../lib/EditThreadComponent"
+import { LikeButton, CommentIcon } from "../lib/StyledComponents"
 const LIMIT = 2
 export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
@@ -152,7 +153,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
                 )}
             </div>
 
-            <p className="text-gray-300 text-sm leading-relaxed">{mainThread.content}</p>
+            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{mainThread.content}</p>
 
             {mainThread.imageDetails && mainThread.imageDetails.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -163,12 +164,9 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
             )}
 
             <div className="flex items-center gap-6 text-gray-400 text-sm pt-2 border-t border-white/5">
-                <button onClick={handleLikeThread} className="hover:text-white transition flex items-center gap-1.5">
-                    <span>{currLiked ? "❤️" : "🤍"}</span>
-                    <span>{likeCount}</span>
-                </button>
+                <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeThread} />
                 <span className="flex items-center gap-1.5">
-                    <span>💬</span>
+                    <CommentIcon />
                     <span>{mainThread.childThreadsCount}</span>
                 </span>
             </div>
