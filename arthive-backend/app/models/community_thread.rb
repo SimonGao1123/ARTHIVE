@@ -3,6 +3,8 @@ class CommunityThread < ApplicationRecord
     belongs_to :community
     belongs_to :user
 
+    has_neighbors :embedding
+
     has_many :thread_likes, dependent: :destroy
     has_many :activities, -> { where(activity_type: "CommunityThread") }, foreign_key: :activity_id, dependent: :delete_all
 
@@ -16,6 +18,7 @@ class CommunityThread < ApplicationRecord
 
 
     validate :title_for_only_root
+    validate :embedding_only_for_root
 
     validates :root_thread_id, presence: true, if: -> { parent_thread_id.present? }
     validates :root_thread_id, absence: true, if: -> { parent_thread_id.blank? }
@@ -24,12 +27,23 @@ class CommunityThread < ApplicationRecord
 
     belongs_to :review, optional: true
 
+    after_save :enqueue_embedding, if: -> { (saved_change_to_content? || saved_change_to_title?) && root_thread_id.nil? && parent_thread_id.nil? }
+
 
     private
+    def enqueue_embedding
+        AssignEmbeddingJob.perform_later(self.id, "community_thread")
+    end
 
     def title_for_only_root
         if (self.root_thread.present? || self.parent_thread.present?) && self.title.present?
             errors.add(:title, "title cannot be present for non-root threads")
+        end
+    end
+
+    def embedding_only_for_root
+        if (self.root_thread.present? || self.parent_thread.present?) && self.embedding.present?
+            errors.add(:embedding, "embedding cannot be present for non-root threads")
         end
     end
     public
@@ -63,10 +77,9 @@ class CommunityThread < ApplicationRecord
         end
     }
 
-    def self.search(query:, search_filter:, current_user_id:)
-        base_search = CommunityThread
+    def self.search(query:, embedded_query:, search_filter:, current_user_id:)
+        base_search = CommunityThread.semantic_search(query, "community_thread", embedded_query)
         .order_threads(current_user_id)
-        .query_filter(query)
         .where(root_thread_id: nil, parent_thread_id: nil)
         .where(user_id: User.visible_to(current_user_id).select(:id))
         

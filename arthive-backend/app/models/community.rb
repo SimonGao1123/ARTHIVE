@@ -10,7 +10,7 @@ class Community < ApplicationRecord
         self.community_threads
         .where(parent_thread: nil, root_thread: nil)
         .order_threads(current_user_id)
-        .query_filter(query)
+        .semantic_search(query, "community_thread", nil)
     end
 
 end

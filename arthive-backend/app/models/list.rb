@@ -4,6 +4,8 @@ class List < ApplicationRecord
     belongs_to :user
     has_many :media_in_lists, dependent: :destroy
 
+    has_neighbors :embedding
+
     validates :name, presence: true
     validates :if_private, inclusion: { in: [true, false] }
     validates :user_id, presence: true
@@ -15,9 +17,13 @@ class List < ApplicationRecord
 
     validate :content_type_validation
 
-    
+    after_save :enqueue_embedding, if: -> { saved_change_to_name? || saved_change_to_description? || saved_change_to_tags? }
 
     private
+
+    def enqueue_embedding
+        AssignEmbeddingJob.perform_later(self.id, "list")
+    end
 
     def content_type_validation
         self.content_type.each do |content_type|
@@ -42,8 +48,8 @@ class List < ApplicationRecord
         # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
         where(if_private: false).or(where(user_id: current_user_id))
     }
-    def self.search(query:, search_filter:, current_user_id:)
-        base_search = List.query_filter(query)
+    def self.search(query:, embedded_query:, search_filter:, current_user_id:)
+        base_search = List.semantic_search(query, "list", embedded_query)
             .user_visible_filter(current_user_id)
             .where(user_id: User.visible_to(current_user_id).select(:id))
 

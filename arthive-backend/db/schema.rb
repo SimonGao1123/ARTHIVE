@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_13_064619) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -55,6 +55,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.index ["user_id"], name: "index_activities_on_user_id"
   end
 
+  create_table "archivr_conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["media_id"], name: "index_archivr_conversations_on_media_id"
+    t.index ["user_id"], name: "index_archivr_conversations_on_user_id"
+  end
+
+  create_table "archivr_messages", force: :cascade do |t|
+    t.bigint "archivr_conversation_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["archivr_conversation_id"], name: "index_archivr_messages_on_archivr_conversation_id"
+  end
+
   create_table "communities", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "media_id", null: false
@@ -66,6 +84,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.vector "embedding", limit: 1024
     t.bigint "parent_thread_id"
     t.bigint "review_id"
     t.bigint "root_thread_id"
@@ -73,6 +92,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_community_threads_on_community_id"
+    t.index ["embedding"], name: "index_community_threads_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
     t.index ["review_id"], name: "index_community_threads_on_review_id"
     t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
@@ -94,11 +114,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.string "content_type", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.string "description"
+    t.vector "embedding", limit: 1024
     t.boolean "if_private", default: false, null: false
     t.string "name", null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["embedding"], name: "index_lists_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["user_id"], name: "index_lists_on_user_id"
   end
 
@@ -107,6 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.string "content_type", null: false
     t.datetime "created_at", null: false
     t.string "creator", null: false
+    t.vector "embedding", limit: 1024
     t.string "genre", default: [], null: false, array: true
     t.string "language", null: false
     t.integer "last_ai_summary_review_count", default: 0
@@ -120,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.string "year", null: false
+    t.index ["embedding"], name: "index_media_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["user_id"], name: "index_media_on_user_id"
   end
 
@@ -219,6 +243,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_191526) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users"
+  add_foreign_key "archivr_conversations", "media", column: "media_id"
+  add_foreign_key "archivr_conversations", "users"
+  add_foreign_key "archivr_messages", "archivr_conversations"
   add_foreign_key "communities", "media", column: "media_id"
   add_foreign_key "community_threads", "communities"
   add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"
