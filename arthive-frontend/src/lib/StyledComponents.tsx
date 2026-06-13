@@ -1,4 +1,18 @@
 
+export function ArchivrLogo({ size = 20 }: { size?: number }) {
+    const r = size * 0.27
+    const c = size / 2
+    const off = size * 0.13
+    return (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <circle cx={c - off} cy={c - off} r={r} fill="#7c3aed" />
+            <circle cx={c + off} cy={c - off} r={r} fill="#10b981" />
+            <circle cx={c - off} cy={c + off} r={r} fill="#f97316" />
+            <circle cx={c + off} cy={c + off} r={r} fill="#ec4899" />
+        </svg>
+    )
+}
+
 export function TrashIcon() {
     return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

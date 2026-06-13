@@ -6,6 +6,8 @@ import { OBTAIN_MEDIA_REVIEWS_QUERY, type ObtainMediaReviewsResponse, type Obtai
 import type { Review } from "../types/review_type"
 import { obtainMediaReviewsFunction } from "../data/obtain_media_reviews"
 import ReviewCard from "../lib/ReviewCard"
+import ArchivrChat from "../lib/ArchivrChat"
+import { ArchivrLogo } from "../lib/StyledComponents"
 
 const LIMIT = 2
 
@@ -16,6 +18,7 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
     const [cursor, setCursor] = useState<string | null>(null)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
+    const [showArchivr, setShowArchivr] = useState(false)
 
     const [loadCount, setLoadCount] = useState(0)
     const [obtainMediaReviews, {error, loading}] = useLazyQuery<ObtainMediaReviewsResponse, ObtainMediaReviewsInput>(OBTAIN_MEDIA_REVIEWS_QUERY, {
@@ -83,11 +86,11 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
                     />
                 </div>
                 <button
-                    disabled={query === currQuery}
-                    onClick={() => setQuery(currQuery)}
-                    className="bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-full px-5 py-2 text-sm transition"
+                    onClick={() => setShowArchivr(true)}
+                    className="flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 hover:bg-violet-500/20 rounded-full px-4 py-2 text-sm transition"
                 >
-                    Search
+                    <ArchivrLogo size={16} />
+                    Ask Archivr
                 </button>
             </div>
 
@@ -108,6 +111,13 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
                     Load More
                 </button>
             )}
+
+            <ArchivrChat
+                mediaId={id}
+                setUser={setUser}
+                isOpen={showArchivr}
+                onClose={() => setShowArchivr(false)}
+            />
         </div>
     )
 

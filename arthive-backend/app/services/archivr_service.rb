@@ -4,9 +4,9 @@ class ArchivrService
         media = Media.find(media_id)
         user = User.find(user_id)
 
-        ArchivrMessage.create!(conversation: conversation, content: query, role: "user")
+        ArchivrMessage.create!(archivr_conversation: conversation, content: query, role: "user")
 
-        prev_messages = conversation.archivr_messages.order(:created_at, :desc).limit(10).to_a.reverse
+        prev_messages = conversation.archivr_messages.order(created_at: :desc).limit(10).to_a.reverse
         prev_context = prev_messages.map { |m| "#{m.role == 'user' ? user.username : 'Archivr'}: #{m.content}" }.join("\n")
 
         embedding = EmbeddingService.embed(query)
@@ -76,9 +76,10 @@ class ArchivrService
             Archivr:
         PROMPT
 
+
         response = ReviewSummaryService.call_gemini(prompt)
         return nil if response.nil?
 
-        ArchivrMessage.create!(conversation: conversation, content: response, role: "assistant")
+        ArchivrMessage.create!(archivr_conversation: conversation, content: response, role: "assistant")
     end
 end

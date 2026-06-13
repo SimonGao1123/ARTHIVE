@@ -16,7 +16,9 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
     if (!media_id) {
         navigate("/")
     }
-    const [obtainCommunity, {loading, error}] = useLazyQuery<ObtainCommunityResponse, ObtainCommunityInput>(OBTAIN_COMMUNITY_QUERY)
+    const [obtainCommunity, {loading, error}] = useLazyQuery<ObtainCommunityResponse, ObtainCommunityInput>(OBTAIN_COMMUNITY_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     const [community, setCommunity] = useState<Community | null>(null)
     const [rootThreads, setRootThreads] = useState<CommunityThread[]>([])
 

@@ -130,6 +130,7 @@ class Media < ApplicationRecord
         reviews = Review.semantic_search(query, "review", nil)
         .where(media_id: media_id)
         .where.not(content: [nil, ""])
+        .where(user_id: User.visible_to(current_user_id).pluck(:id))
         .includes(:user)
         .in_order_of(:user_id, [current_user_id], filter: false)
 
