@@ -13,6 +13,7 @@ module Resolvers
             end
 
             threads = CommunityThread.sort_by_trending
+                .where(user_id: User.visible_to(context[:current_user].id).select(:id))
 
             if media_id_scope.present?
                 threads = threads.joins(:community).where(communities: { media_id: media_id_scope })
