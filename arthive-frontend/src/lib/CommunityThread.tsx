@@ -35,6 +35,15 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
                         <span className="text-xs text-gray-500">{new Date(thread.createdAt).toLocaleDateString()}</span>
                     </div>
                 </div>
+                {thread.community?.media?.title && (
+                    <button
+                        onClick={() => navigate(`/community/${media_id}`)}
+                        className="text-xs text-violet-400 hover:text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 rounded-full px-3 py-1 transition truncate max-w-[160px]"
+                        title={thread.community.media.title}
+                    >
+                        {thread.community.media.title}
+                    </button>
+                )}
             </div>
 
             {/* Title */}
