@@ -11,7 +11,7 @@ import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } f
 import { likeThreadFunction } from "../data/like_thread_function"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
 import type { Review } from "../types/review_type"
-import { ReviewReferenceCard } from "../lib/ReviewCard"
+import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ReviewCard"
 import EditThreadComponent from "../lib/EditThreadComponent"
 import { LikeButton, CommentIcon } from "../lib/StyledComponents"
 const LIMIT = 2
@@ -48,10 +48,14 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
         }
     }, [thread_id, loadCount])
 
+    if (error) {
+        navigate("/not_found")
+        return null
+    }
+
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
             {loading && <p className="text-gray-400 text-sm">Loading…</p>}
-            {error && <p className="text-red-400 text-sm">{error.message}</p>}
 
             <div className="flex gap-2">
                 {media_id && (
@@ -171,7 +175,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
                 </span>
             </div>
 
-            {review && <ReviewReferenceCard review={review} />}
+            {mainThread.hasReview && (review ? <ReviewReferenceCard review={review} /> : <ReviewUnavailableCard />)}
 
             {editPopupOpen && <EditThreadComponent thread={mainThread} setUser={setUser} setEditPopupOpen={setEditPopupOpen} />}
         </div>

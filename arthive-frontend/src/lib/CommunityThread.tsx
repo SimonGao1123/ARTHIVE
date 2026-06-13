@@ -5,7 +5,7 @@ import { useState, type Dispatch, type SetStateAction } from "react"
 import { likeThreadFunction } from "../data/like_thread_function"
 import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
-import { ReviewReferenceCard } from "./ReviewCard"
+import { ReviewReferenceCard, ReviewUnavailableCard } from "./ReviewCard"
 import { LikeButton, CommentIcon } from "./StyledComponents"
 
 export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user: _user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
@@ -62,7 +62,7 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
             )}
 
             {/* Referenced review */}
-            {thread.review && <ReviewReferenceCard review={thread.review} />}
+            {thread.hasReview && (thread.review ? <ReviewReferenceCard review={thread.review} /> : <ReviewUnavailableCard />)}
 
             {/* Footer actions */}
             <div className="flex items-center gap-5 text-gray-500 text-sm pt-1 border-t border-white/5">

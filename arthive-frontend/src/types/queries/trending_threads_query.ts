@@ -40,6 +40,7 @@ export const OBTAIN_TRENDING_THREADS_QUERY = gql`
                 signedId
                 url
             }
+            hasReview
             review {
                 id
                 content

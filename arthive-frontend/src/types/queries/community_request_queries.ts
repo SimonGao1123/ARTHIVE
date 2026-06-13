@@ -19,6 +19,7 @@ export type CommunityThread = {
         url: string
     }[]
     review: Review | null,
+    hasReview: boolean,
 }
 export type Community = {
     id: number,
@@ -90,6 +91,7 @@ export const OBTAIN_COMMUNITY_QUERY = gql`
                             signedId
                             url
                         }
+                        hasReview
                         review {
                             id
                             content

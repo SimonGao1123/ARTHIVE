@@ -7,6 +7,17 @@ import type { User } from "../types/user_types"
 import { likeReviewFunction } from "../data/like_review"
 import { LikeButton, CommentIcon, HeartIcon } from "./StyledComponents"
 
+export function ReviewUnavailableCard() {
+    return (
+        <div className="w-full border rounded-xl p-4 flex gap-3 items-center bg-white/[0.02] border-white/5 opacity-60">
+            <div className="flex flex-col gap-1.5">
+                <span className="text-xs text-violet-400 uppercase tracking-wider">Referenced Review</span>
+                <p className="text-gray-500 text-xs">Review is not available</p>
+            </div>
+        </div>
+    )
+}
+
 // for community threads referencing reviews only
 export function ReviewReferenceCard({review}: {review: any}) {
     const navigate = useNavigate()
