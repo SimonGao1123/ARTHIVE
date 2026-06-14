@@ -19,9 +19,10 @@ type UserMediaReviewProps = {
     setUser: any
     mediaInfo: any
     onOpenAddToLists?: () => void
+    onReviewChanged?: (review: UserReview | null) => void
 }
 
-export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddToLists}: UserMediaReviewProps) {
+export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddToLists, onReviewChanged}: UserMediaReviewProps) {
 
     const {title, coverImage, creator, year} = mediaInfo
     const navigate = useNavigate()
@@ -69,7 +70,7 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
     const [createReview] = useMutation<CreateReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
 
     function createReviewFunctionWrapper({newReviewImages = [], newIfFavorite = ifFavorite, newIfFinished = ifFinished, newReviewContent = reviewContent, newRating = rating}: {newReviewImages?: {file: File, url: string, uuid: string}[], newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) {
-        createReviewFunction(uploadImageToS3, newReviewImages, newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
+        createReviewFunction(uploadImageToS3, newReviewImages, newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate, onReviewChanged)
     }
 
     const [showDeleteReviewPopup, setShowDeleteReviewPopup] = useState<boolean>(false)

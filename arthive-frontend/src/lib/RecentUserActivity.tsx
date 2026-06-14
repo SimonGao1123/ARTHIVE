@@ -6,6 +6,7 @@ import { useLazyQuery } from "@apollo/client/react"
 import { obtainRecentUserActivityFunction } from "../data/obtain_recent_user_activity"
 import { useNavigate } from "react-router-dom"
 import DisplayRating from "./DisplayRating"
+import { useInfiniteScroll } from "./useInfiniteScroll"
 
 type RecentUserActivityProps = {
     targetUserId: string,
@@ -41,6 +42,12 @@ export default function RecentUserActivity({ targetUserId, setUser, navigate }: 
         obtainRecentUserActivityFunction(targetUserId, setRecentUserActivity, setUser, navigate, obtainRecentUserActivity, cursor, setCursor, LIMIT, setHasNextPage)
     }, [loadCount])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(c => c + 1),
+    })
+
     return (
         <div className="bg-[#171519] rounded-2xl border border-white/5 overflow-hidden">
             {loading && (
@@ -65,14 +72,7 @@ export default function RecentUserActivity({ targetUserId, setUser, navigate }: 
                     <ActivityCard key={`${activity.id}-${activity.subject?.__typename}`} activity={activity} />
                 ))}
             </div>
-            {hasNextPage && (
-                <button
-                    onClick={() => setLoadCount(c => c + 1)}
-                    className="w-full py-3 text-xs text-gray-500 hover:text-white hover:bg-white/[0.03] transition border-t border-white/5"
-                >
-                    Load more
-                </button>
-            )}
+            {hasNextPage && <div ref={sentinelRef} className="h-1" />}
         </div>
     )
 }

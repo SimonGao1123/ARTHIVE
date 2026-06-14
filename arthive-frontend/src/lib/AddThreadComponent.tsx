@@ -15,9 +15,10 @@ type AddThreadComponentProps = {
     parentThreadId: string | null
     rootThreadId: string | null
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>
+    onCreated?: () => void
 }
 
-export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads}: AddThreadComponentProps) {
+export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads, onCreated}: AddThreadComponentProps) {
     const [open, setOpen] = useState(false)
     const isRoot = parentThreadId === null && rootThreadId === null
 
@@ -40,6 +41,7 @@ export function AddThreadComponent({media_id, setUser, parentThreadId, rootThrea
                     setThreads={setThreads}
                     isRoot={isRoot}
                     onClose={() => setOpen(false)}
+                    onCreated={onCreated}
                 />
             )}
         </>
@@ -51,7 +53,7 @@ type AddThreadModalProps = AddThreadComponentProps & {
     onClose: () => void
 }
 
-function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThreads, isRoot, onClose}: AddThreadModalProps) {
+function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThreads, isRoot, onClose, onCreated}: AddThreadModalProps) {
     const [createThread, {loading, error}] = useMutation<CreateThreadResponse, CreateThreadInput>(CREATE_THREAD_MUTATION)
     const [content, setContent] = useState("")
     const [title, setTitle] = useState<string | null>(null)
@@ -69,7 +71,7 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
             alert("Invalid review link")
             return
         }
-        createThreadMutation(createThread, media_id, content, title, parentThreadId, rootThreadId, setUser, navigate, setThreads, newImages, uploadImageToS3, cleanedReviewRef ?? null)
+        createThreadMutation(createThread, media_id, content, title, parentThreadId, rootThreadId, setUser, navigate, setThreads, newImages, uploadImageToS3, cleanedReviewRef ?? null, onCreated)
         onClose()
     }
 

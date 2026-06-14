@@ -27,12 +27,20 @@ class CommunityThread < ApplicationRecord
 
     belongs_to :review, optional: true
 
-    after_save :enqueue_embedding, if: -> { (saved_change_to_content? || saved_change_to_title?) && root_thread_id.nil? && parent_thread_id.nil? }
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { (saved_change_to_content? || saved_change_to_title?) && root_thread_id.nil? && parent_thread_id.nil? }
 
 
     private
     def enqueue_embedding
-        AssignEmbeddingJob.perform_later(self.id, "community_thread")
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "community_thread"
+            }.to_json
+        )
     end
 
     def title_for_only_root

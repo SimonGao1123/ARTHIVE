@@ -5,6 +5,7 @@ import type { Notification as NotificationData, ReadNotificationsResponse, ReadN
 import { READ_NOTIFICATIONS_MUTATION } from "../types/mutations/read_notifications_mutation"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime()
@@ -106,6 +107,12 @@ export default function NotificationsPage({ setUser }: { setUser: (user: User | 
         readNotificationsData(cursor, 20, setNotifications as any, setCursor, setHasNextPage, readNotifications, navigate, setUser)
     }, [loadCount])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(c => c + 1),
+    })
+
     return (
         <div className="max-w-2xl mx-auto flex flex-col gap-6">
             <div>
@@ -144,14 +151,7 @@ export default function NotificationsPage({ setUser }: { setUser: (user: User | 
                     <NotificationRow key={n.id} notification={n} navigate={navigate} />
                 ))}
 
-                {hasNextPage && (
-                    <button
-                        onClick={() => setLoadCount(c => c + 1)}
-                        className="w-full py-4 text-sm text-gray-500 hover:text-white hover:bg-white/[0.03] transition border-t border-white/5"
-                    >
-                        Load more
-                    </button>
-                )}
+                {hasNextPage && <div ref={sentinelRef} className="h-1" />}
             </div>
         </div>
     )

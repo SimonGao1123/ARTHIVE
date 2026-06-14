@@ -7,6 +7,7 @@ import {
 import type { User } from "../types/user_types"
 import { useNavigate, useParams } from "react-router-dom"
 import type { Media } from "../types/media_type"
+import type { Review, UserReview } from "../types/review_type"
 import { useEffect, useState } from "react"
 import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
 import { MediaInfoArticle } from "../lib/MediaInfoArticle"
@@ -55,6 +56,37 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
     const showContent = Boolean(mediaInfo) && !loading
 
     const [showAddMediaToList, setShowAddMediaToList] = useState<boolean>(false)
+    const [reviewChange, setReviewChange] = useState<{ review: Review | null; nonce: number } | null>(null)
+
+    function handleReviewChanged(updated: UserReview | null) {
+        if (!user || !mediaInfo) return
+        if (updated === null) {
+            setReviewChange({ review: null, nonce: Date.now() })
+            return
+        }
+        if (!updated.content && updated.rating == null) {
+            setReviewChange({ review: null, nonce: Date.now() })
+            return
+        }
+        const review: Review = {
+            id: updated.id,
+            content: updated.content,
+            rating: updated.rating,
+            ifFavorite: updated.ifFavorite,
+            ifFinished: updated.ifFinished,
+            updatedAt: new Date().toISOString(),
+            user: {
+                id: Number(user.id),
+                username: user.username,
+                profilePicture: user.profilePicture ?? null,
+            },
+            likeCount: 0,
+            commentCount: 0,
+            ifLiked: false,
+            imageDetails: updated.imageDetails ?? [],
+        }
+        setReviewChange({ review, nonce: Date.now() })
+    }
 
     const borderColor = mediaInfo ? contentTypeColor(mediaInfo.contentType) : "#3a3a4a"
 
@@ -101,6 +133,7 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
                             setUser={setUser}
                             mediaInfo={mediaInfo}
                             onOpenAddToLists={() => setShowAddMediaToList(true)}
+                            onReviewChanged={handleReviewChanged}
                         />
                     </div>
 
@@ -119,7 +152,7 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
                                 <p className="text-gray-300 text-sm leading-relaxed">{mediaInfo.reviewsAiSummary}</p>
                             </div>
                         )}
-                        <MediaReviews id={id ?? ""} setUser={setUser} reviewCount={mediaInfo.reviewCount} />
+                        <MediaReviews id={id ?? ""} setUser={setUser} reviewCount={mediaInfo.reviewCount} reviewChange={reviewChange} />
                     </div>
                 </div>
             ) : null}

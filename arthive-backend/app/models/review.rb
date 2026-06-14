@@ -23,16 +23,19 @@ class Review < ApplicationRecord
     has_neighbors :embedding
 
 
-    after_save :enqueue_embedding, if: :saved_change_to_content?
-    after_save :enqueue_review_summary, if: :saved_change_to_content?
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_content? }
 
     private
     def enqueue_embedding
-        AssignEmbeddingJob.perform_later(self.id, "review")
-    end
-
-    def enqueue_review_summary
-        GenerateReviewSummaryJob.perform_later(self.media_id)
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "review"
+            }.to_json
+        )
     end
 
     public

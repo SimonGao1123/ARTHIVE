@@ -17,8 +17,9 @@ export function createThreadMutation(
     navigate: NavigateFunction,
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>,
     newImages: {file: File, url: string, uuid: string}[],
-    uploadImageToS3: any, 
-    reviewId: string | null
+    uploadImageToS3: any,
+    reviewId: string | null,
+    onCreated?: () => void
 ) {
     createThread({
         variables: {
@@ -32,10 +33,9 @@ export function createThreadMutation(
             }
         }
     }).then(async (data: any) => {
-        setThreads(prev => {
-            const existingIds = new Set(prev.map(thread => thread.id))
-            return [data.data.createThread, ...prev.filter((thread: any) => !existingIds.has(thread.id))]
-        })
+        const created = data.data.createThread
+        setThreads(prev => [created, ...prev.filter((thread: any) => thread.id !== created.id)])
+        onCreated?.()
         if (newImages.length > 0) {
             setThreads(prev => {
                 prev.find(thread => thread.id === data.data.createThread.id)!.imageDetails = newImages.map((image) => ({signedId: image.uuid, url: image.url}))

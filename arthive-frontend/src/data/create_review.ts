@@ -17,16 +17,19 @@ export function createReviewFunction(
     mediaId: number,
     createReview: any,
     setUser: (user: User | null) => void,
-    navigate: any
+    navigate: any,
+    onReviewChanged?: (review: UserReview | null) => void
 ) {
     createReview({ variables: { input: { mediaId, content: reviewContent === "" ? null : reviewContent, rating: rating === 0 ? null : rating, ifFavorite, ifFinished, reviewId: userReview ? userReview.id : null } } })
     .then(async (data: any) => {
         if (data.data.createReview.deleted) {
             setUserReview(null)
+            onReviewChanged?.(null)
         } else {
-            
+
             const updated_review = data.data.createReview.review
             setUserReview(updated_review)
+            onReviewChanged?.(updated_review)
 
             if (reviewContent === "" || !updated_review.content) {
                 return

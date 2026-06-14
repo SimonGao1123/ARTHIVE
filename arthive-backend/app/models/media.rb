@@ -21,7 +21,6 @@ class Media < ApplicationRecord
         "slice of life", "noir"
     ].freeze
 
-    SUMMARY_REVIEW_COUNT_MILESTONES = [5, 10, 25, 50, 100, 500, 1000].freeze
 
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
@@ -44,14 +43,22 @@ class Media < ApplicationRecord
 
     validate :validate_genres
 
-    after_save :enqueue_embedding, if: -> { saved_change_to_title? || saved_change_to_summary? }
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_title? || saved_change_to_summary? }
 
     
 
     private
 
     def enqueue_embedding
-        AssignEmbeddingJob.perform_later(self.id, "media")
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "media"
+            }.to_json
+        )
     end
     
     def validate_genres
@@ -64,6 +71,13 @@ class Media < ApplicationRecord
     end
 
     public
+
+    scope :needing_summary_refresh, -> {
+        joins(:reviews).where('reviews.content IS NOT NULL AND reviews.content != ""')
+        .group('media.id')
+        .having('COUNT(reviews.id) >= COALESCE(media.last_ai_summary_review_count, 0) + 10') # add 10 to the last review count to avoid refreshing too often
+    }
+
     def presigned_cover_image_url
         PresignedUrlAttachment.presigned_url(cover_image)
     end

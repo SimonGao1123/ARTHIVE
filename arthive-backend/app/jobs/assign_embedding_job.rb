@@ -6,7 +6,7 @@ class AssignEmbeddingJob < ApplicationJob
         case target_type
         when "review"
             review = Review.find_by(id: target_id)
-            return if review.nil? | review.content.blank? 
+            return if review.nil? || review.content.blank? 
 
             embedding = EmbeddingService.embed(review.content + ". Rating: #{review.rating ? review.rating : 'N/A'}.") # embed reviews that have content, alongside their rating
             return if embedding.nil?

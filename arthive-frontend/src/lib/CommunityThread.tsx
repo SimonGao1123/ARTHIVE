@@ -1,7 +1,7 @@
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { useMutation } from "@apollo/client/react"
 import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } from "../types/mutations/thread_mutations"
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState, type RefObject } from "react"
 import { likeThreadFunction } from "../data/like_thread_function"
 import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
@@ -97,7 +97,7 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
 
 type CommunityThreadsProps = {
     threads: CommunityThread[]
-    setLoadCount: Dispatch<SetStateAction<number>>
+    sentinelRef: RefObject<HTMLDivElement | null>
     ifNextPage: boolean
     setUser: (user: User | null) => void
     navigate: NavigateFunction
@@ -105,20 +105,13 @@ type CommunityThreadsProps = {
     user: User | null
 }
 
-export function CommunityThreads({threads, setLoadCount, ifNextPage, setUser, navigate, media_id, user}: CommunityThreadsProps) {
+export function CommunityThreads({threads, sentinelRef, ifNextPage, setUser, navigate, media_id, user}: CommunityThreadsProps) {
     return (
         <div className="flex flex-col gap-3">
             {threads.map((thread) => (
                 <CommunityThreadPaginated key={thread.id} thread={thread} setUser={setUser} navigate={navigate} media_id={media_id} user={user} />
             ))}
-            {ifNextPage && (
-                <button
-                    onClick={() => setLoadCount(prev => prev + 1)}
-                    className="w-full text-gray-500 hover:text-white py-3 text-sm transition border border-white/5 rounded-2xl hover:bg-white/[0.02]"
-                >
-                    Load more
-                </button>
-            )}
+            {ifNextPage && <div ref={sentinelRef} className="h-1" />}
         </div>
     )
 }

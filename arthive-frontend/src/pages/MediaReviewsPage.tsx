@@ -1,6 +1,6 @@
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useLazyQuery } from "@apollo/client/react"
 import { OBTAIN_MEDIA_REVIEWS_QUERY, type ObtainMediaReviewsResponse, type ObtainMediaReviewsInput, type ReviewsMediaSortEnum } from "../types/queries/media_request_query"
 import type { Review } from "../types/review_type"
@@ -8,11 +8,19 @@ import { obtainMediaReviewsFunction } from "../data/obtain_media_reviews"
 import ReviewCard from "../lib/ReviewCard"
 import ArchivrChat from "../lib/ArchivrChat"
 import { ArchivrLogo } from "../lib/StyledComponents"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 const LIMIT = 2
 
 
-export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (user: User | null) => void, id: string, reviewCount: number} ) {
+type MediaReviewsProps = {
+    setUser: (user: User | null) => void
+    id: string
+    reviewCount: number
+    reviewChange?: { review: Review | null; nonce: number } | null
+}
+
+export default function MediaReviews({ setUser, id, reviewCount, reviewChange }: MediaReviewsProps) {
     const navigate = useNavigate()
 
     const [cursor, setCursor] = useState<string | null>(null)
@@ -26,6 +34,12 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
     })
     const [ifNextPage, setIfNextPage] = useState(true)
     const [reviews, setReviews] = useState<Review[]>([])
+
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(c => c + 1),
+    })
     useEffect(() => {
         obtainMediaReviewsFunction(Number(id), cursor, setCursor, LIMIT, query, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage, sortBy)
     }, [loadCount])
@@ -38,10 +52,32 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
         setLoadCount(prev => prev + 1)
     }, [query, sortBy])
 
+    const reviewsTopRef = useRef<HTMLDivElement | null>(null)
+    useEffect(() => {
+        if (!reviewChange) return
+        const target = reviewChange.review
+        setReviews(prev => {
+            if (target == null) return prev
+            const existing = prev.find(r => r.id === target.id)
+            const filtered = prev.filter(r => r.id !== target.id)
+            const merged: Review = existing
+                ? {
+                      ...target,
+                      likeCount: existing.likeCount,
+                      commentCount: existing.commentCount,
+                      ifLiked: existing.ifLiked,
+                      imageDetails: target.imageDetails.length > 0 ? target.imageDetails : existing.imageDetails,
+                  }
+                : target
+            return [merged, ...filtered]
+        })
+        reviewsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, [reviewChange?.nonce])
+
 
 
     return (
-        <div className="bg-[#171519] rounded-2xl border border-white/5 p-6">
+        <div ref={reviewsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6">
             <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 20h9"/>
@@ -103,14 +139,7 @@ export default function MediaReviews({ setUser, id, reviewCount}: {setUser: (use
                 ))}
             </div>
 
-            {ifNextPage && (
-                <button
-                    onClick={() => setLoadCount(loadCount + 1)}
-                    className="w-full text-violet-400 hover:text-violet-300 py-3 text-sm transition mt-2"
-                >
-                    Load More
-                </button>
-            )}
+            {ifNextPage && <div ref={sentinelRef} className="h-1" />}
 
             <ArchivrChat
                 mediaId={id}

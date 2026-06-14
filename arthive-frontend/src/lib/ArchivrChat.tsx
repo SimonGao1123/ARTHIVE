@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { useMutation, useLazyQuery } from "@apollo/client/react"
 import { useNavigate } from "react-router-dom"
 import {
@@ -16,6 +16,7 @@ import { requestArchivrChatFunction } from "../data/request_archivr_chat"
 import { sendArchivrMessageFunction } from "../data/send_archivr_message"
 import type { User } from "../types/user_types"
 import { ArchivrLogo } from "./StyledComponents"
+import { useInfiniteScroll } from "./useInfiniteScroll"
 
 const LIMIT = 6
 
@@ -50,7 +51,7 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
     const [pending, setPending] = useState(false)
     const [hasLoadedFirst, setHasLoadedFirst] = useState(false)
 
-    const scrollRef = useRef<HTMLDivElement | null>(null)
+    const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null)
     const prevScrollHeightRef = useRef<number | null>(null)
 
     const [obtainArchivrConversation, { loading, error }] = useLazyQuery<
@@ -81,7 +82,7 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
     }, [isOpen, loadCount])
 
     useLayoutEffect(() => {
-        const el = scrollRef.current
+        const el = scrollEl
         if (!el) return
         if (prevScrollHeightRef.current !== null) {
             el.scrollTop = el.scrollHeight - prevScrollHeightRef.current
@@ -89,15 +90,20 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
         } else {
             el.scrollTop = el.scrollHeight // automatically scroll to the bottom of the chat if not scrolling up to load text
         }
-    }, [messages.length])
+    }, [messages.length, scrollEl])
 
-    function handleScroll(e: React.UIEvent<HTMLDivElement>) {
-        const el = e.currentTarget
-        if (el.scrollTop <= 0 && ifNextPage && !loading && cursor) {
-            prevScrollHeightRef.current = el.scrollHeight
-            setLoadCount((prev) => prev + 1)
-        }
-    }
+    const onLoadMore = useCallback(() => {
+        if (scrollEl) prevScrollHeightRef.current = scrollEl.scrollHeight
+        setLoadCount((prev) => prev + 1)
+    }, [scrollEl])
+
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage && cursor !== null,
+        loading,
+        onLoadMore,
+        root: scrollEl,
+        rootMargin: "0px",
+    })
 
     function handleSend() {
         const q = input.trim()
@@ -157,10 +163,10 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
 
                 {/* Messages */}
                 <div
-                    ref={scrollRef}
-                    onScroll={handleScroll}
+                    ref={setScrollEl}
                     className="flex-1 overflow-y-auto flex flex-col gap-2 p-4"
                 >
+                    <div ref={sentinelRef} />
                     {loading && (
                         <p className="text-gray-400 text-xs text-center py-1">Loading…</p>
                     )}

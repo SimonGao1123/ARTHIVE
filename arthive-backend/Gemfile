@@ -52,6 +52,8 @@ gem 'rack-cors'
 gem 'neighbor'
 gem "aws-sdk-bedrockruntime"
 
+gem 'whenever'
+
 group :development, :test do
   gem 'graphiql-rails'
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -14,6 +14,7 @@ import type { Review } from "../types/review_type"
 import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ReviewCard"
 import EditThreadComponent from "../lib/EditThreadComponent"
 import { LikeButton, CommentIcon } from "../lib/StyledComponents"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 const LIMIT = 2
 export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
@@ -48,6 +49,15 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
         }
     }, [thread_id, loadCount])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(prev => prev + 1),
+    })
+
+    const repliesTopRef = useRef<HTMLDivElement | null>(null)
+    const scrollRepliesToTop = () => repliesTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+
     if (error) {
         navigate("/not_found")
         return null
@@ -77,13 +87,14 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
                     parentThreadId={mainThread.id}
                     rootThreadId={mainThread.rootThreadId || mainThread.id}
                     setThreads={setChildThreads}
+                    onCreated={scrollRepliesToTop}
                 />
             )}
 
             {childThreads.length > 0 && (
-                <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
+                <div ref={repliesTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Replies</p>
-                    <CommunityThreads threads={childThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
+                    <CommunityThreads threads={childThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
                 </div>
             )}
         </div>

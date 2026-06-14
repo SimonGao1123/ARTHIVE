@@ -17,12 +17,20 @@ class List < ApplicationRecord
 
     validate :content_type_validation
 
-    after_save :enqueue_embedding, if: -> { saved_change_to_name? || saved_change_to_description? || saved_change_to_tags? }
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_name? || saved_change_to_description? || saved_change_to_tags? }
 
     private
 
     def enqueue_embedding
-        AssignEmbeddingJob.perform_later(self.id, "list")
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "list"
+            }.to_json
+        )
     end
 
     def content_type_validation

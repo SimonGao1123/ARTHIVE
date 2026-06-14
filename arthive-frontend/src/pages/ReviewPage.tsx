@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react"
 import type { MainReview, ReviewComment } from "../types/review_type"
 import { OBTAIN_REVIEW_PAGE_QUERY, type ObtainReviewPageResponse, type ObtainReviewPageInput } from "../types/queries/review_request_queries"
 import { useLazyQuery, useMutation } from "@apollo/client/react"
@@ -11,6 +11,7 @@ import { likeReviewFunction } from "../data/like_review"
 import { WRITE_COMMENT_MUTATION, type WriteCommentInput, type WriteCommentResponse } from "../types/mutations/write_comment_mutation"
 import { writeReviewCommentFunction } from "../data/write_review_comment"
 import { LikeButton, CommentIcon } from "../lib/StyledComponents"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 const LIMIT = 10
 
@@ -48,6 +49,15 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
         }
     }, [review_id, loadCount, query])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(prev => prev + 1),
+    })
+
+    const commentsTopRef = useRef<HTMLDivElement | null>(null)
+    const scrollCommentsToTop = () => commentsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+
     if (error) {
         navigate("/not_found")
         return
@@ -65,7 +75,7 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
                 />
             )}
 
-            <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
+            <div ref={commentsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Comments</p>
                     <button
@@ -107,14 +117,7 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
                     )}
                 </div>
 
-                {ifNextPage && (
-                    <button
-                        onClick={() => setLoadCount(prev => prev + 1)}
-                        className="w-full text-violet-400 hover:text-violet-300 py-2 text-sm transition"
-                    >
-                        Load More
-                    </button>
-                )}
+                {ifNextPage && <div ref={sentinelRef} className="h-1" />}
             </div>
 
             {showCommentModal && review_id && (
@@ -125,26 +128,28 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
                     setUser={setUser}
                     navigate={navigate}
                     onClose={() => setShowCommentModal(false)}
+                    onCreated={scrollCommentsToTop}
                 />
             )}
         </div>
     )
 }
 
-function WriteCommentModal({reviewId, setReviewComments, setCommentCount, setUser, navigate, onClose}: {
+function WriteCommentModal({reviewId, setReviewComments, setCommentCount, setUser, navigate, onClose, onCreated}: {
     reviewId: string
     setReviewComments: Dispatch<SetStateAction<ReviewComment[]>>
     setCommentCount: Dispatch<SetStateAction<number>>
     setUser: (user: User | null) => void
     navigate: any
     onClose: () => void
+    onCreated?: () => void
 }) {
     const [comment, setComment] = useState("")
     const [writeComment] = useMutation<WriteCommentResponse, WriteCommentInput>(WRITE_COMMENT_MUTATION)
 
     function handleSubmit() {
         if (!comment.trim()) return
-        writeReviewCommentFunction(reviewId, comment, writeComment, setUser, navigate, setReviewComments, setCommentCount)
+        writeReviewCommentFunction(reviewId, comment, writeComment, setUser, navigate, setReviewComments, setCommentCount, onCreated)
         onClose()
     }
 
