@@ -73,9 +73,9 @@ class Media < ApplicationRecord
     public
 
     scope :needing_summary_refresh, -> {
-        joins(:reviews).where('reviews.content IS NOT NULL AND reviews.content != ""')
+        joins(:reviews).where('reviews.content IS NOT NULL')
         .group('media.id')
-        .having('COUNT(reviews.id) >= COALESCE(media.last_ai_summary_review_count, 0) + 10') # add 10 to the last review count to avoid refreshing too often
+        .having('COUNT(reviews.id) >= COALESCE(media.last_ai_summary_review_count, 0)*2 + 5') # add 10 to the last review count to avoid refreshing too often
     }
 
     def presigned_cover_image_url

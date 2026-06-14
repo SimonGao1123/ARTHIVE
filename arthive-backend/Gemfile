@@ -52,7 +52,7 @@ gem 'rack-cors'
 gem 'neighbor'
 gem "aws-sdk-bedrockruntime"
 
-gem 'whenever'
+gem 'rufus-scheduler'
 
 group :development, :test do
   gem 'graphiql-rails'

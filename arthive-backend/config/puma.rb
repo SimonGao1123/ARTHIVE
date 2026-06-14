@@ -34,9 +34,12 @@ port ENV.fetch("PORT", 3000)
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart
 
-# Start SQS notification poller thread after each worker boots.
-on_worker_boot do
+# Start background threads once Puma has booted.
+# `on_booted` fires in both single-process and cluster mode; `on_worker_boot`
+# would only fire in cluster mode (silently skipped in single mode).
+on_booted do
   SqsWorker.start
+  InProcessScheduler.start
 end
 
 # Specify the PID file. Defaults to tmp/pids/server.pid in development.

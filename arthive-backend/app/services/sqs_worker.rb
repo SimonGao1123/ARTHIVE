@@ -18,11 +18,11 @@ class SqsWorker
 
             case payload["type"]
             when "notification"
-                process_notification(message, payload)
+              process_notification(message, payload)
             when "review_summary"
-                process_review_summary(message, payload)
+              process_review_summary(message, payload)
             when "embedding"
-                process_embedding(message, payload)
+              process_embedding(message, payload)
             else
                 SQS_CLIENT.delete_message(
                     queue_url: SQS_QUEUE_URL,

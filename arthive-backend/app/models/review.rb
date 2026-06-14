@@ -20,7 +20,7 @@ class Review < ApplicationRecord
 
     has_many_attached :images
 
-    has_neighbors :embedding
+    has_neighbors :embedding     
 
 
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_content? }
