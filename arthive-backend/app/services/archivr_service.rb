@@ -1,85 +1,109 @@
 class ArchivrService
+    HISTORY_LIMIT = 10
+    MAX_LOOPS = 3
+
     def self.generate_response(query, media_id, user_id)
         conversation = ArchivrConversation.find_or_create_by(user_id: user_id, media_id: media_id)
         media = Media.find(media_id)
         user = User.find(user_id)
 
+
+        # doesn't include current query
+        prev_messages = conversation.archivr_messages.order(created_at: :desc).limit(HISTORY_LIMIT).to_a.reverse
+
+        # put previous messages into content for Gemini
+        content = prev_messages.map { |m|
+            {role: (m.role == "user" ? "user" : "model"), parts: [{text: m.content}]}
+        }
+        
+        system_instructions = build_system_prompt(user, media) # preserved on every query
+
+        content << {role: "user", parts: [{text: query}]} # slowly build up contents
+
         ArchivrMessage.create!(archivr_conversation: conversation, content: query, role: "user")
 
-        prev_messages = conversation.archivr_messages.order(created_at: :desc).limit(10).to_a.reverse
-        prev_context = prev_messages.map { |m| "#{m.role == 'user' ? user.username : 'Archivr'}: #{m.content}" }.join("\n")
 
-        embedding = EmbeddingService.embed(query)
+        tools = ArchivrTools::SCHEMAS # loads all schemas from ArchivrTools
 
-        review_results = Review.search(query: query, embedded_query: embedding, search_filter: [], current_user_id: user_id).limit(8)
-        media_results = Media.search(query: query, embedded_query: embedding, search_filter: []).limit(5)
-        list_results = List.search(query: query, embedded_query: embedding, search_filter: [], current_user_id: user_id).limit(5)
-        thread_results = CommunityThread.search(query: query, embedded_query: embedding, search_filter: [], current_user_id: user_id).limit(8)
+        counter = 0
 
-        review_context = review_results.map { |r|
-            rating_str = r.rating ? "#{r.rating}/5" : "no rating"
-            "- #{r.user.username} (#{rating_str}): #{r.content}"
-        }.join("\n")
+        loop do
+            break if counter >= MAX_LOOPS
+            
+            response = GeminiClient.call_gemini_with_tools(system_instructions: system_instructions, contents: content, tools: tools)
 
-        media_context = media_results.map { |m|
-            genres = m.genre.join(", ")
-            "- #{m.title} (#{m.year}, #{m.content_type}) by #{m.creator} — #{m.summary}"
-        }.join("\n")
+            puts "response: #{response[:raw_model_turn]} \n\n\n\n\n\n\n"
 
-        list_context = list_results.map { |l|
-            "- \"#{l.name}\" by #{l.user.username}: #{l.description}"
-        }.join("\n")
+            if response[:error]
+                Rails.logger.error "Archivr error: #{response[:error]}"
+                return nil
+            end
 
-        thread_context = thread_results.map { |t|
-            "- [#{t.community.media.title}] #{t.title}: #{t.content}"
-        }.join("\n")
 
-        media_summary_section = media.reviews_ai_summary.present? ? "\nCommunity Summary:\n#{media.reviews_ai_summary}" : ""
-        actors_section = media.actors.present? ? "\nStarring: #{media.actors.join(', ')}" : ""
+            if !response[:tool_calls].empty?
+                content << response[:raw_model_turn]
+                tool_calls = response[:tool_calls]
 
-        prompt = <<~PROMPT
-            You are Archivr, a knowledgeable and conversational AI assistant for the Arthive media platform. You help users explore, discuss, and discover media based on real community reviews, threads, and lists.
+                tool_calls.each do |tool_call|
+                    tool_res = ArchivrTools.execute(tool_call[:name], tool_call[:args], {media_id: media_id, user_id: user_id})
 
-            You are currently assisting #{user.username} with questions about:
+                    content << {
+                        role: "function",
+                        parts: [{
+                            functionResponse: {
+                                name: tool_call[:name],
+                                response: {
+                                    result: tool_res
+                                }
+                            }
+                        }]
+                    } 
+                end
+
+                puts "content: #{content} \n\n\n\n\n\n\n"
+
+                counter += 1
+                next
+            end
+
+            if response[:text].present? # just return text early
+                return ArchivrMessage.create!(archivr_conversation: conversation, content: response[:text], role: "assistant")
+            else
+                Rails.logger.error "Archivr error: No text in response"
+                return nil
+            end
+
+        end
+
+        Rails.logger.error "Max loops reached without final response"
+        return nil
+
+    end
+
+    def self.build_system_prompt(user, media)
+        <<~PROMPT
+            You are Archivr — a thoughtful, conversational AI companion for the Arthive media platform. You help users explore, understand, and discuss media, grounded in what real people on Arthive have written.
+
+            === CURRENT MEDIA ===
+            #{user.username} is asking about:
             Title: #{media.title}
             Type: #{media.content_type}
             Created by: #{media.creator} (#{media.year})
-            Genres: #{media.genre.join(', ')}#{actors_section}
-            Synopsis: #{media.summary}#{media_summary_section}
+            Genres: #{media.genre.join(', ')}
+            Synopsis: #{media.summary}
 
-            --- COMMUNITY CONTEXT ---
-            Use the following community data from Arthive to inform your response. Prioritise this over general knowledge when answering questions about opinions, ratings, or recommendations.
+            === HOW TO RESPOND ===
+            - Speak directly and naturally to #{user.username}, like a friend who knows the media well.
+            - For questions about opinions, themes, ratings, or community sentiment regarding #{media.title}: ground your answer in the reviews and threads above. Cite usernames or thread titles when referencing specific takes ("Karsten gave it 4/5 and called it…").
+            - For factual questions about #{media.title} (plot, cast, trivia, production, comparisons to other works): you may draw on general knowledge. Be honest if you're uncertain — don't invent details.
+            - For recommendations of OTHER media: prefer suggestions you can ground in the community lists/threads above. You may suggest other media from general knowledge if the community context is thin, but clearly mark which is which (e.g., "Outside of Arthive, you might also enjoy…").
+            - Never fabricate community reviews, user opinions, or ratings that aren't in the context above.
+            - If the question is clearly unrelated to #{media.title} or media in general, gently steer the conversation back.
+            - Be concise. Match the user's tone. Avoid bullet points unless listing 3+ items.
+            - Use **bold** for titles, names being highlighted, or emphasis. Avoid headings or lists for short responses.
 
-            User Reviews for context:
-            #{review_context.present? ? review_context : "No relevant reviews found."}
-
-            Related Media:
-            #{media_context.present? ? media_context : "No related media found."}
-
-            Community Lists:
-            #{list_context.present? ? list_context : "No relevant lists found."}
-
-            Community Threads:
-            #{thread_context.present? ? thread_context : "No relevant threads found."}
-
-            --- CONVERSATION HISTORY ---
-            #{prev_context.present? ? prev_context : "This is the start of the conversation."}
-
-            --- INSTRUCTIONS ---
-            - Answer #{user.username}'s question directly and conversationally.
-            - Draw on the community context above when relevant — cite usernames or thread titles when referencing specific opinions.
-            - If the question is clearly unrelated to #{media.title} or the Arthive community, politely redirect the conversation back.
-            - Do not make up reviews, ratings, or opinions that aren't in the context.
-            - Be concise but thorough. Avoid bullet points unless listing multiple items.
-
-            #{user.username}: #{query}
             Archivr:
         PROMPT
-
-
-        response = ReviewSummaryService.call_gemini(prompt)
-        return nil if response.nil?
-
-        ArchivrMessage.create!(archivr_conversation: conversation, content: response, role: "assistant")
     end
+
 end

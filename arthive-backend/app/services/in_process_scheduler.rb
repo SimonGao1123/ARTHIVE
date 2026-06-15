@@ -5,7 +5,7 @@ class InProcessScheduler
 
     scheduler = Rufus::Scheduler.new
 
-    scheduler.cron "0 0 * * *" do # every day at midnight
+    scheduler.cron "0 * * * *" do # every day at midnight
       enqueue_review_summaries
     rescue => e
       Rails.logger.error "[Scheduler] review_summaries tick failed: #{e.message}"
