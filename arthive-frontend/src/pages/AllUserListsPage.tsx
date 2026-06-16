@@ -66,7 +66,9 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
         setContentType(nextContentType)
     }
 
-    const [obtainAllUserLists, { loading, error }] = useLazyQuery<ObtainAllUserListsResponse, ObtainAllUserListsInput>(OBTAIN_ALL_USER_LISTS_QUERY)
+    const [obtainAllUserLists, { loading, error }] = useLazyQuery<ObtainAllUserListsResponse, ObtainAllUserListsInput>(OBTAIN_ALL_USER_LISTS_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     useEffect(() => {
         if (!user_id) {
             navigate("/")

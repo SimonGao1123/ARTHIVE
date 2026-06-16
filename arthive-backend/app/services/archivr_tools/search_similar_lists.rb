@@ -20,9 +20,13 @@ module ArchivrTools
             parameters: {
                 type: "object",
                 properties: {
-                    scope: {
+                    media_scope: {
                         type: "string",
                         description: "'containing_this_media' (default) or 'containing_related_media'."
+                    },
+                    user_scope: {
+                        type: "string",
+                        description: "'current_user' (default) or 'anyone', 'current_user' if user asks about their own lists, 'anyone' if user asks about other users' lists" 
                     },
                     similarity_hint: {
                         type: "string",
@@ -42,7 +46,8 @@ module ArchivrTools
 
         # context = {media_id, user_id}, injected by dispatcher
         def self.execute(args, context)
-            scope_mode = args["scope"] || "containing_this_media"
+            media_scope_mode = args["media_scope"] || "containing_this_media"
+            user_scope_mode = args["user_scope"] || "current_user"
             hint_embedding =
                 if args["similarity_hint"].present?
                     EmbeddingService.embed(args["similarity_hint"])
@@ -50,7 +55,7 @@ module ArchivrTools
 
             # Step 1: figure out which media we're looking for lists that contain
             target_media_ids =
-                if scope_mode == "containing_related_media"
+                if media_scope_mode == "containing_related_media"
                     current_media = Media.find_by(id: context[:media_id])
                     return { error: "Current media not found" } unless current_media
 
@@ -75,8 +80,14 @@ module ArchivrTools
             # Step 3: visibility + optional content_type filter
             scope = List
                 .where(id: list_ids)
-                .user_visible_filter(context[:user_id])
+            
+            if user_scope_mode == "current_user"
+                scope = scope.where(user_id: context[:user_id])
+            else
+                scope = scope.user_visible_filter(context[:user_id])
                 .where(user_id: User.visible_to(context[:user_id]).select(:id))
+            end
+            
 
             if args["content_type"].present?
                 scope = scope.where("? = ANY(content_type)", args["content_type"])

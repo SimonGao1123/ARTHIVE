@@ -27,7 +27,9 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageUser, setPageUser] = useState<{ id: string; username: string } | null>(null)
 
-    const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY)
+    const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY, {
+        fetchPolicy: "no-cache",
+    })
 
     useEffect(() => {
         if (!user_id) navigate("/")

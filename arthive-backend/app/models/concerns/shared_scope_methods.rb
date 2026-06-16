@@ -20,12 +20,11 @@ module SharedScopeMethods
                 raise "Invalid model type: #{model_type}"
             end
 
-            
-            if query.blank? || query.length < 3
-                return model.query_filter(query)
-            end
+            # No query → no constraint to add. Return the calling chain unchanged.
+            next all if query.blank? || query.length < 3
+
             embedding = embedded_query.nil? ? EmbeddingService.embed(query) : embedded_query
-            return none if embedding.nil?
+            next none if embedding.nil?
 
             vector_literal = "[#{embedding.join(',')}]"
             vector_query = model.nearest_neighbors(:embedding, embedding, distance: "cosine")
@@ -35,10 +34,12 @@ module SharedScopeMethods
 
             ids = vector_query.pluck(:id)
 
+            # Use `where(id: ids)` (no `model.` prefix) so Rails merges with the calling chain
+            # instead of replacing it. Same reason for `next all` / `next none` above.
             if ids.empty?
-                return model.query_filter(query)
+                next query_filter(query)
             else
-                return model.where(id: ids)
+                next where(id: ids)
             end
         }
     end
