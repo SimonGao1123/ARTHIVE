@@ -41,6 +41,7 @@ module Mutations
 
             if args[:review_id].present?
                 review = Review.find_by(id: args[:review_id])
+                # if not quoting yourself, and thread doesn't already have a review, send notification
                 if review.user.id != context[:current_user].id && (!thread.review.present? || thread.review.id != review.id)
                     SQS_CLIENT.send_message(
                         queue_url: SQS_QUEUE_URL,

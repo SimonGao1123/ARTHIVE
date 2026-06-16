@@ -1,7 +1,10 @@
 module ArchivrTools
     # TODO ADD MORE
     TOOLS = [
-        SearchReviewsForCurrentMedia
+        SearchReviewsForCurrentMedia,
+        FindSimilarMedia,
+        SearchSimilarRootThreads,
+        SearchSimilarLists
     ].freeze
 
     SCHEMAS = TOOLS.map{|t| t::SCHEMA}.freeze
