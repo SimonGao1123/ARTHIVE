@@ -14,6 +14,10 @@ module Resolvers
             if review.nil?
                 raise GraphQL::ExecutionError, "Review not found"
             end
+
+            unless User.if_visible_to_user(context[:current_user].id, review.user_id)
+                raise GraphQL::ExecutionError, "Review not found"
+            end
             
             comments = review.review_comments.includes(:user).in_order_of(:user_id, [context[:current_user].id], filter: false).recent.query_filter(query)
             return {

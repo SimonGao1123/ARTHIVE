@@ -4,6 +4,7 @@ import type { LoginInput } from "../types/mutations/user_login_mutations"
 import type { LoginUserMutation } from "../types/mutations/user_login_mutations"
 import { LOGIN_USER } from "../types/mutations/user_login_mutations"
 import type { User } from "../types/user_types"
+import { client } from "../lib/apollo"
 import { useNavigate } from "react-router-dom"
 
 type LoginPageProps = {
@@ -54,7 +55,9 @@ export default function Login({ setUser }: LoginPageProps) {
                                 if (loginData.data?.login.user && loginData.data.login.token) {
                                     setUser(loginData.data.login.user)
                                     localStorage.setItem("authToken", loginData.data.login.token)
+                                    client.resetStore()
                                     navigate("/")
+
                                 }
                             })
                             .catch(() => {})

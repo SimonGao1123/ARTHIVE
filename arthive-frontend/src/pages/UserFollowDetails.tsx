@@ -36,16 +36,19 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
 
-    const [obtainFollowersQuery, {loading, error}] = useLazyQuery<ObtainFollowersResponse, ObtainFollowersInput>
-    (follow_type === "followers" || follow_type === "pending_received_follows" ? OBTAIN_INCOMING_FOLLOWS_QUERY : OBTAIN_OUTGOING_FOLLOWS_QUERY)
+    const [obtainFollowersQuery, {loading, error}] = useLazyQuery<ObtainFollowersResponse, ObtainFollowersInput>(
+    (follow_type === "followers" || follow_type === "pending_received_follows" ? OBTAIN_INCOMING_FOLLOWS_QUERY : OBTAIN_OUTGOING_FOLLOWS_QUERY), { fetchPolicy: "no-cache" })
 
     const navigate = useNavigate()
+
+    function obtainFollowsDetails() {
+        obtainFollowsDetailsFunction(id as string, setTotalPages, query, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setTargetUserData, setCount, navigate, setUser, pageNum)
+    }
     useEffect(() => {
         if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) {
             navigate("/*")
         }
-        obtainFollowsDetailsFunction(id as string, setTotalPages, query, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setTargetUserData, setCount, navigate, setUser, pageNum)
-
+        obtainFollowsDetails()
     }, [pageNum, query])
 
     return (
@@ -97,6 +100,7 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
                             id={id as string}
                             setFollowsData={setFollowsData}
                             setCount={setCount}
+                            obtainFollowsDetails={obtainFollowsDetails}
                         />
                     ))
                 )}
@@ -115,9 +119,10 @@ type UserFollowCardProps = {
     id: string
     setFollowsData: React.Dispatch<React.SetStateAction<FollowData[]>>
     setCount: React.Dispatch<React.SetStateAction<number>>
+    obtainFollowsDetails: () => void
 }
 
-export function UserFollowCard({user, follow, follow_type, setUser, id, setFollowsData, setCount}: UserFollowCardProps) {
+export function UserFollowCard({user, follow, follow_type, setUser, id, setFollowsData, setCount, obtainFollowsDetails}: UserFollowCardProps) {
     const [currFollowStatus, setCurrFollowStatus] = useState<{id: string, status: string} | null>({id: follow.id, status: follow.status})
     const navigate = useNavigate()
 
@@ -145,14 +150,14 @@ export function UserFollowCard({user, follow, follow_type, setUser, id, setFollo
         if (follow_type === "pending_received_follows") {
             return (
                 <>
-                    <ManipulateFollowButton followId={follow.id} manipulation="accept" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
-                    <ManipulateFollowButton followId={follow.id} manipulation="reject" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
+                    <ManipulateFollowButton obtainFollowsDetails={obtainFollowsDetails} followId={follow.id} manipulation="accept" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
+                    <ManipulateFollowButton obtainFollowsDetails={obtainFollowsDetails} followId={follow.id} manipulation="reject" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
                 </>
             )
         } else if (follow_type === "pending_sent_follows") {
-            return <ManipulateFollowButton followId={follow.id} manipulation="cancel" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
+            return <ManipulateFollowButton obtainFollowsDetails={obtainFollowsDetails} followId={follow.id} manipulation="cancel" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
         } else {
-            return <ManipulateFollowButton followId={follow.id} manipulation="unfollow" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
+            return <ManipulateFollowButton obtainFollowsDetails={obtainFollowsDetails} followId={follow.id} manipulation="unfollow" setFollowStatus={setCurrFollowStatus} setUser={setUser} />
         }
     }
 

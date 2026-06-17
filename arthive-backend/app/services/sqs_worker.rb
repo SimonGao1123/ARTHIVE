@@ -18,7 +18,11 @@ class SqsWorker
 
             case payload["type"]
             when "notification"
-                process_notification(message, payload)
+              process_notification(message, payload)
+            when "review_summary"
+              process_review_summary(message, payload)
+            when "embedding"
+              process_embedding(message, payload)
             else
                 SQS_CLIENT.delete_message(
                     queue_url: SQS_QUEUE_URL,
@@ -34,7 +38,34 @@ class SqsWorker
     end
   end
 
+  def self.process_embedding(message, payload)
+    AssignEmbeddingJob.new.perform(payload["target_id"], payload["target_type"])
+    SQS_CLIENT.delete_message(
+      queue_url: SQS_QUEUE_URL,
+      receipt_handle: message.receipt_handle
+    )
+  rescue => e
+    # dont delete, let SQS redeliver after visibility timeout
+    Rails.logger.error "[SQS] Failed to process embedding #{message.message_id}: #{e.message}"
+  end
+
   
+  def self.process_review_summary(message, payload)
+    GenerateReviewSummaryJob.new.perform(payload["media_id"]) # synchronous job
+    SQS_CLIENT.delete_message(
+      queue_url: SQS_QUEUE_URL,
+      receipt_handle: message.receipt_handle
+    )
+  rescue ActiveRecord::RecordNotFound
+    # Media was deleted between enqueue and processing — drop the message
+    SQS_CLIENT.delete_message(
+      queue_url: SQS_QUEUE_URL,
+      receipt_handle: message.receipt_handle
+    )
+  rescue => e
+    Rails.logger.error "[SQS] Failed to process review summary #{message.message_id}: #{e.message}"
+    # Do NOT delete — let SQS re-deliver after visibility timeout
+  end
 
   def self.process_notification(message, payload)
 
@@ -70,13 +101,11 @@ class SqsWorker
       queue_url: SQS_QUEUE_URL,
       receipt_handle: message.receipt_handle
     )
-  rescue StandardError => e
+  rescue => e
     Rails.logger.error "[SQS] Failed to process message #{message.message_id}: #{e.message}"
     SQS_CLIENT.delete_message(
       queue_url: SQS_QUEUE_URL,
       receipt_handle: message.receipt_handle
     )
-  rescue => e
-    Rails.logger.error "[SQS] Failed to process message #{message.message_id}: #{e.message}"
   end
 end

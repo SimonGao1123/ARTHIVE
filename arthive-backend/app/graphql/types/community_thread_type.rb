@@ -17,6 +17,22 @@ module Types
         field :image_details, [Types::ImageDetailsType], null: true
 
         field :review, Types::ReviewType, null: true
+        field :has_review, Boolean, null: false
+
+        def has_review
+            object.review_id.present?
+        end
+
+        def review
+            return nil unless object.review_id.present?
+            reviewed = object.review
+            return nil unless reviewed
+            return nil unless User.if_visible_to_user(context[:current_user].id, reviewed.user_id)
+            reviewed
+        rescue GraphQL::ExecutionError
+            nil
+        end
+
         def image_details
             object.images_blobs.map do |blob|
                 {
@@ -63,7 +79,9 @@ module Types
         end
 
         def child_threads
-            object.child_threads.order_threads(context[:current_user].id)
+            object.child_threads
+                .where(user_id: User.visible_to(context[:current_user].id).select(:id))
+                .order_threads(context[:current_user].id)
         end
 
 

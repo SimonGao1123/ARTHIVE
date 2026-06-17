@@ -11,7 +11,8 @@ export function writeReviewCommentFunction(
     setUser: (user: User | null) => void,
     navigate: any,
     setReviewComments: Dispatch<SetStateAction<ReviewComment[]>>,
-    setCommentCount: Dispatch<SetStateAction<number>>
+    setCommentCount: Dispatch<SetStateAction<number>>,
+    onCreated?: () => void
 ) {
     if (comment.trim() === "") {
         alert("Comment cannot be empty")
@@ -22,6 +23,7 @@ export function writeReviewCommentFunction(
         const created = data.data.commentOnReview
         if (created) {
             setReviewComments((prev) => [created, ...prev])
+            onCreated?.()
         }
         setCommentCount(prev => prev + 1)
     })

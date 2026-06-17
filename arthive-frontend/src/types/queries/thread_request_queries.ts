@@ -37,6 +37,7 @@ export const OBTAIN_THREAD_QUERY = gql`
                 url
             }
 
+            hasReview
             review {
                 id
                 content
@@ -62,7 +63,7 @@ export const OBTAIN_THREAD_QUERY = gql`
                     url
                 }
             }
-            
+
             childThreads(after: $after, first: $first) {
                 edges {
                     node {
@@ -85,6 +86,7 @@ export const OBTAIN_THREAD_QUERY = gql`
                             signedId
                             url
                         }
+                        hasReview
                         review {
                             id
                             content
@@ -138,7 +140,8 @@ export type ObtainThreadResponse = {
             signedId: string,
             url: string
         }[]
-        review: Review
+        hasReview: boolean
+        review: Review | null
         childThreads: {
             edges: {
                 node: CommunityThread

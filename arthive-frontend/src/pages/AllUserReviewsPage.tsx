@@ -23,7 +23,11 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     const [totalPages, setTotalPages] = useState<number>(0)
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
 
-    const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY)
+    console.log(reviews)
+
+    const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY, {
+        fetchPolicy: "no-cache",
+    })
 
     useEffect(() => {
         if (!user_id) navigate("/")

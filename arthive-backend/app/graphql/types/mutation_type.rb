@@ -30,5 +30,7 @@ module Types
     field :edit_thread, mutation: Mutations::EditThread
 
     field :read_notifications, mutation: Mutations::ReadNotifications
+
+    field :message_archivr, mutation: Mutations::MessageArchivr
   end
 end

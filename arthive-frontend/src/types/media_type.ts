@@ -1,6 +1,6 @@
 // for retreiving media from the backend
 export type Media = {
-    id: number;
+    id: string;
     title: string;
     creator: string;
     year: string;
@@ -18,4 +18,8 @@ export type Media = {
         id: string;
         name: string;
     }[];
+    reviewsAiSummary: string | null;
+    reviewCount: number;
+    ifFavorite: boolean;
+    ifFinished: boolean;
 }

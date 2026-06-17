@@ -16,7 +16,10 @@ module Mutations
                 end
 
                 review_comment = ReviewComment.create!(user_id: context[:current_user].id, review_id: review_id, comment: comment)
-                Activity.log(user: context[:current_user], subject: review_comment, status: "created")
+                Activity.log(user: context[:current_user], subject: review_comment, status: "created", snapshot: {
+                    comment: review_comment.comment,
+                    reviewer_username: review.user.username
+                })
 
                 if review.user.id != context[:current_user].id
                     SQS_CLIENT.send_message(

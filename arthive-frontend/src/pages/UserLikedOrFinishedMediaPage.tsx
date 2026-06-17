@@ -4,22 +4,21 @@ import { useNavigate, useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
 import {
     OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY,
-    type LikedOrFinishedMediaCard,
     type ObtainLikedOrFinishedMediaInput,
     type ObtainLikedOrFinishedMediaResponse,
 } from "../types/queries/liked_or_finished_media_query"
 import { obtainLikedOrFinishedMediaFunction } from "../data/obtain_liked_or_finished_media"
 import ContentFilter from "../lib/ContentFilter"
 import { NumberedPagination } from "../lib/NumberedPagination"
-import { contentTypeColor } from "../lib/contentTypeColors"
-
+import { DetailedMediaCard } from "../lib/DetailedMediaCard"
+import type { Media } from "../types/media_type"
 const LIMIT = 10
 
 export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: "liked" | "finished"; setUser: (user: User | null) => void }) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
-    const [media, setMedia] = useState<LikedOrFinishedMediaCard[]>([])
+    const [media, setMedia] = useState<Media[]>([])
     const [pageNum, setPageNum] = useState<number>(1)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
@@ -27,7 +26,9 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageUser, setPageUser] = useState<{ id: string; username: string } | null>(null)
 
-    const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY)
+    const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY, {
+        fetchPolicy: "no-cache",
+    })
 
     useEffect(() => {
         if (!user_id) navigate("/")
@@ -83,24 +84,8 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
                 <p className="text-gray-500 text-sm text-center py-8">No media found.</p>
             ) : (
                 <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))" }}>
-                    {media.map((m) => (
-                        <div
-                            key={m.id}
-                            onClick={() => navigate(`/media/${m.id}`)}
-                            className="group cursor-pointer flex flex-col gap-1.5"
-                        >
-                            <div className="relative overflow-hidden rounded-lg">
-                                <img
-                                    src={m.coverImage ?? "/default-ARTHIVE-pfp.png"}
-                                    alt={m.title}
-                                    className="w-full aspect-[2/3] object-cover rounded-lg transition-transform duration-300 group-hover:scale-105"
-                                    style={{ border: `2px solid ${contentTypeColor(m.contentType)}` }}
-                                />
-                                <div className="absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-                            </div>
-                            <p className="text-xs text-white font-medium leading-tight line-clamp-2">{m.title}</p>
-                            <p className="text-xs text-gray-500">{m.creator} {m.year ? `(${m.year})` : ""}</p>
-                        </div>
+                    {media.map((media) => (
+                        <DetailedMediaCard key={media.id} media={media} />
                     ))}
                 </div>
             )}
@@ -109,3 +94,4 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
         </div>
     )
 }
+

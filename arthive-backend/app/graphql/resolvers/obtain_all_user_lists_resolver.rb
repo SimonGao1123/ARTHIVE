@@ -23,7 +23,7 @@ module Resolvers
                 raise GraphQL::ExecutionError, "User #{user_id} not found"
             end
 
-            lists = user.content_type_lists(content_type).query_filter(query).recent
+            lists = user.content_type_lists(content_type).semantic_search(query, "list", nil).recent
 
             if exclude_media_id.present?
                 lists = lists.where.not(id: MediaInList.select(:list_id).where(media_id: exclude_media_id))

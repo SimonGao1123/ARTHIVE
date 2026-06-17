@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "vector"
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
@@ -44,6 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
 
   create_table "activities", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.bigint "activity_id", null: false
+    t.jsonb "activity_snapshot"
     t.string "activity_type", null: false
     t.datetime "created_at", null: false
     t.string "status", null: false
@@ -51,6 +53,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.bigint "user_id", null: false
     t.index ["user_id"], name: "idx_activities_user_id"
     t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
+  create_table "archivr_conversations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "media_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["media_id"], name: "index_archivr_conversations_on_media_id"
+    t.index ["user_id"], name: "index_archivr_conversations_on_user_id"
+  end
+
+  create_table "archivr_messages", force: :cascade do |t|
+    t.bigint "archivr_conversation_id", null: false
+    t.text "content", null: false
+    t.datetime "created_at", null: false
+    t.jsonb "references", default: {}
+    t.string "role", null: false
+    t.datetime "updated_at", null: false
+    t.index ["archivr_conversation_id"], name: "index_archivr_messages_on_archivr_conversation_id"
   end
 
   create_table "communities", force: :cascade do |t|
@@ -64,6 +85,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.vector "embedding", limit: 1024
     t.bigint "parent_thread_id"
     t.bigint "review_id"
     t.bigint "root_thread_id"
@@ -71,6 +93,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["community_id"], name: "index_community_threads_on_community_id"
+    t.index ["embedding"], name: "index_community_threads_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["parent_thread_id"], name: "index_community_threads_on_parent_thread_id"
     t.index ["review_id"], name: "index_community_threads_on_review_id"
     t.index ["root_thread_id"], name: "index_community_threads_on_root_thread_id"
@@ -92,11 +115,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.string "content_type", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.string "description"
+    t.vector "embedding", limit: 1024
     t.boolean "if_private", default: false, null: false
     t.string "name", null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["embedding"], name: "index_lists_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["user_id"], name: "index_lists_on_user_id"
   end
 
@@ -105,17 +130,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.string "content_type", null: false
     t.datetime "created_at", null: false
     t.string "creator", null: false
+    t.vector "embedding", limit: 1024
     t.string "genre", default: [], null: false, array: true
     t.string "language", null: false
+    t.integer "last_ai_summary_review_count", default: 0
     t.boolean "ongoing", null: false
     t.string "organization"
     t.integer "page_count"
+    t.text "reviews_ai_summary"
     t.string "series_title"
     t.string "summary", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.string "year", null: false
+    t.index ["embedding"], name: "index_media_embeddings_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["user_id"], name: "index_media_on_user_id"
   end
 
@@ -136,6 +165,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.bigint "follow_id"
     t.string "message_id", null: false
     t.bigint "parent_thread_id"
+    t.datetime "read_at"
     t.bigint "receiver_id", null: false
     t.bigint "review_comment_id"
     t.bigint "review_id"
@@ -173,12 +203,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
   create_table "reviews", force: :cascade do |t|
     t.string "content"
     t.datetime "created_at", null: false
+    t.vector "embedding", limit: 1024
     t.boolean "if_favorite", null: false
     t.boolean "if_finished", null: false
     t.bigint "media_id", null: false
     t.float "rating"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
+    t.index ["embedding"], name: "index_reviews_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
     t.index ["if_favorite"], name: "index_reviews_on_if_favorite"
     t.index ["if_finished"], name: "index_reviews_on_if_finished"
     t.index ["media_id"], name: "index_reviews_on_media_id"
@@ -201,7 +233,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
     t.string "description"
     t.string "email", null: false
     t.boolean "if_admin", default: false, null: false
-    t.datetime "last_notifications_check", default: "2026-05-25 23:38:42", null: false
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.string "username", null: false
@@ -213,6 +244,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_155147) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "users"
+  add_foreign_key "archivr_conversations", "media", column: "media_id"
+  add_foreign_key "archivr_conversations", "users"
+  add_foreign_key "archivr_messages", "archivr_conversations"
   add_foreign_key "communities", "media", column: "media_id"
   add_foreign_key "community_threads", "communities"
   add_foreign_key "community_threads", "community_threads", column: "parent_thread_id"

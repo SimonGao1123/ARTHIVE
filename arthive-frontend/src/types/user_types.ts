@@ -6,6 +6,7 @@ export type User = {
     ifAdmin: boolean,
     description: string | null,
     visibility: string,
+    notificationsCount: number,
 }
 
 export type WhoamiResponse = {

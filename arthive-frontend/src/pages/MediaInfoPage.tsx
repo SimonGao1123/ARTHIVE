@@ -7,6 +7,7 @@ import {
 import type { User } from "../types/user_types"
 import { useNavigate, useParams } from "react-router-dom"
 import type { Media } from "../types/media_type"
+import type { Review, UserReview } from "../types/review_type"
 import { useEffect, useState } from "react"
 import { ObtainMediaDetailsFetch } from "../data/obtain_media_details"
 import { MediaInfoArticle } from "../lib/MediaInfoArticle"
@@ -55,6 +56,37 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
     const showContent = Boolean(mediaInfo) && !loading
 
     const [showAddMediaToList, setShowAddMediaToList] = useState<boolean>(false)
+    const [reviewChange, setReviewChange] = useState<{ review: Review | null; nonce: number } | null>(null)
+
+    function handleReviewChanged(updated: UserReview | null) {
+        if (!user || !mediaInfo) return
+        if (updated === null) {
+            setReviewChange({ review: null, nonce: Date.now() })
+            return
+        }
+        if (!updated.content && updated.rating == null) {
+            setReviewChange({ review: null, nonce: Date.now() })
+            return
+        }
+        const review: Review = {
+            id: updated.id,
+            content: updated.content,
+            rating: updated.rating,
+            ifFavorite: updated.ifFavorite,
+            ifFinished: updated.ifFinished,
+            updatedAt: new Date().toISOString(),
+            user: {
+                id: Number(user.id),
+                username: user.username,
+                profilePicture: user.profilePicture ?? null,
+            },
+            likeCount: 0,
+            commentCount: 0,
+            ifLiked: false,
+            imageDetails: updated.imageDetails ?? [],
+        }
+        setReviewChange({ review, nonce: Date.now() })
+    }
 
     const borderColor = mediaInfo ? contentTypeColor(mediaInfo.contentType) : "#3a3a4a"
 
@@ -74,41 +106,54 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
 
             {showContent && mediaInfo ? (
                 <div className="grid grid-cols-[20rem_1fr] gap-6 items-start">
-                    {/* Top-left: cover image with content-type border */}
-                    <div className="flex justify-center">
-                        {mediaInfo.coverImage ? (
-                            <img
-                                src={mediaInfo.coverImage}
-                                alt={`Cover image for ${mediaInfo.title}`}
-                                className="w-72 h-auto rounded-lg object-cover"
-                                style={{
-                                    border: `4px solid ${borderColor}`,
-                                    boxShadow: `0 0 24px ${borderColor}33`,
-                                }}
-                            />
-                        ) : (
-                            <div
-                                className="w-72 aspect-[2/3] rounded-lg bg-[#171519] flex items-center justify-center text-gray-500 text-sm"
-                                style={{ border: `4px solid ${borderColor}` }}
-                            >
-                                No cover image
-                            </div>
-                        )}
+                    {/* Left column: cover image directly above user actions */}
+                    <div className="flex flex-col gap-4">
+                        <div className="flex justify-center">
+                            {mediaInfo.coverImage ? (
+                                <img
+                                    src={mediaInfo.coverImage}
+                                    alt={`Cover image for ${mediaInfo.title}`}
+                                    className="w-72 aspect-[2/3] rounded-lg object-cover"
+                                    style={{
+                                        border: `4px solid ${borderColor}`,
+                                        boxShadow: `0 0 24px ${borderColor}33`,
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="w-72 aspect-[2/3] rounded-lg bg-[#171519] flex items-center justify-center text-gray-500 text-sm"
+                                    style={{ border: `4px solid ${borderColor}` }}
+                                >
+                                    No cover image
+                                </div>
+                            )}
+                        </div>
+                        <UserMediaReview
+                            mediaId={Number(id)}
+                            setUser={setUser}
+                            mediaInfo={mediaInfo}
+                            onOpenAddToLists={() => setShowAddMediaToList(true)}
+                            onReviewChanged={handleReviewChanged}
+                        />
                     </div>
 
-                    {/* Top-right: media info text */}
-                    <MediaInfoArticle media={mediaInfo} setUser={setUser} setMediaInfo={setMediaInfo}/>
+                    {/* Right column: media info + AI summary + reviews list */}
+                    <div className="flex flex-col gap-6">
+                        <MediaInfoArticle media={mediaInfo} setUser={setUser} setMediaInfo={setMediaInfo}/>
 
-                    {/* Bottom-left: user actions (under cover) */}
-                    <UserMediaReview
-                        mediaId={Number(id)}
-                        setUser={setUser}
-                        mediaInfo={mediaInfo}
-                        onOpenAddToLists={() => setShowAddMediaToList(true)}
-                    />
-
-                    {/* Bottom-right: reviews list (under info) */}
-                    <MediaReviews id={id ?? ""} setUser={setUser} />
+                        {mediaInfo.reviewsAiSummary && (
+                            <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-violet-400 text-base">✦</span>
+                                    <h2 className="text-xs font-semibold text-violet-400 uppercase tracking-wider">
+                                        Viewers Say
+                                    </h2>
+                                </div>
+                                <p className="text-gray-300 text-sm leading-relaxed">{mediaInfo.reviewsAiSummary}</p>
+                            </div>
+                        )}
+                        <MediaReviews id={id ?? ""} setUser={setUser} reviewCount={mediaInfo.reviewCount} reviewChange={reviewChange} />
+                    </div>
                 </div>
             ) : null}
 

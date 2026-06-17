@@ -5,12 +5,13 @@ const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT
 
 // only supports adding one media to one list at a time
 export function addOrRemoveMediaData(
-    addOrRemoveMediaInListMutation: any, 
-    listId: string, 
+    addOrRemoveMediaInListMutation: any,
+    listId: string,
     mediaIds: string[],
     setUser: (user: User | null) => void,
     navigate: any,
     ifAdd: boolean,
+    onSuccess?: () => void,
 ) {
     addOrRemoveMediaInListMutation({
         variables: {
@@ -22,6 +23,7 @@ export function addOrRemoveMediaData(
         }
     })
     .then(() => {
+        onSuccess?.()
     })
     .catch((error: any) => {
         if (unauth_messages.includes(error.message)) {

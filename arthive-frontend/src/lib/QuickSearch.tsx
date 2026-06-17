@@ -14,9 +14,10 @@ type QuickSearchProps = {
     loadMore: number
     setUser: (user: User) => void
     setLoadMore: (loadMore: number) => void
+    setLoading?: (loading: boolean) => void
 }
 // For small quick searches (e.g. when adding media to list or choosing which list to add to), no filters
-export default function QuickSearch({setSearchResults, searchType, limit, setHasNextPage, loadMore, setUser, setLoadMore}: QuickSearchProps) {
+export default function QuickSearch({setSearchResults, searchType, limit, setHasNextPage, loadMore, setUser, setLoadMore, setLoading}: QuickSearchProps) {
     if (searchType != "media" && searchType != "user" && searchType != "review") {
         throw new Error("Invalid search type")
     }
@@ -38,6 +39,10 @@ export default function QuickSearch({setSearchResults, searchType, limit, setHas
     }, [query])
 
     const [obtainQuickSearch, {loading, error}] = useLazyQuery<SearchBarResponse, SearchBarInput>(SEARCH_BAR_QUERY)
+
+    useEffect(() => {
+        if (setLoading) setLoading(loading)
+    }, [loading])
 
     return (
         <div className="flex flex-col gap-2">

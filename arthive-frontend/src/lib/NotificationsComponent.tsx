@@ -1,5 +1,6 @@
 import { useMutation } from "@apollo/client/react"
 import { useEffect, useState } from "react"
+import { useInfiniteScroll } from "./useInfiniteScroll"
 import { readNotificationsData } from "../data/read_notifications"
 import type { Notification as NotificationData, ReadNotificationsResponse, ReadNotificationsInput } from "../types/mutations/read_notifications_mutation"
 import { READ_NOTIFICATIONS_MUTATION } from "../types/mutations/read_notifications_mutation"
@@ -113,6 +114,14 @@ export default function NotificationsComponent({ setUser, onClose }: { setUser: 
         readNotificationsData(cursor, 10, setNotifications as any, setCursor, setHasNextPage, readNotifications, navigate, setUser)
     }, [loadCount])
 
+    const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null)
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(c => c + 1),
+        root: scrollContainer,
+    })
+
     return (
         <div className="flex flex-col bg-[#171519] border border-white/10 rounded-2xl shadow-xl shadow-black/40 overflow-hidden w-80 max-h-[480px]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
@@ -120,7 +129,7 @@ export default function NotificationsComponent({ setUser, onClose }: { setUser: 
                 <button onClick={onClose} className="text-gray-500 hover:text-white transition text-xl leading-none">×</button>
             </div>
 
-            <div className="overflow-y-auto scrollbar-hide flex-1">
+            <div ref={setScrollContainer} className="overflow-y-auto scrollbar-hide flex-1">
                 {error && <p className="text-red-400 text-xs px-4 py-3">{error.message}</p>}
                 {loading && (
                     <div className="flex flex-col divide-y divide-white/5">
@@ -143,14 +152,7 @@ export default function NotificationsComponent({ setUser, onClose }: { setUser: 
                         <NotificationCard key={n.id} notification={n} navigate={navigate} onClose={onClose} />
                     ))}
                 </div>
-                {hasNextPage && (
-                    <button
-                        onClick={() => setLoadCount(c => c + 1)}
-                        className="w-full py-3 text-xs text-gray-500 hover:text-white hover:bg-white/[0.03] transition border-t border-white/5"
-                    >
-                        Load more
-                    </button>
-                )}
+                {hasNextPage && <div ref={sentinelRef} className="h-1" />}
             </div>
         </div>
     )

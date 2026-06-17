@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import type { User } from "../types/user_types";
 import { useState } from "react";
+import { TrendingThreadsSection } from "./TrendingThreadsSection";
 
 type NavItem = {
     label: string
@@ -8,11 +9,14 @@ type NavItem = {
     isActive: (pathname: string) => boolean
 }
 
-export default function ExplorePageNavBar({user}: {user: User | null, setUser: (user: User | null) => void}) {
+export default function ExplorePageNavBar({user, setUser}: {user: User | null, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
     const location = useLocation()
 
     const [searchQuery, setSearchQuery] = useState("")
+
+    const mediaMatch = location.pathname.match(/^\/media\/([^/]+)/)
+    const mediaIdScope = mediaMatch ? mediaMatch[1] : null // for trending threads section
 
     const navItems: NavItem[] = [
         { label: "Explore", to: "/", isActive: (p) => p === "/" },
@@ -84,10 +88,17 @@ export default function ExplorePageNavBar({user}: {user: User | null, setUser: (
                                         : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
                                 }`}
                             >
-                                <svg className="bell-svg w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                                </svg>
+                                <span className="relative flex-shrink-0">
+                                    <svg className="bell-svg w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                    </svg>
+                                    {user.notificationsCount > 0 && (
+                                        <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                                            {user.notificationsCount > 99 ? "99+" : user.notificationsCount}
+                                        </span>
+                                    )}
+                                </span>
                                 Notifications
                             </button>
                         )}
@@ -115,7 +126,21 @@ export default function ExplorePageNavBar({user}: {user: User | null, setUser: (
                 <main key={location.key} className="flex-1 min-w-0 arthive-page-in">
                     <Outlet/>
                 </main>
+
+                <aside className="w-72 flex-shrink-0 flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold text-white">Trending Threads</span>
+                        <span className="text-xs text-gray-500">{mediaIdScope ? `This media: ${mediaIdScope}` : "All communities"}</span>
+                    </div>
+                    <TrendingThreadsSection
+                        mediaIdScope={mediaIdScope}
+                        setUser={setUser}
+                        navigate={navigate}
+                        user={user}
+                    />
+                </aside>
             </div>
+
         </div>
     )
 }

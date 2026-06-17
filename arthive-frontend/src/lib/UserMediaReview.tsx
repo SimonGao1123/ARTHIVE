@@ -19,9 +19,10 @@ type UserMediaReviewProps = {
     setUser: any
     mediaInfo: any
     onOpenAddToLists?: () => void
+    onReviewChanged?: (review: UserReview | null) => void
 }
 
-export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddToLists}: UserMediaReviewProps) {
+export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddToLists, onReviewChanged}: UserMediaReviewProps) {
 
     const {title, coverImage, creator, year} = mediaInfo
     const navigate = useNavigate()
@@ -69,7 +70,7 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
     const [createReview] = useMutation<CreateReviewResponse, CreateReviewInput>(CREATE_REVIEW_MUTATION)
 
     function createReviewFunctionWrapper({newReviewImages = [], newIfFavorite = ifFavorite, newIfFinished = ifFinished, newReviewContent = reviewContent, newRating = rating}: {newReviewImages?: {file: File, url: string, uuid: string}[], newIfFavorite?: boolean, newIfFinished?: boolean, newReviewContent?: string, newRating?: number}) {
-        createReviewFunction(uploadImageToS3, newReviewImages, newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate)
+        createReviewFunction(uploadImageToS3, newReviewImages, newReviewContent, newRating, newIfFavorite, newIfFinished, userReview, setUserReview, mediaId, createReview, setUser, navigate, onReviewChanged)
     }
 
     const [showDeleteReviewPopup, setShowDeleteReviewPopup] = useState<boolean>(false)
@@ -205,7 +206,7 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
     const fileInputRef = useRef<HTMLInputElement>(null)
     const submit = () => {
         if (content.length > 1000) return
-        createReviewFunctionWrapper({newReviewContent: content.trim(), newReviewImages: newReviewImages})
+        createReviewFunctionWrapper({newReviewContent: content.trim(), newReviewImages: newReviewImages, newIfFinished: true})
         setShowWriteReviewContent(false)
         setNewReviewImages([])
     }
@@ -251,8 +252,6 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
                     </button>
                 </div>
 
-                <PreviewImageDisplay newImages={newReviewImages} setNewImages={setNewReviewImages} existingImages={existingReviewImages} setExistingImages={setExistingReviewImages} resourceId={userReviewId || null} resourceType="review" />
-
                 <div className="flex gap-4">
                     {coverImage ? (
                         <img src={coverImage} alt={title} loading="lazy" className="w-24 h-auto rounded-lg object-cover flex-shrink-0"/>
@@ -264,14 +263,23 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
                     </div>
                 </div>
 
-                <textarea
-                    autoFocus
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Share your thoughts…"
-                    className="w-full min-h-48 bg-[#0a090c] border border-white/10 rounded-lg p-4 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 resize-y transition-colors"
+                <div
+                    className="w-full bg-[#0a090c] border border-white/10 rounded-lg focus-within:border-violet-500/50 transition-colors"
                     onPaste={(e) => handleUploadImages(Array.from(e.clipboardData.files || []))}
-                />
+                >
+                    <textarea
+                        autoFocus
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Share your thoughts…"
+                        className="w-full min-h-48 bg-transparent p-4 text-white placeholder-gray-500 focus:outline-none resize-y transition-colors"
+                    />
+                    {(newReviewImages.length > 0 || existingReviewImages.length > 0) && (
+                        <div className="border-t border-white/5 px-4 py-3">
+                            <PreviewImageDisplay newImages={newReviewImages} setNewImages={setNewReviewImages} existingImages={existingReviewImages} setExistingImages={setExistingReviewImages} resourceId={userReviewId || null} resourceType="review" />
+                        </div>
+                    )}
+                </div>
 
                 <input ref={fileInputRef} type="file" multiple onChange={(e) => { handleUploadImages(Array.from(e.target.files || [])); e.target.value = "" }} accept="image/*" className="hidden" />
 

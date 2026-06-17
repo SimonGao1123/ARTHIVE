@@ -3,11 +3,12 @@ import type { Community, ObtainCommunityInput, ObtainCommunityResponse } from ".
 import { OBTAIN_COMMUNITY_QUERY } from "../types/queries/community_request_queries"
 import type { User } from "../types/user_types"
 import { useNavigate, useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { obtainCommunityData } from "../data/obtain_community_data"
 import { CommunityThreads } from "../lib/CommunityThread"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 const LIMIT = 1
 export default function CommunityPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
@@ -16,7 +17,9 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
     if (!media_id) {
         navigate("/")
     }
-    const [obtainCommunity, {loading, error}] = useLazyQuery<ObtainCommunityResponse, ObtainCommunityInput>(OBTAIN_COMMUNITY_QUERY)
+    const [obtainCommunity, {loading, error}] = useLazyQuery<ObtainCommunityResponse, ObtainCommunityInput>(OBTAIN_COMMUNITY_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     const [community, setCommunity] = useState<Community | null>(null)
     const [rootThreads, setRootThreads] = useState<CommunityThread[]>([])
 
@@ -38,6 +41,15 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
         }
     }, [query])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(prev => prev + 1),
+    })
+
+    const threadsTopRef = useRef<HTMLDivElement | null>(null)
+    const scrollThreadsToTop = () => threadsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
             {error && <p className="text-red-400 text-sm">{error.message}</p>}
@@ -45,9 +57,9 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
 
             {community && <CommunityDetails community={community} />}
 
-            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} />
+            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} onCreated={scrollThreadsToTop} />
 
-            <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
+            <div ref={threadsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
                 <div className="flex gap-2">
                     <div className="flex-1 relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">🔍</span>
@@ -68,7 +80,7 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
                     </button>
                 </div>
 
-                <CommunityThreads threads={rootThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} user={user} />
+                <CommunityThreads threads={rootThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} user={user} />
             </div>
         </div>
     )

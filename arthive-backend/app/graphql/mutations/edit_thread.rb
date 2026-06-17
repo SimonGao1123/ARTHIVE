@@ -41,6 +41,7 @@ module Mutations
 
             if args[:review_id].present?
                 review = Review.find_by(id: args[:review_id])
+                # if not quoting yourself, and thread doesn't already have a review, send notification
                 if review.user.id != context[:current_user].id && (!thread.review.present? || thread.review.id != review.id)
                     SQS_CLIENT.send_message(
                         queue_url: SQS_QUEUE_URL,
@@ -59,8 +60,12 @@ module Mutations
             if !thread.update(updates)
                 raise GraphQL::ExecutionError, thread.errors.full_messages.join(", ")
             end
-
-            Activity.log(user: context[:current_user], subject: thread, status: "updated")
+            
+            Activity.log(user: context[:current_user], subject: thread, status: "updated", snapshot: {
+                title: thread.title,
+                thread_content: thread.content,
+                label: "Updated thread"
+            })
             return thread
 
         rescue ActiveRecord::RecordNotFound => e

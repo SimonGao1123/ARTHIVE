@@ -11,17 +11,18 @@ module Resolvers
             validate_user
 
             list = List.includes(media_in_lists: :media).find_by(id: list_id)
-            user = list.user
-
-            if list.if_private && user.id.to_i != context[:current_user].id.to_i
-                raise GraphQL::ExecutionError, "You are not allowed to access this list"
-            end
 
             if !list.present?
                 raise GraphQL::ExecutionError, "List #{list_id} not found"
             end
 
+            user = list.user
+
             if !User.if_visible_to_user(context[:current_user].id.to_i, user.id.to_i)
+                raise GraphQL::ExecutionError, "You are not allowed to access this list"
+            end
+
+            if list.if_private && user.id.to_i != context[:current_user].id.to_i
                 raise GraphQL::ExecutionError, "You are not allowed to access this list"
             end
 

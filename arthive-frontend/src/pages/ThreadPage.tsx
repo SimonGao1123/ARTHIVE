@@ -11,8 +11,10 @@ import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } f
 import { likeThreadFunction } from "../data/like_thread_function"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
 import type { Review } from "../types/review_type"
-import { ReviewReferenceCard } from "../lib/ReviewCard"
+import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ChatReferenceCards"
 import EditThreadComponent from "../lib/EditThreadComponent"
+import { LikeButton, CommentIcon } from "../lib/StyledComponents"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 const LIMIT = 2
 export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
@@ -47,10 +49,23 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
         }
     }, [thread_id, loadCount])
 
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage: ifNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(prev => prev + 1),
+    })
+
+    const repliesTopRef = useRef<HTMLDivElement | null>(null)
+    const scrollRepliesToTop = () => repliesTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+
+    if (error) {
+        navigate("/not_found")
+        return null
+    }
+
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
             {loading && <p className="text-gray-400 text-sm">Loading…</p>}
-            {error && <p className="text-red-400 text-sm">{error.message}</p>}
 
             <div className="flex gap-2">
                 {media_id && (
@@ -72,13 +87,14 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
                     parentThreadId={mainThread.id}
                     rootThreadId={mainThread.rootThreadId || mainThread.id}
                     setThreads={setChildThreads}
+                    onCreated={scrollRepliesToTop}
                 />
             )}
 
             {childThreads.length > 0 && (
-                <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
+                <div ref={repliesTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Replies</p>
-                    <CommunityThreads threads={childThreads} setLoadCount={setLoadCount} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
+                    <CommunityThreads threads={childThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
                 </div>
             )}
         </div>
@@ -98,6 +114,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
     const [likeCount, setLikeCount] = useState(mainThread.likesCount)
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [editPopupOpen, setEditPopupOpen] = useState(false)
+
 
     function handleLikeThread() {
         setCurrLiked(prev => !prev)
@@ -134,7 +151,8 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
                     <img
                         src={mainThread.user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
                         alt="Profile Picture"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
+                        onClick={() => navigate(`/profile/${mainThread.user.id}`)}
                     />
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold text-white">{mainThread.user.username}</span>
@@ -151,7 +169,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
                 )}
             </div>
 
-            <p className="text-gray-300 text-sm leading-relaxed">{mainThread.content}</p>
+            <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{mainThread.content}</p>
 
             {mainThread.imageDetails && mainThread.imageDetails.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -162,17 +180,14 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
             )}
 
             <div className="flex items-center gap-6 text-gray-400 text-sm pt-2 border-t border-white/5">
-                <button onClick={handleLikeThread} className="hover:text-white transition flex items-center gap-1.5">
-                    <span>{currLiked ? "❤️" : "🤍"}</span>
-                    <span>{likeCount}</span>
-                </button>
+                <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeThread} />
                 <span className="flex items-center gap-1.5">
-                    <span>💬</span>
+                    <CommentIcon />
                     <span>{mainThread.childThreadsCount}</span>
                 </span>
             </div>
 
-            {review && <ReviewReferenceCard review={review} />}
+            {mainThread.hasReview && (review ? <ReviewReferenceCard review={review} /> : <ReviewUnavailableCard />)}
 
             {editPopupOpen && <EditThreadComponent thread={mainThread} setUser={setUser} setEditPopupOpen={setEditPopupOpen} />}
         </div>

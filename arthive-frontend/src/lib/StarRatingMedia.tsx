@@ -22,7 +22,7 @@ export default function StarRatingMedia({
     const handleSet = (newRating: number) => {
         setPulseStar(Math.ceil(newRating))
         window.setTimeout(() => setPulseStar(null), 350)
-        createReviewFunctionWrapper({ newRating })
+        createReviewFunctionWrapper({ newRating, newIfFinished: true })
     }
 
     return (
@@ -37,6 +37,9 @@ export default function StarRatingMedia({
                     const fillPercent = getFillPercent(star)
                     const isActive = fillPercent > 0
                     const isPulsing = pulseStar === star
+                    // stagger delay: only when actively hovering, each star delayed by its index
+                    const fillDelay = hoverRating !== null ? `${(star - 1) * 65}ms` : "0ms"
+
                     return (
                         <div
                             key={star}
@@ -61,7 +64,8 @@ export default function StarRatingMedia({
                                     overflow: "hidden",
                                     color: "#f59e0b",
                                     whiteSpace: "nowrap",
-                                    transition: "width 200ms ease-out",
+                                    transition: `width 100ms ease-out`,
+                                    transitionDelay: fillDelay,
                                 }}
                                 aria-hidden
                             >

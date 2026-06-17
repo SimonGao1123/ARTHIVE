@@ -12,6 +12,7 @@ import type { AllUserListType } from "../types/queries/lists_request_queries"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { contentTypeColor } from "../lib/contentTypeColors"
 import { ALL_GENRES, ALL_CONTENT_TYPES } from "../lib/global_constants"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 const SEARCH_TYPES = [
     { key: "all",    label: "All" },
@@ -55,6 +56,12 @@ export default function SearchPageResults({ setUser }: { setUser: (user: User) =
         const normalizedFilters = [contentFilter, genreFilter].filter(Boolean)
         searchBarObtain(query, searchType, cursors, LIMIT, normalizedFilters, setCursors, setSearchResults, setHasNextPage, setUser, navigate, obtainSearchBar)
     }, [query, searchType, contentTypes, genres, loadCount])
+
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage,
+        loading,
+        onLoadMore: () => setLoadCount(c => c + 1),
+    })
 
     if (!searchParams.get("query") || !isValidSearchType) return null
 
@@ -141,14 +148,7 @@ export default function SearchPageResults({ setUser }: { setUser: (user: User) =
                         <SearchResults searchResults={searchResults} />
                     </div>
 
-                    {hasNextPage && (
-                        <button
-                            onClick={() => setLoadCount(loadCount + 1)}
-                            className="text-violet-400 hover:text-violet-300 text-sm transition text-center"
-                        >
-                            Load more
-                        </button>
-                    )}
+                    {hasNextPage && <div ref={sentinelRef} className="h-1" />}
                 </div>
 
                 {/* Filters sidebar */}

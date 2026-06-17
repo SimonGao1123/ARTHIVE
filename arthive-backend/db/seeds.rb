@@ -137,6 +137,22 @@ r_adm_zl   = Review.create!(user: admin_user, media: zelda,         rating: 5.0,
 r_u3_bal   = Review.create!(user: user3, media: balatro,  rating: 4.5, if_favorite: true,  if_finished: false, content: "One more hand. That's all. Just one more.")
 r_u3_arc   = Review.create!(user: user3, media: arcane,   rating: 5.0, if_favorite: true,  if_finished: true,  content: "Visually stunning. Jinx's arc is one of the best character studies in any animated series.")
 
+# ── Media Embeddings ──────────────────────────────────────────────────────────
+
+all_media.each do |media|
+  text = "#{media.title}. #{media.summary}. Genre: #{media.genre.join(', ')}. Creator: #{media.creator}."
+  vector = EmbeddingService.embed(text)
+  media.update_column(:embedding, vector) if vector
+end
+
+# ── Review Embeddings ─────────────────────────────────────────────────────────
+
+Review.where.not(content: nil).each do |review|
+  text = review.content + ". Rating: #{review.rating ? review.rating : 'N/A'}."
+  vector = EmbeddingService.embed(text)
+  review.update_column(:embedding, vector) if vector
+end
+
 # ── Community Threads ─────────────────────────────────────────────────────────
 
 # Harry Potter
@@ -184,6 +200,14 @@ bal_com = communities[balatro.id]
 CommunityThread.create!(community: bal_com, user: user1, title: "Best joker combo?", content: "Ride the Bus + Supernova is my current obsession. Scales insanely fast.")
 CommunityThread.create!(community: bal_com, user: user3, title: "Gold stake cleared — tips?", content: "Finally beat it on Joker build. Key was saving vouchers for the first three antes.")
 
+# ── Community Thread Embeddings ───────────────────────────────────────────────
+
+CommunityThread.where(root_thread_id: nil, parent_thread_id: nil).each do |thread|
+  text = [thread.title, thread.content].compact.join(". ") + "."
+  vector = EmbeddingService.embed(text)
+  thread.update_column(:embedding, vector) if vector
+end
+
 # ── Lists ─────────────────────────────────────────────────────────────────────
 
 list_admin = List.create!(
@@ -201,6 +225,14 @@ list_user1 = List.create!(
   tags: ["watchlist"]
 )
 [total_recall, brooklyn, gangwar, arcane].each { |m| MediaInList.create!(list: list_user1, media: m) }
+
+# ── List Embeddings ───────────────────────────────────────────────────────────
+
+List.all.each do |list|
+  text = "#{list.name}. Tags: #{list.tags.join(', ')}. #{list.description}."
+  vector = EmbeddingService.embed(text)
+  list.update_column(:embedding, vector) if vector
+end
 
 # ── Review Comments ───────────────────────────────────────────────────────────
 

@@ -10,134 +10,53 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                     createdAt
                     activityType
 
+                    activitySnapshot {
+                        content
+                        rating
+                        ifFavorite
+                        ifFinished
+                        comment
+                        reviewerUsername
+                        title
+                        threadContent
+                        threadTitle
+                        threadAuthorUsername
+                        listName
+                        label
+                    }
+
                     subject {
                         __typename
                         ... on Review {
                             id
-                            content
-                            rating
-                            ifFavorite
-                            ifFinished
-                            updatedAt
-
-                            media {
-                                id
-                                coverImage
-                                title
-                            }
+                            media { id coverImage title }
                         }
-
                         ... on ReviewComment {
                             id
-                            comment
-                            review {
-                                id
-                                content
-                                rating
-                                ifFavorite
-                                ifFinished
-                                updatedAt
-
-                                user {
-                                    id
-                                    username
-                                }
-
-                                media {
-                                    id
-                                    coverImage
-                                    title
-                                }
-                            }
+                            review { id media { id coverImage title } }
                         }
-
                         ... on ReviewLike {
                             id
-                            review {
-                                id
-                                content
-                                rating
-                                ifFavorite
-                                ifFinished
-                                updatedAt
-
-                                user {
-                                    id
-                                    username
-                                }
-
-                                media {
-                                    id
-                                    coverImage
-                                    title
-                                }
-                            }
+                            review { id media { id coverImage title } }
                         }
-
                         ... on CommunityThread {
                             id
-                            title
-                            content
-                            createdAt
-                            updatedAt
-
-                            user {
-                                id
-                                username
-                            }
-                            community {
-                                id
-                                media {
-                                    id
-                                    title
-                                    coverImage
-                                }
-                            }
+                            community { media { id coverImage title } }
                         }
-
                         ... on ThreadLike {
                             id
                             communityThread {
                                 id
-                                title
-                                content
-                                createdAt
-                                updatedAt
-
-                                user {
-                                    id
-                                    username
-                                    profilePicture
-                                }
-                                community {
-                                    id
-                                    media {
-                                        id
-                                        title
-                                        coverImage
-                                    }
-                                }
+                                community { media { id coverImage title } }
                             }
                         }
-
                         ... on List {
                             id
-                            name
-                            description
                         }
-                        
                         ... on MediaInList {
                             id
-                            media {
-                                id
-                                coverImage
-                                title
-                            }
-                            list {
-                                id
-                                name
-                                description
-                            }
+                            media { id coverImage title }
+                            list { id }
                         }
                     }
                 }
@@ -150,12 +69,28 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
     }
 `
 
+export type ActivitySnapshot = {
+    content: string | null
+    rating: number | null
+    ifFavorite: boolean | null
+    ifFinished: boolean | null
+    comment: string | null
+    reviewerUsername: string | null
+    title: string | null
+    threadContent: string | null
+    threadTitle: string | null
+    threadAuthorUsername: string | null
+    listName: string | null
+    label: string | null
+}
+
 export type Activity = {
     id: string,
     status: string,
     createdAt: string,
     subject: any
     activityType: string
+    activitySnapshot: ActivitySnapshot | null
 }
 
 export type RecentUserActivityResponse = {

@@ -12,6 +12,10 @@ module Resolvers
                 raise GraphQL::ExecutionError, "Thread not found"
             end
 
+            unless User.if_visible_to_user(context[:current_user].id, thread.user_id)
+                raise GraphQL::ExecutionError, "Thread not found"
+            end
+
             return thread
         rescue ActiveRecord::RecordNotFound => e
             raise GraphQL::ExecutionError, e.message

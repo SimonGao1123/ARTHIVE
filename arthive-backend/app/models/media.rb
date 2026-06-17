@@ -21,6 +21,7 @@ class Media < ApplicationRecord
         "slice of life", "noir"
     ].freeze
 
+
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
     has_many :reviews
@@ -38,10 +39,27 @@ class Media < ApplicationRecord
     validates :ongoing, inclusion: { in: [true, false] }
     enum :content_type, CONTENT_TYPES, prefix: true
 
+    has_neighbors :embedding
+
     validate :validate_genres
 
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_title? || saved_change_to_summary? }
+
+    
 
     private
+
+    def enqueue_embedding
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "media"
+            }.to_json
+        )
+    end
     
     def validate_genres
         return if genre.blank?
@@ -53,6 +71,13 @@ class Media < ApplicationRecord
     end
 
     public
+
+    scope :needing_summary_refresh, -> {
+        joins(:reviews).where('reviews.content IS NOT NULL')
+        .group('media.id')
+        .having('COUNT(reviews.id) >= COALESCE(media.last_ai_summary_review_count, 0)*2 + 5') # add 10 to the last review count to avoid refreshing too often
+    }
+
     def presigned_cover_image_url
         PresignedUrlAttachment.presigned_url(cover_image)
     end
@@ -116,10 +141,11 @@ class Media < ApplicationRecord
     }
     
     def self.obtain_media_reviews(media_id, query, current_user_id, sort_by)
-        reviews = Review.includes(:user)
+        reviews = Review.semantic_search(query, "review", nil)
         .where(media_id: media_id)
         .where.not(content: [nil, ""])
-        .query_filter(query)
+        .where(user_id: User.visible_to(current_user_id).pluck(:id))
+        .includes(:user)
         .in_order_of(:user_id, [current_user_id], filter: false)
 
         if sort_by == "newest"
@@ -131,8 +157,8 @@ class Media < ApplicationRecord
         return reviews
     end
 
-    def self.search(query:, search_filter:)
-        base_search = Media.query_filter(query)
+    def self.search(query:, embedded_query:, search_filter:)
+        base_search = Media.semantic_search(query, "media", embedded_query)
 
         if search_filter.present?
             search_filter.each do |filter|
@@ -164,7 +190,7 @@ class Media < ApplicationRecord
             raise GraphQL::ExecutionError, "User #{user_id} not found"
         end
 
-        base_search = Media.where(id: reviews.pluck(:media_id)).content_type_filter(content_type).query_filter(query).recent
+        base_search = Media.where(id: reviews.pluck(:media_id)).content_type_filter(content_type).semantic_search(query, "media", nil).recent
 
         total_count = base_search.count
         total_pages = (total_count.to_f / limit).ceil

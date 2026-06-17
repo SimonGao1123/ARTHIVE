@@ -37,7 +37,10 @@ module Types
     field :obtain_user_profile, resolver: Resolvers::ObtainUserProfileResolver
     field :obtain_community, resolver: Resolvers::ObtainCommunityResolver
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
+    field :obtain_trending_threads, resolver: Resolvers::ObtainTrendingThreadsResolver
     field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
     field :obtain_liked_or_finished_media, resolver: Resolvers::ObtainLikedOrFinishedMediaResolver
+    field :obtain_archivr_conversation, resolver: Resolvers::ObtainArchivrConversationResolver
+
   end
 end

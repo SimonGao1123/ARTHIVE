@@ -34,14 +34,14 @@ export type Review = {
     commentCount: number,
     ifLiked: boolean,
     imageDetails: ImageDetail[]
-    media: {
+    media?: {
         id: number
         title: string
         coverImage: string
-        creator: string
-        year: number
-        genre: string[]
-        contentType: "book" | "film" | "series" | "game"
+        creator?: string
+        year?: number
+        genre?: string[]
+        contentType?: "book" | "film" | "series" | "game"
     }
 }
 

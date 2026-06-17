@@ -1,5 +1,7 @@
 class Review < ApplicationRecord
     include SharedScopeMethods
+
+    # POSSIBLY NEED ADJUSTMENT (higher = lax, lower = strict)
     belongs_to :user
     belongs_to :media
 
@@ -18,6 +20,25 @@ class Review < ApplicationRecord
 
     has_many_attached :images
 
+    has_neighbors :embedding     
+
+
+    after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_content? }
+
+    private
+    def enqueue_embedding
+        return if SQS_CLIENT.nil?
+        SQS_CLIENT.send_message(
+            queue_url: SQS_QUEUE_URL,
+            message_body: {
+                type: "embedding",
+                target_id: self.id,
+                target_type: "review"
+            }.to_json
+        )
+    end
+
+    public
     def presigned_images_url
         images.map do |image|
             PresignedUrlAttachment.presigned_url(image)
@@ -108,10 +129,11 @@ class Review < ApplicationRecord
         where(media_id: Media.genre_filter(genre).select(:id))
     }
 
-    def self.search(query:, search_filter:, current_user_id:)
-        base_search = Review.query_filter(query).sort_by_trending
+    def self.search(query:, embedded_query:, search_filter:, current_user_id:)
+        base_search = Review.semantic_search(query, "review", embedded_query)
             .where.not(content: nil)
             .where(user_id: User.visible_to(current_user_id).select(:id))
+        base_search = base_search.sort_by_trending unless query.present?
         if search_filter.present?
             search_filter.each do |filter|
                 normalized_values = Array(filter.values).map(&:downcase)

@@ -14,10 +14,12 @@ import type { EditListDetailsResponse, EditListDetailsInput } from "../types/mut
 import { editListDetails } from "../data/edit_list_details";
 import { contentTypeColor } from "../lib/contentTypeColors";
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "../lib/StyledComponents";
+import { DetailedMediaCard } from "../lib/DetailedMediaCard";
 
-const LIMIT = 10
+const LIMIT = 3
 
-export default function ListPage({ setUser }: { setUser: (user: User | null) => void }) {
+export default function ListPage({ user, setUser }: { user: User | null, setUser: (user: User | null) => void }) {
+    if (!user) return null
     const { list_id } = useParams()
     const navigate = useNavigate()
 
@@ -31,7 +33,9 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
     const [removeMediaId, setRemoveMediaId] = useState<string>("")
     const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
 
-    const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY)
+    const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY, {
+        fetchPolicy: "no-cache",
+    })
     const [addOrRemoveMediaInListMutation, { loading: removeLoading, error: removeError }] =
         useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
 
@@ -39,15 +43,19 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
         if (!list_id) navigate("/")
     }, [list_id])
 
+    function refreshList() {
+        if (!list_id) return
+        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+    }
+
     useEffect(() => {
         if (!list_id || removeMediaId === "") return
-        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false)
+        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false, refreshList)
         setRemoveMediaId("")
     }, [removeMediaId])
 
     useEffect(() => {
-        if (!list_id) return
-        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+        refreshList()
     }, [list_id, pageNum, query])
 
     if (!list_id) return null
@@ -71,6 +79,8 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                     <p className="text-sm text-gray-500 mb-0.5">{targetUser?.username}'s list</p>
                     <h1 className="text-2xl font-bold text-white">{listData?.name ?? "…"}</h1>
                 </div>
+
+                { targetUser?.id === user.id ? (
                 <button
                     type="button"
                     onClick={() => setIfEditListDetails(!ifEditListDetails)}
@@ -84,10 +94,11 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
                     <PencilIcon />
                     {ifEditListDetails ? "Cancel" : "Edit"}
                 </button>
+                ) : <></>}
             </div>
 
             {/* List details / edit form */}
-            {ifEditListDetails ? (
+            {ifEditListDetails && targetUser?.id === user.id ? (
                 <EditListDetails
                     listData={listData as ListType}
                     setListData={setListData}
@@ -122,18 +133,22 @@ export default function ListPage({ setUser }: { setUser: (user: User | null) => 
             {loading && <p className="text-gray-400 text-sm">Loading…</p>}
             {removeLoading && <p className="text-gray-400 text-sm">Removing…</p>}
 
-            <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
-                {mediaInLists.length === 0 && !loading && (
+            <div className="bg-[#171519] rounded-2xl border border-white/5 p-6">
+                {mediaInLists.length === 0 && !loading ? (
                     <p className="text-gray-500 text-sm text-center py-6">No media in this list.</p>
+                ) : (
+                    <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))" }}>
+                        {mediaInLists.map((media) => (
+                            <ListMediaCard
+                                key={media.id}
+                                media_data={media}
+                                setRemoveMediaId={setRemoveMediaId}
+                                setMediaInLists={setMediaInLists}
+                                canRemove={targetUser?.id === user.id}
+                            />
+                        ))}
+                    </div>
                 )}
-                {mediaInLists.map((media) => (
-                    <ListMediaCard
-                        key={media.id}
-                        media_data={media}
-                        setRemoveMediaId={setRemoveMediaId}
-                        setMediaInLists={setMediaInLists}
-                    />
-                ))}
             </div>
 
             <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
@@ -179,46 +194,24 @@ function ListDetails({ listData }: { listData: ListType | null }) {
     )
 }
 
-function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists }: { media_data: Media, setRemoveMediaId: Dispatch<SetStateAction<string>>, setMediaInLists: Dispatch<SetStateAction<Media[]>> }) {
-    const navigate = useNavigate()
-    const color = contentTypeColor(media_data.contentType)
+function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists, canRemove }: { media_data: Media, setRemoveMediaId: Dispatch<SetStateAction<string>>, setMediaInLists: Dispatch<SetStateAction<Media[]>>, canRemove: boolean }) {
     return (
-        <div className="flex items-center gap-4 py-4 border-b border-white/5 last:border-b-0">
-            <img
-                onClick={() => navigate(`/media/${media_data.id}`)}
-                src={media_data.coverImage || "/default-ARTHIVE-cover.png"}
-                alt={media_data.title}
-                width={48}
-                height={64}
-                className="w-12 h-16 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-                style={{ border: `2px solid ${color}` }}
-            />
-            <div className="flex-1 min-w-0">
-                <p
-                    onClick={() => navigate(`/media/${media_data.id}`)}
-                    className="text-white font-medium hover:text-violet-300 cursor-pointer transition truncate"
+        <div className="relative group">
+            <DetailedMediaCard media={media_data} />
+            <div className="pointer-events-none absolute inset-0 rounded-lg bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+            {canRemove && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        setRemoveMediaId(media_data.id.toString())
+                        setMediaInLists((prev: Media[]) => prev.filter((m) => m.id !== media_data.id))
+                    }}
+                    className="absolute top-1.5 right-1.5 p-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 opacity-0 group-hover:opacity-100 transition hover:bg-red-500/20"
+                    title="Remove from list"
                 >
-                    {media_data.title}
-                </p>
-                {media_data.contentType && (
-                    <span
-                        className="text-xs px-2 py-0.5 rounded-full border mt-1 inline-block capitalize"
-                        style={{ borderColor: color, color, backgroundColor: `${color}20` }}
-                    >
-                        {media_data.contentType}
-                    </span>
-                )}
-            </div>
-            <button
-                onClick={() => {
-                    setRemoveMediaId(media_data.id.toString())
-                    setMediaInLists((prev: Media[]) => prev.filter((m) => m.id !== media_data.id))
-                }}
-                className="flex-shrink-0 p-2 rounded-lg border border-white/5 text-gray-500 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 transition"
-                title="Remove from list"
-            >
-                <TrashIcon />
-            </button>
+                    <TrashIcon />
+                </button>
+            )}
         </div>
     )
 }

@@ -8,6 +8,7 @@ import type { MediaSearchType } from "../types/queries/search_bar_queries"
 import { useNavigate } from "react-router-dom"
 import { createList } from "../data/create_list"
 import { EyeIcon, EyeOffIcon } from "../lib/StyledComponents"
+import { useInfiniteScroll } from "../lib/useInfiniteScroll"
 
 export default function CreateListPage({setUser, user}: {setUser: (user: User) => void, user: User | null}) {
 
@@ -106,30 +107,31 @@ type MediaQuickSearchProps = {
     addedMediaIds: string[]
 }
 
-const LIMIT = 2
+const LIMIT = 10
 
 function MediaQuickSearch({setAddedMediaIds, setUser, addedMediaIds}: MediaQuickSearchProps) {
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [hasNextPage, setHasNextPage] = useState<boolean>(false)
-    const [loadMore, setLoadMore] = useState<number>(10)
+    const [loadMore, setLoadMore] = useState<number>(0)
+    const [loading, setLoading] = useState<boolean>(false)
+
+    const sentinelRef = useInfiniteScroll({
+        hasNextPage,
+        loading,
+        onLoadMore: () => setLoadMore(loadMore + 1),
+    })
+
     return (
         <div className="flex flex-col gap-3">
             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Add Media</label>
             <div className="bg-[#0a090c] rounded-xl border border-white/5 p-4 flex flex-col gap-1">
-                <QuickSearch setSearchResults={setSearchResults} searchType="media" limit={LIMIT} setHasNextPage={setHasNextPage} loadMore={loadMore} setUser={setUser} setLoadMore={setLoadMore} />
+                <QuickSearch setSearchResults={setSearchResults} searchType="media" limit={LIMIT} setHasNextPage={setHasNextPage} loadMore={loadMore} setUser={setUser} setLoadMore={setLoadMore} setLoading={setLoading} />
 
                 {searchResults.map((media: MediaSearchType) => (
                     <QuickSearchMediaCard key={media.id} media={media} setAddedMediaIds={setAddedMediaIds} addedMediaIds={addedMediaIds} />
                 ))}
 
-                {hasNextPage && (
-                    <button
-                        onClick={() => setLoadMore(loadMore + 1)}
-                        className="text-violet-400 hover:text-violet-300 text-sm transition text-center pt-2"
-                    >
-                        Load more
-                    </button>
-                )}
+                {hasNextPage && <div ref={sentinelRef} className="h-1" />}
             </div>
         </div>
     )

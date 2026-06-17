@@ -1,3 +1,4 @@
+# DEPRECATED: Use SqsWorker.start in config/puma.rb instead
 task sqs_worker: :environment do
     loop do
         response = SQS_CLIENT.receive_message(
