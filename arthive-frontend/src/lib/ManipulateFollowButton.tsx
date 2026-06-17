@@ -19,7 +19,7 @@ const MANIPULATION_LABELS: Record<"accept" | "reject" | "unfollow" | "cancel", s
     cancel: "Cancel",
 }
 
-export default function ManipulateFollowButton({followId, manipulation, setFollowStatus, setUser, obtainFollowsDetails}: {followId: string, manipulation: "accept" | "reject" | "unfollow" | "cancel", setFollowStatus: (followStatus:{id: string, status: string} | null) => void, setUser: (user: User) => void, obtainFollowsDetails: () => void}) {
+export default function ManipulateFollowButton({followId, manipulation, setFollowStatus, setUser, obtainFollowsDetails}: {followId: string, manipulation: "accept" | "reject" | "unfollow" | "cancel", setFollowStatus: (followStatus:{id: string, status: string} | null) => void, setUser: (user: User) => void, obtainFollowsDetails?: () => void}) {
     const [manipulateFollow] = useMutation<ManipulateFollowResponse, ManipulateFollowInput>(MANIPULATE_FOLLOW_MUTATION)
     const navigate = useNavigate()
 

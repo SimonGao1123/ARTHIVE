@@ -372,24 +372,26 @@ function UserResult({ user }: { user: User }) {
 
 function ReviewResult({ review }: { review: Review }) {
     const navigate = useNavigate()
+    if (!review.media) return null
+    const media = review.media
     return (
         <div className="flex items-start gap-4 py-4 border-b border-white/5 last:border-b-0">
             <img
-                src={review.media.coverImage ?? "/default-ARTHIVE-cover.png"}
-                alt={review.media.title}
+                src={media.coverImage ?? "/default-ARTHIVE-cover.png"}
+                alt={media.title}
                 width={48}
                 height={64}
-                onClick={() => navigate(`/media/${review.media.id}`)}
+                onClick={() => navigate(`/media/${media.id}`)}
                 className="w-12 h-16 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-                style={{ border: `2px solid ${contentTypeColor(review.media.contentType)}` }}
+                style={{ border: `2px solid ${contentTypeColor(media.contentType)}` }}
             />
             <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                     <p
-                        onClick={() => navigate(`/media/${review.media.id}`)}
+                        onClick={() => navigate(`/media/${media.id}`)}
                         className="text-white font-medium hover:text-violet-300 cursor-pointer transition truncate"
                     >
-                        {review.media.title}
+                        {media.title}
                     </p>
                     <ResultTypeBadge type="review" />
                 </div>
