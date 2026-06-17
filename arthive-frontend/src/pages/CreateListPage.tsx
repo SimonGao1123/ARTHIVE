@@ -107,12 +107,12 @@ type MediaQuickSearchProps = {
     addedMediaIds: string[]
 }
 
-const LIMIT = 2
+const LIMIT = 10
 
 function MediaQuickSearch({setAddedMediaIds, setUser, addedMediaIds}: MediaQuickSearchProps) {
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [hasNextPage, setHasNextPage] = useState<boolean>(false)
-    const [loadMore, setLoadMore] = useState<number>(10)
+    const [loadMore, setLoadMore] = useState<number>(0)
     const [loading, setLoading] = useState<boolean>(false)
 
     const sentinelRef = useInfiniteScroll({

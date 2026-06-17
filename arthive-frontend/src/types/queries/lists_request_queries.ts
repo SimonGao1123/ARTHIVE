@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client"
 import type { User } from "../user_types"
+import type { Media } from "../media_type"
 export const OBTAIN_ALL_USER_LISTS_QUERY = gql`
     query ObtainAllUserLists($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!, $query: String, $excludeMediaId: ID) {
         obtainAllUserLists(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType, query: $query, excludeMediaId: $excludeMediaId) {
@@ -92,8 +93,14 @@ export const OBTAIN_LIST_PAGE_QUERY = gql`
             mediaInLists {
                 media {
                     id
-                    coverImage
                     title
+                    creator
+                    year
+                    genre
+                    contentType
+                    coverImage
+                    ifFavorite
+                    ifFinished
                 }
             }
             user {
@@ -133,11 +140,7 @@ export type ObtainListPageResponse = {
             updatedAt: string,
         }
         mediaInLists: {
-            media: {
-                id: string,
-                coverImage: string | null,
-                title: string,
-            }
+            media: Media
         } []
         user: User,
         pageInfo: {
@@ -155,4 +158,8 @@ export type ListType = {
     tags: string[],
     createdAt: string,
     updatedAt: string,
+    user: User,
+    mediaInLists: {
+        media: Media
+    } []
 }

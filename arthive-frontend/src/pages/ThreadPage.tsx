@@ -11,7 +11,7 @@ import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } f
 import { likeThreadFunction } from "../data/like_thread_function"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
 import type { Review } from "../types/review_type"
-import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ReviewCard"
+import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ChatReferenceCards"
 import EditThreadComponent from "../lib/EditThreadComponent"
 import { LikeButton, CommentIcon } from "../lib/StyledComponents"
 import { useInfiniteScroll } from "../lib/useInfiniteScroll"
@@ -114,6 +114,7 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
     const [likeCount, setLikeCount] = useState(mainThread.likesCount)
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [editPopupOpen, setEditPopupOpen] = useState(false)
+
 
     function handleLikeThread() {
         setCurrLiked(prev => !prev)

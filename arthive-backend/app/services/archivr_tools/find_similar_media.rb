@@ -76,7 +76,8 @@ module ArchivrTools
                     content_type: m.content_type,
                     creator: m.creator,
                     genre: m.genre,
-                    summary: m.summary&.truncate(300)
+                    summary: m.summary&.truncate(300),
+                    id: m.id
                 }
             end
         end

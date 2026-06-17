@@ -91,7 +91,7 @@ module ArchivrTools
                     media: t.community&.media&.title,
                     likes: t.thread_likes.count,
                     replies: t.child_threads.count,
-                    created_at: t.created_at.iso8601
+                    id: t.id
                 }
             end
         end

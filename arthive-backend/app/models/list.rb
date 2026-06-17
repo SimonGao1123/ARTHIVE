@@ -73,4 +73,68 @@ class List < ApplicationRecord
 
         return base_search.includes(:user, :media_in_lists => :media).recent
     end
+
+
+    def self.add_or_remove_media(list_id, media_ids, if_add)
+        list = List.find_by(id: list_id)
+
+        if !list.present?
+            return {error: "List not found"}
+        end
+
+        new_content_type = Set.new(list.content_type.to_a)
+        error = nil
+
+        ActiveRecord::Base.transaction do
+            media_ids.each do |media_id|
+                media = Media.find_by(id: media_id)
+                if !media.present?
+                    error = "Media #{media_id} not found"
+                    raise ActiveRecord::Rollback
+                end
+
+                if if_add
+                    media_in_list = MediaInList.new(list: list, media: media)
+
+                    if !media_in_list.save
+                        error = media_in_list.errors.full_messages.join(", ").presence ||
+                            "Failed to add media #{media.title} to list #{list.name}"
+                        raise ActiveRecord::Rollback
+                    end
+
+                    Activity.log(user: list.user, subject: media_in_list, status: "created", snapshot: {
+                        list_name: list.name
+                    })
+
+                    new_content_type << media.content_type
+                else
+                    media_in_list = MediaInList.find_by(list_id: list_id, media_id: media_id)
+                    if !media_in_list.present?
+                        error = "Media #{media.title} not in list #{list.name}"
+                        raise ActiveRecord::Rollback
+                    end
+                    if !media_in_list.destroy
+                        error = "Failed to remove media #{media.title} from list #{list.name}"
+                        raise ActiveRecord::Rollback
+                    end
+                end
+            end
+
+            # recompute content type
+            if !if_add
+                new_content_type = Set.new(
+                    list.media_in_lists.reload.includes(:media).map { |mil| mil.media.content_type }
+                )
+            end
+
+            if !list.update(content_type: new_content_type.to_a)
+                error = "Failed to update list content type"
+                raise ActiveRecord::Rollback
+            end
+        end
+
+        return {error: error} if error
+
+        return list
+    end
 end

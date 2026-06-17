@@ -70,7 +70,8 @@ module ArchivrTools
                 {
                     user: review.user.username,
                     rating: review.rating,
-                    content: review.content
+                    content: review.content,
+                    id: review.id
                 }
             end
         end

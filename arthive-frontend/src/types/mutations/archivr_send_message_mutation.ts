@@ -7,6 +7,82 @@ export const MESSAGE_ARCHIVR = gql`
             id
             content
             role
+
+            reviewRefs {
+                id
+                content
+                rating
+                ifFavorite
+                ifFinished
+                updatedAt
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+                media {
+                    id
+                    title
+                    coverImage
+                }
+                imageDetails {
+                    signedId
+                    url
+                }
+            }
+
+            listRefs {
+                id
+                name
+                description
+                tags
+                user {
+                    id
+                    username
+                    profilePicture
+                }
+                mediaInLists (pageNum: 1, limit: 3) {
+                    media {
+                        id
+                        title
+                        coverImage
+                    }
+                }
+            }
+
+            threadRefs {
+                id
+                title
+                content
+                imageDetails {
+                    signedId
+                    url
+                }
+                user {
+                    id
+                    username
+                    profilePicture
+                
+                }
+                community {
+                    id
+                    media {
+                        id
+                        title
+                        coverImage
+                    }
+                }
+            }
+
+            mediaRefs {
+                id
+                title
+                coverImage
+                year
+                creator
+                genre
+                contentType
+            }
         }
     }
 `
@@ -21,3 +97,4 @@ export type MessageArchivrInput = {
 export type MessageArchivrResponse = {
     messageArchivr: ArchivrMessage
 }
+

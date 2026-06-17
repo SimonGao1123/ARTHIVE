@@ -112,7 +112,8 @@ module ArchivrTools
                     tags: l.tags,
                     content_type: l.content_type,
                     sample_media: sample_titles,
-                    total_media: l.media_in_lists.size
+                    total_media: l.media_in_lists.size,
+                    id: l.id
                 }
             end
         end

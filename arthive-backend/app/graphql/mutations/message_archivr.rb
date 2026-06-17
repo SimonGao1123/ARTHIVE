@@ -13,7 +13,10 @@ module Mutations
             if message.nil?
                 raise GraphQL::ExecutionError, "Failed to generate response"
             end
-            return message # returns the ai response message
+
+            message
+
         end
     end
+
 end

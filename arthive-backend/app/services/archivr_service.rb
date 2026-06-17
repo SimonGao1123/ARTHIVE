@@ -68,7 +68,8 @@ class ArchivrService
             end
 
             if response[:text].present? # just return text early
-                return ArchivrMessage.create!(archivr_conversation: conversation, content: response[:text], role: "assistant")
+                refs = extract_references(response[:text])
+                return ArchivrMessage.create!(archivr_conversation: conversation, content: response[:text], role: "assistant", references: refs)
             else
                 Rails.logger.error "Archivr error: No text in response"
                 return nil
@@ -120,9 +121,46 @@ class ArchivrService
             - If the question is clearly unrelated to #{media.title} or media in general, gently steer the conversation back.
             - Be concise. Match the user's tone. Avoid bullet points unless listing 3+ items.
             - Use **bold** for titles, names being highlighted, or emphasis. Avoid headings or lists for short responses.
+            - For any referenced media, lists, threads, or reviews write it in the format [Media::id], [List::id], [Thread::id], [Review::id]
+                - Always include referenced objects to be right after the sentence that references them, after the punctuation.
 
             Archivr:
         PROMPT
     end
+
+    def self.extract_references(text)
+        media_ids = []
+        list_ids = []
+        thread_ids = []
+        review_ids = []
+
+        refs = text.scan(/\[(.*?)\]/).flatten # extracts all text within square brackets
+
+        refs.each do |ref| 
+            type = ref.split("::")[0]
+            id = ref.split("::")[1]
+
+            case type
+            when "Media"
+                media_ids << id
+            when "List"
+                list_ids << id
+            when "Thread"
+                thread_ids << id
+            when "Review"
+                review_ids << id
+            else
+                Rails.logger.error "Unknown reference type: #{type}"
+                next
+            end
+        end
+
+        return {
+            media_ids: media_ids,
+            list_ids: list_ids,
+            thread_ids: thread_ids,
+            review_ids: review_ids
+        }
+    end    
 
 end

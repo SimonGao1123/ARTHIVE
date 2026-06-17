@@ -5,7 +5,7 @@ import { useState, type RefObject } from "react"
 import { likeThreadFunction } from "../data/like_thread_function"
 import type { User } from "../types/user_types"
 import type { NavigateFunction } from "react-router-dom"
-import { ReviewReferenceCard, ReviewUnavailableCard } from "./ReviewCard"
+import { ReviewReferenceCard, ReviewUnavailableCard } from "./ChatReferenceCards"
 import { LikeButton, CommentIcon } from "./StyledComponents"
 
 export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user: _user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {

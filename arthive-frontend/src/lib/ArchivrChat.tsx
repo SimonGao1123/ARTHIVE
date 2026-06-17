@@ -17,6 +17,13 @@ import { sendArchivrMessageFunction } from "../data/send_archivr_message"
 import type { User } from "../types/user_types"
 import { ArchivrLogo } from "./StyledComponents"
 import { useInfiniteScroll } from "./useInfiniteScroll"
+import {
+    MediaReferenceCard,
+    ListReferenceCard,
+    ThreadReferenceCard,
+    ReviewReferenceCard,
+    RefUnavailableCard,
+} from "./ChatReferenceCards"
 
 const LIMIT = 6
 
@@ -27,17 +34,60 @@ type ArchivrChatProps = {
     onClose: () => void
 }
 
-function renderContent(text: string): React.ReactNode {
-    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/)
+// Matches **bold**, *bold*, or [Media::id] / [Review::id] / [Thread::id] / [List::id].
+// Each alternative is its own capture group so .split() preserves the matches as separate parts.
+const TOKEN_REGEX = /(\*\*[^*]+\*\*|\*[^*]+\*|\[(?:Media|Review|Thread|List)::\d+\])/
+
+function renderContent(message: ArchivrMessage): React.ReactNode {
+    const parts = message.content.split(TOKEN_REGEX)
     return parts.map((part, i) => {
+        if (!part) return null
+
         if (part.startsWith("**") && part.endsWith("**")) {
             return <strong key={i}>{part.slice(2, -2)}</strong>
         }
-        if (part.startsWith("*") && part.endsWith("*")) {
+        if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) {
             return <strong key={i}>{part.slice(1, -1)}</strong>
         }
-        return part
+
+        const refMatch = part.match(/^\[(Media|Review|Thread|List)::(\d+)\]$/)
+        if (refMatch) {
+            const type = refMatch[1] as "Media" | "Review" | "Thread" | "List"
+            const id = refMatch[2]
+            return (
+                <div key={i} className="my-2">
+                    {renderRefCard(type, id, message)}
+                </div>
+            )
+        }
+
+        return <span key={i}>{part}</span>
     })
+}
+
+function renderRefCard(
+    type: "Media" | "Review" | "Thread" | "List",
+    id: string,
+    message: ArchivrMessage,
+): React.ReactNode {
+    switch (type) {
+        case "Media": {
+            const media = message.mediaRefs?.find((m) => String(m.id) === id)
+            return media ? <MediaReferenceCard media={media} /> : <RefUnavailableCard label="Media" />
+        }
+        case "Review": {
+            const review = message.reviewRefs?.find((r) => String(r.id) === id)
+            return review ? <ReviewReferenceCard review={review} /> : <RefUnavailableCard label="Review" />
+        }
+        case "Thread": {
+            const thread = message.threadRefs?.find((t) => String(t.id) === id)
+            return thread ? <ThreadReferenceCard thread={thread} /> : <RefUnavailableCard label="Thread" />
+        }
+        case "List": {
+            const list = message.listRefs?.find((l) => String(l.id) === id)
+            return list ? <ListReferenceCard list={list} /> : <RefUnavailableCard label="List" />
+        }
+    }
 }
 
 export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: ArchivrChatProps) {
@@ -114,6 +164,10 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
             content: q,
             role: "user",
             createdAt: new Date().toISOString(),
+            reviewRefs: [],
+            listRefs: [],
+            threadRefs: [],
+            mediaRefs: [],
         }
         setMessages((prev) => [...prev, optimistic])
         setInput("")
@@ -191,10 +245,10 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
                                     className={
                                         isUser
                                             ? "max-w-[80%] rounded-2xl bg-violet-500/20 text-white text-sm px-3.5 py-2 whitespace-pre-wrap"
-                                            : "max-w-[80%] rounded-2xl bg-[#1e1b22] border border-white/5 text-gray-200 text-sm px-3.5 py-2 whitespace-pre-wrap"
+                                            : "max-w-[80%] rounded-2xl bg-[#1e1b22] border border-white/5 text-gray-200 text-sm px-3.5 py-2"
                                     }
                                 >
-                                    {isUser ? m.content : renderContent(m.content)}
+                                    {isUser ? m.content : renderContent(m)}
                                 </div>
                             </div>
                         )

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_13_064619) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_13_064619) do
     t.bigint "archivr_conversation_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.jsonb "references", default: {}
     t.string "role", null: false
     t.datetime "updated_at", null: false
     t.index ["archivr_conversation_id"], name: "index_archivr_messages_on_archivr_conversation_id"
