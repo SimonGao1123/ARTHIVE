@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react"
-import type { LikedOrFinishedMediaCard } from "../types/queries/liked_or_finished_media_query"
+import type { Media } from "../types/media_type"
 import type { User } from "../types/user_types"
 import { logout } from "./logout"
 
@@ -14,7 +14,7 @@ export function obtainLikedOrFinishedMediaFunction(
     query: string,
     setTotalPages: Dispatch<SetStateAction<number>>,
     obtainLikedOrFinishedMedia: any,
-    setMedia: Dispatch<SetStateAction<LikedOrFinishedMediaCard[]>>,
+    setMedia: Dispatch<SetStateAction<Media[]>>,
     navigate: any,
     setUser: (user: User | null) => void,
     setPageUser?: Dispatch<SetStateAction<{ id: string; username: string } | null>>) {

@@ -14,7 +14,7 @@ export function hottestExplorePageData(
     goNext: boolean,
     setIfPrevPage: (ifPrevPage: boolean) => void,
     setIfNextPage: (ifNextPage: boolean) => void,
-    setAllMedia: Dispatch<SetStateAction<{id: number, coverImage: string}[]>>,
+    setAllMedia: Dispatch<SetStateAction<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean}[]>>,
     getHottestExplorePageMedia: any
 ) {
     getHottestExplorePageMedia(
