@@ -1,7 +1,7 @@
 class Activity < ApplicationRecord
     include SharedScopeMethods
 
-    VALID_SUBJECT_TYPES = %w[Review ReviewComment ReviewLike CommunityThread ThreadLike List MediaInList].freeze
+    VALID_SUBJECT_TYPES = %w[Review ReviewComment ReviewLike CommunityThread ThreadLike List MediaInList ListLike].freeze
     # if destroyed just delete the row
     VALID_STATUSES = %w[created updated].freeze
 

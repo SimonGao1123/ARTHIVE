@@ -1,40 +1,43 @@
+type DisplayRatingSize = "sm" | "md" | "lg"
 
-export default function DisplayRating({rating}: {rating: number}) {
+const SIZE_CLASSES: Record<DisplayRatingSize, string> = {
+    sm: "text-sm leading-none",
+    md: "text-lg leading-none",
+    lg: "text-2xl leading-none",
+}
+
+export default function DisplayRating({rating, size = "md"}: {rating: number, size?: DisplayRatingSize}) {
+    const clamped = Math.max(0, Math.min(5, rating))
     const stars = []
-    while (stars.length < 5) {
-        if (rating >= 1) {
-            stars.push(<span key={stars.length} style={{color: "#f59e0b"}}>★</span>)
-            rating -= 1
-        } else if (rating === 0.5) {
-            // Half star
-            stars.push(
-            <span key={stars.length} style={{ position: "relative", display: "inline-block" }}>
-                {/* gray star background */}
-                <span style={{ color: "#d1d5db" }}>★</span>
-
-                {/* yellow overlay for half */}
-                <span
-                style={{
-                    color: "#f59e0b",
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    width: "50%",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                }}
-                >
-                ★
-                </span>
-            </span>
-            );
-            rating -= 0.5
+    for (let i = 0; i < 5; i++) {
+        const fillFraction = Math.max(0, Math.min(1, clamped - i))
+        if (fillFraction >= 1) {
+            stars.push(<span key={i} style={{color: "#f59e0b"}}>★</span>)
+        } else if (fillFraction <= 0) {
+            stars.push(<span key={i} style={{color: "#d1d5db"}}>★</span>)
         } else {
-            stars.push(<span key={stars.length} style={{color: "#d1d5db"}}>★</span>)
+            stars.push(
+                <span key={i} style={{ position: "relative", display: "inline-block" }}>
+                    <span style={{ color: "#d1d5db" }}>★</span>
+                    <span
+                        style={{
+                            color: "#f59e0b",
+                            position: "absolute",
+                            left: 0,
+                            top: 0,
+                            width: `${fillFraction * 100}%`,
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        ★
+                    </span>
+                </span>
+            )
         }
     }
     return (
-        <div>
+        <div className={`inline-flex items-center ${SIZE_CLASSES[size]}`}>
             {stars}
         </div>
     )

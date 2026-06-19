@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_075412) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -109,6 +109,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.index ["receiver_id"], name: "index_follows_on_receiver_id"
     t.index ["sender_id", "receiver_id"], name: "index_follows_on_sender_id_and_receiver_id", unique: true
     t.index ["sender_id"], name: "index_follows_on_sender_id"
+  end
+
+  create_table "list_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["list_id"], name: "index_list_likes_on_list_id"
+    t.index ["user_id"], name: "index_list_likes_on_user_id"
   end
 
   create_table "lists", force: :cascade do |t|
@@ -255,6 +264,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   add_foreign_key "community_threads", "users"
   add_foreign_key "follows", "users", column: "receiver_id"
   add_foreign_key "follows", "users", column: "sender_id"
+  add_foreign_key "list_likes", "lists"
+  add_foreign_key "list_likes", "users"
   add_foreign_key "lists", "users"
   add_foreign_key "media", "users"
   add_foreign_key "media_in_lists", "lists"

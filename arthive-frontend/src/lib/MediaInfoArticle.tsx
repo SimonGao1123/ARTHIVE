@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { addOrRemoveMediaData } from "../data/add_or_remove_media_data"
 import type { User } from "../types/user_types"
+import DisplayRating from "./DisplayRating"
 
 export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Media, setUser: (user: User | null) => void, setMediaInfo: (mediaInfo: Media | null) => void}) {
     const [addOrRemoveMediaInListMutation, {loading, error}] = useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
@@ -35,6 +36,22 @@ export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Medi
                     <span className="mx-2 text-gray-600">·</span>
                     By <span className="text-gray-300">{media.creator}</span>
                 </p>
+                <div className="flex items-center gap-5 mt-4 text-sm">
+                    {media.averageRating > 0 ? (
+                        <div className="flex items-center gap-2">
+                            <DisplayRating rating={media.averageRating} size="md" />
+                            <span className="text-gray-200 font-medium">{media.averageRating.toFixed(1)}</span>
+                        </div>
+                    ) : (
+                        <span className="text-gray-500 italic">No ratings yet</span>
+                    )}
+                    <div className={`flex items-center gap-1.5 ${media.favoriteCount > 0 ? "text-pink-300" : "text-gray-500"}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                        <span>{media.favoriteCount} {media.favoriteCount === 1 ? "favorite" : "favorites"}</span>
+                    </div>
+                </div>
             </header>
 
             <section aria-labelledby={`summary-heading-${media.id}`} className="mb-6">

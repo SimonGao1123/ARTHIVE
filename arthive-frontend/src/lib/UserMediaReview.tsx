@@ -13,6 +13,7 @@ import { EyeIcon, EyeOffIcon, PencilIcon, ListIcon, HeartIcon, TrashIcon, ImageI
 import { UPLOAD_IMAGE_TO_S3_MUTATION } from "../types/mutations/upload_media_mutation";
 import { removeAttachedImageFunction } from "../data/remove_image_attachment.ts";
 import PreviewImageDisplay from "./PreviewImageDisplay.tsx";
+import { handleAttachImages } from "./HandleImageUpload.ts";
 
 type UserMediaReviewProps = {
     mediaId: number
@@ -213,20 +214,6 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
 
     const [removeAttachedImage] = useMutation<RemoveAttachedImageResponse, RemoveAttachedImageInput>(REMOVE_ATTACHED_IMAGE_MUTATION)
 
-    const handleUploadImages = (files: File[]) => {
-        for (const file of files) {
-            if (newReviewImages.length >= 5) return
-            if (file.type.split("/")[0] !== "image") continue
-            if (file.size > 2 * 1024 * 1024) {
-                alert("Image is too large (max 2MB)") 
-                continue
-            }
-            const url = URL.createObjectURL(file)
-            const uuid = crypto.randomUUID()
-            setNewReviewImages((prev) => [...prev, {file, url, uuid}])
-        }
-    }
-
     return (
         <div
             role="dialog"
@@ -265,7 +252,7 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
 
                 <div
                     className="w-full bg-[#0a090c] border border-white/10 rounded-lg focus-within:border-violet-500/50 transition-colors"
-                    onPaste={(e) => handleUploadImages(Array.from(e.clipboardData.files || []))}
+                    onPaste={(e) => handleAttachImages({files: Array.from(e.clipboardData.files || []), newImages: newReviewImages, setNewImages: setNewReviewImages})}
                 >
                     <textarea
                         autoFocus
@@ -281,7 +268,7 @@ function WriteReviewModal({userReviewId, reviewContent, title, coverImage, creat
                     )}
                 </div>
 
-                <input ref={fileInputRef} type="file" multiple onChange={(e) => { handleUploadImages(Array.from(e.target.files || [])); e.target.value = "" }} accept="image/*" className="hidden" />
+                <input ref={fileInputRef} type="file" multiple onChange={(e) => handleAttachImages({files: Array.from(e.target.files || []), newImages: newReviewImages, setNewImages: setNewReviewImages})} accept="image/*" className="hidden" />
 
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">

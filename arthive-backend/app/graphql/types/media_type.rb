@@ -33,6 +33,17 @@ module Types
     field :if_finished, Boolean, null: false
     field :review_count, Int, null: false
 
+    field :favorite_count, Int, null: false
+    field :average_rating, Float, null: false
+
+    def favorite_count
+      object.reviews.where(if_favorite: true).count
+    end
+
+    def average_rating
+      object.reviews.where.not(rating: nil).average(:rating).round(1) || 0
+    end
+
     def if_favorite
       object.reviews.exists?(user_id: context[:current_user].id, if_favorite: true)
     end

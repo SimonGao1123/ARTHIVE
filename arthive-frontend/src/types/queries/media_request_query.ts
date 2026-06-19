@@ -13,6 +13,8 @@ export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
                     contentType
                     ifFavorite
                     ifFinished
+                    favoriteCount
+                    averageRating
                 }
             }
             pageInfo {
@@ -34,6 +36,8 @@ export type NewestExplorePageMediaResponse = {
                 contentType: string
                 ifFavorite: boolean
                 ifFinished: boolean
+                favoriteCount: number
+                averageRating: number
             }
         }[]
         pageInfo: {
@@ -68,7 +72,8 @@ export const OBTAIN_MEDIA_INFO_QUERY = gql`
             coverImage
             reviewsAiSummary
             reviewCount
-
+            favoriteCount
+            averageRating
             inLists {
                 id
                 name
@@ -139,6 +144,8 @@ export const HOTTEST_EXPLORE_PAGE_MEDIA_QUERY = gql`
                     contentType
                     ifFavorite
                     ifFinished
+                    favoriteCount
+                    averageRating
                 }
             }
 
@@ -171,5 +178,61 @@ export type HottestExplorePageMediaResponse = {
     }
 }
 export type HottestExplorePageMediaInput =
+    | { contentType: "book" | "film" | "series" | "game" | "all"; first: number; after?: string; last?: never; before?: never }
+    | { contentType: "book" | "film" | "series" | "game" | "all"; last: number; before?: string; first?: never; after?: never }
+
+
+export const BECAUSE_OF_REVIEWS_EXPLORE_MEDIA_QUERY = gql`
+    query BecauseOfReviewsExploreMedia($contentType: ContentTypeEnum, $first: Int, $after: String, $last: Int, $before: String) {
+        becauseOfReviewsExploreMedia(contentType: $contentType) {
+            media(first: $first, after: $after, last: $last, before: $before) {
+                edges {
+                    node {
+                        id
+                        coverImage
+                        contentType
+                        ifFavorite
+                        ifFinished
+                        favoriteCount
+                        averageRating
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                    hasPreviousPage
+                    startCursor
+                }
+            }
+            source {
+                id
+                title
+                contentType
+            }
+        }
+    }
+`;
+export type BecauseOfReviewsExploreMediaResponse = {
+    becauseOfReviewsExploreMedia: {
+        media: {
+            edges: {
+                node: Media
+            }[]
+            pageInfo: {
+                hasNextPage: boolean
+                endCursor: string
+                hasPreviousPage: boolean
+                startCursor: string
+            }
+        }
+        source: {
+            id: number
+            title: string
+            contentType: string
+        }
+    }
+}
+
+export type BecauseOfReviewsExploreMediaInput =
     | { contentType: "book" | "film" | "series" | "game" | "all"; first: number; after?: string; last?: never; before?: never }
     | { contentType: "book" | "film" | "series" | "game" | "all"; last: number; before?: string; first?: never; after?: never }

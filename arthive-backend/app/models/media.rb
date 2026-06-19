@@ -82,7 +82,29 @@ class Media < ApplicationRecord
         PresignedUrlAttachment.presigned_url(cover_image)
     end
 
-    
+    # takes recent / highly rated review from user and suggests media that are similar to the media reviewed by the user
+    # looks at that media's sorted by most similar media to suggest
+    def self.because_of_reviews(content_type: "all", user_id: nil)
+        user_review = Review.includes(:media)
+        .where(user_id: user_id)
+        .where.not(rating: nil)
+        .joins(:media).where.not(media: { embedding: nil })
+        .order(Arel.sql("(reviews.created_at > NOW() - INTERVAL '7 days') DESC, rating DESC NULLS LAST"))
+        .first
+
+        return nil if user_review.nil?
+
+        source = user_review.media
+        # can match via title/genre/description/actors via similarity search
+        closest_media = source.nearest_neighbors(:embedding, distance: "cosine")
+            .where.not(id: source.id)
+            .content_type_filter(content_type)
+        
+        return {
+            media: closest_media,
+            source: source
+        }
+    end
 
     # currently just searches for media that were recently created and not reviewed by user yet
     scope :newest_explore_page, -> (content_type: "all", user_id: nil) {
@@ -97,22 +119,47 @@ class Media < ApplicationRecord
         .recent
     }
 
-    # most reviews/threads on the media within the last week (hottest)        
+    # Hotness combines damped recent volume signals (reviews, favorites, threads,
+    # review likes) with a confidence-weighted quality bump (avg rating - 3, scaled
+    # by sqrt of the rated-review count). LN(1+x) prevents whales from dominating;
+    # the quality term penalizes media trending below 3 stars.
     scope :hottest_explore_page, ->(content_type: "all", user_id: nil) {
         select(<<~SQL
           media.*,
           (
-            (SELECT COUNT(*) FROM reviews
-               WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id) * 2
+            LN(1 + (
+              SELECT COUNT(*) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+            )) * 3
             +
-            (SELECT COUNT(*) FROM community_threads
-               JOIN communities ON community_threads.community_id = communities.id
-               WHERE community_threads.created_at > NOW() - INTERVAL '1 week' AND communities.media_id = media.id) * 3
+            LN(1 + (
+              SELECT COUNT(*) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+                  AND reviews.if_favorite = TRUE
+            )) * 4
             +
-            COALESCE(
-              (SELECT AVG(rating) FROM reviews WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id),
-              0
-            ) * 5
+            LN(1 + (
+              SELECT COUNT(*) FROM community_threads
+                JOIN communities ON community_threads.community_id = communities.id
+                WHERE community_threads.created_at > NOW() - INTERVAL '1 week'
+                  AND communities.media_id = media.id
+            )) * 2
+            +
+            LN(1 + (
+              SELECT COUNT(*) FROM review_likes
+                JOIN reviews ON review_likes.review_id = reviews.id
+                WHERE review_likes.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+            )) * 1.5
+            +
+            COALESCE((
+              SELECT (AVG(rating) - 3) * SQRT(COUNT(*)) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+                  AND reviews.rating IS NOT NULL
+            ), 0) * 1.2
           ) AS hotness_score
         SQL
         )

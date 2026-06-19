@@ -1,7 +1,17 @@
 import { useNavigate } from "react-router-dom"
 import { contentTypeColor } from "./contentTypeColors"
+import DisplayRating from "./DisplayRating"
 
-export function MediaCard({media}: {media: {id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean}}) {
+export type MediaCardData = {
+    id: number
+    coverImage: string
+    contentType: string
+    ifFavorite: boolean
+    ifFinished: boolean
+    averageRating: number
+}
+
+export function MediaCard({media}: {media: MediaCardData}) {
     const navigate = useNavigate()
     const borderColor = contentTypeColor(media.contentType)
 
@@ -16,9 +26,10 @@ export function MediaCard({media}: {media: {id: number, coverImage: string, cont
                 alt={`Cover for media ${media.id}`}
                 className="w-full aspect-[2/3] object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
             />
-            <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
-            {(media.ifFinished || media.ifFavorite) && (
-                <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1">
+            <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
+
+            {(media.ifFavorite || media.ifFinished) && (
+                <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     {media.ifFinished && (
                         <span className="flex items-center justify-center text-emerald-200 bg-emerald-600/80 border border-emerald-400/60 p-1 rounded-full shadow-sm">
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -34,6 +45,12 @@ export function MediaCard({media}: {media: {id: number, coverImage: string, cont
                             </svg>
                         </span>
                     )}
+                </div>
+            )}
+
+            {media.averageRating > 0 && (
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center pb-1.5 pt-3 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <DisplayRating rating={media.averageRating} size="sm" />
                 </div>
             )}
         </button>

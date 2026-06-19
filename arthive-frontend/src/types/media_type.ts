@@ -22,4 +22,6 @@ export type Media = {
     reviewCount: number;
     ifFavorite: boolean;
     ifFinished: boolean;
+    favoriteCount: number;
+    averageRating: number;
 }

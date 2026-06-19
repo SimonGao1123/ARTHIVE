@@ -2,7 +2,7 @@ module Types
     class ActivitySubjectType < Types::BaseUnion
         possible_types Types::ReviewType, Types::ReviewCommentType, Types::ReviewLikeType,
                        Types::CommunityThreadType, Types::ThreadLikeType, Types::ListType,
-                       Types::MediaInListType
+                       Types::MediaInListType, Types::ListLikeType
 
         def self.resolve_type(object, _context)
             case object
@@ -13,6 +13,7 @@ module Types
             when ThreadLike     then Types::ThreadLikeType
             when List           then Types::ListType
             when MediaInList    then Types::MediaInListType
+            when ListLike       then Types::ListLikeType
             end
         end
     end

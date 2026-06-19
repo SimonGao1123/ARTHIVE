@@ -8,7 +8,7 @@ import { MediaCard } from "./MediaCard.tsx"
 
 export default function NewestExplorePageMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
-    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean}[]>([])
+    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean, averageRating: number}[]>([])
     const [nextCursor, setNextCursor] = useState<string | null>(null)
     const [prevCursor, setPrevCursor] = useState<string | null>(null)
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)

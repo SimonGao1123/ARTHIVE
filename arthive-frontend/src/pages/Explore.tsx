@@ -1,6 +1,7 @@
 import { logout } from "../data/logout"
 import HottestExplorePageMediaLibrary from "../lib/HottestExplorePageMediaLibrary"
 import NewestExplorePageMediaLibrary from "../lib/NewestExplorePageMediaLibrary"
+import BecauseOfReviewsExplorePageMediaLibrary from "../lib/BecauseOfReviewsExplorePageMediaLibrary"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
@@ -48,6 +49,8 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
                 </div>
                 {user && <HottestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
+
+            {user && <BecauseOfReviewsExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
         </div>
     )
 }

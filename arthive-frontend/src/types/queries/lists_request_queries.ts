@@ -101,6 +101,8 @@ export const OBTAIN_LIST_PAGE_QUERY = gql`
                     coverImage
                     ifFavorite
                     ifFinished
+                    favoriteCount
+                    averageRating
                 }
             }
             user {

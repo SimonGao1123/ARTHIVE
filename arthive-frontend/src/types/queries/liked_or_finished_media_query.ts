@@ -17,6 +17,8 @@ export const OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY = gql`
                 coverImage
                 ifFavorite
                 ifFinished
+                favoriteCount
+                averageRating
             }
             pageInfo {
                 totalPages

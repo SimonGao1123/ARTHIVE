@@ -64,7 +64,7 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
             setReviewChange({ review: null, nonce: Date.now() })
             return
         }
-        if (!updated.content && updated.rating == null) {
+        if (!updated.content) {
             setReviewChange({ review: null, nonce: Date.now() })
             return
         }

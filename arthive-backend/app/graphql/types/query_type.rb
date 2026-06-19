@@ -24,6 +24,7 @@ module Types
     field :whoami, resolver: Resolvers::WhoamiResolver
     field :newest_explore_media, resolver: Resolvers::NewestExploreMediaResolver
     field :hottest_explore_media, resolver: Resolvers::HottestExploreMediaResolver
+    field :because_of_reviews_explore_media, resolver: Resolvers::BecauseOfReviewsExploreMediaResolver
     field :obtain_media_info, resolver: Resolvers::ObtainMediaInfoResolver
     field :search_bar, resolver: Resolvers::SearchBarResolver
     

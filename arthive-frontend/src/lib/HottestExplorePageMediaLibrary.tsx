@@ -11,7 +11,7 @@ export default function HottestExplorePageMediaLibrary({user: _user, setUser, cu
     const [getHottestExplorePageMedia, {loading}] = useLazyQuery<HottestExplorePageMediaResponse, HottestExplorePageMediaInput>(HOTTEST_EXPLORE_PAGE_MEDIA_QUERY, {
         fetchPolicy: "no-cache",
     })
-    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean}[]>([])
+    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean, averageRating: number}[]>([])
     const [nextCursor, setNextCursor] = useState<string | null>(null)
     const [prevCursor, setPrevCursor] = useState<string | null>(null)
     const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
