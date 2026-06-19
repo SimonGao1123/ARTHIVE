@@ -53,6 +53,10 @@ export const RECENT_USER_ACTIVITY_REQUEST = gql`
                         ... on List {
                             id
                         }
+                        ... on ListLike {
+                            id
+                            list { id }
+                        }
                         ... on MediaInList {
                             id
                             media { id coverImage title }

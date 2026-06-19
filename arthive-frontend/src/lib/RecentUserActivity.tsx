@@ -90,6 +90,8 @@ function ActivityCard({ activity }: { activity: Activity }) {
             return <ReviewLikeRow reviewLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "ThreadLike":
             return <ThreadLikeRow threadLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+        case "ListLike":
+            return <ListLikeRow listLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "List":
             return <ListRow status={activity.status} list={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "CommunityThread":
@@ -227,6 +229,18 @@ function ThreadLikeRow({ threadLike, snap, createdAt, navigate }: RowProps & { t
             label={`Liked ${snap?.threadAuthorUsername ?? "someone"}'s thread`}
             title={snap?.threadTitle ?? "Untitled thread"}
             onRowClick={() => navigate(`/community/${thread?.community?.media?.id}/thread/${thread?.id}`)}
+            createdAt={createdAt}
+            navigate={navigate}
+        />
+    )
+}
+
+function ListLikeRow({ listLike, snap, createdAt, navigate }: RowProps & { listLike: any }) {
+    return (
+        <ActivityRow
+            label="Liked list"
+            title={snap?.listName ?? "Unknown list"}
+            onRowClick={() => navigate(`/list/${listLike.list?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
         />

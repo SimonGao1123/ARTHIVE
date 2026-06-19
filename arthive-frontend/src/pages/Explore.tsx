@@ -6,6 +6,7 @@ import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import ContentFilter from "../lib/ContentFilter"
+import TrendingLists from "../lib/TrendingLists"
 
 type ExplorePageProps = {
     setUser: (user: User | null) => void
@@ -34,6 +35,20 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
 
             <ContentFilter currContentType={currContentType} setContentType={setCurrContentType} />
 
+            
+
+            <section className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-white">Trending</span>
+                    <span className="text-xs text-gray-500">Most active this week</span>
+                </div>
+                {user && <HottestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            </section>
+
+            <section className="flex flex-col gap-3">
+                {user && <BecauseOfReviewsExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            </section>
+
             <section className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                     <span className="text-base font-semibold text-white">Newest</span>
@@ -44,13 +59,12 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
 
             <section className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-base font-semibold text-white">Trending</span>
-                    <span className="text-xs text-gray-500">Most active this week</span>
+                    <span className="text-base font-semibold text-white">Trending Lists</span>
+                    <span className="text-xs text-gray-500">Most liked this week</span>
                 </div>
-                {user && <HottestExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+                {user && <TrendingLists user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
-
-            {user && <BecauseOfReviewsExplorePageMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+            
         </div>
     )
 }

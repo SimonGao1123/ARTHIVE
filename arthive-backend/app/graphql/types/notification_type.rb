@@ -11,6 +11,7 @@ module Types
         field :review_comment, Types::ReviewCommentType, null: true
         field :parent_thread, Types::CommunityThreadType, null: true
         field :comment_thread, Types::CommunityThreadType, null: true
+        field :list, Types::ListType, null: true
 
     end
 end

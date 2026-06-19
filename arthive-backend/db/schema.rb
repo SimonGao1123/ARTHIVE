@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_19_075412) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_204427) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -172,6 +172,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_075412) do
     t.bigint "comment_thread_id"
     t.datetime "created_at", null: false
     t.bigint "follow_id"
+    t.bigint "list_id"
     t.string "message_id", null: false
     t.bigint "parent_thread_id"
     t.datetime "read_at"
@@ -182,6 +183,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_075412) do
     t.datetime "updated_at", null: false
     t.index ["comment_thread_id"], name: "index_notifications_on_comment_thread_id"
     t.index ["follow_id"], name: "index_notifications_on_follow_id"
+    t.index ["list_id"], name: "index_notifications_on_list_id"
     t.index ["parent_thread_id"], name: "index_notifications_on_parent_thread_id"
     t.index ["receiver_id"], name: "index_notifications_on_receiver_id"
     t.index ["review_comment_id"], name: "index_notifications_on_review_comment_id"
@@ -273,6 +275,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_19_075412) do
   add_foreign_key "notifications", "community_threads", column: "comment_thread_id"
   add_foreign_key "notifications", "community_threads", column: "parent_thread_id"
   add_foreign_key "notifications", "follows"
+  add_foreign_key "notifications", "lists"
   add_foreign_key "notifications", "review_comments"
   add_foreign_key "notifications", "reviews"
   add_foreign_key "notifications", "users", column: "receiver_id"

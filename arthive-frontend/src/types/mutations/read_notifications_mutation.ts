@@ -64,6 +64,10 @@ export const READ_NOTIFICATIONS_MUTATION = gql`
                             url
                         }
                     }
+                    list {
+                        id
+                        name
+                    }
                 }
             }
             pageInfo {
@@ -89,6 +93,7 @@ export type Notification = {
     reviewComment: ReviewComment,
     parentThread: CommunityThread,
     commentThread: CommunityThread,
+    list: { id: string, name: string } | null,
 }
 
 export type ReadNotificationsResponse = {

@@ -19,6 +19,7 @@ module Types
     field :create_list, mutation: Mutations::CreateList
     field :add_or_remove_media_in_list, mutation: Mutations::AddOrRemoveMediaInList
     field :edit_list_details, mutation: Mutations::EditListDetails
+    field :like_list, mutation: Mutations::LikeList
 
     field :create_thread, mutation: Mutations::CreateThread
     field :like_thread, mutation: Mutations::LikeThread

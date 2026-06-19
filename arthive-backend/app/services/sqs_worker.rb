@@ -87,6 +87,7 @@ class SqsWorker
       parent_thread_id: payload["parent_thread_id"],
       comment_thread_id: payload["comment_thread_id"],
       follow_id:        payload["follow_id"],
+      list_id:          payload["list_id"],
     }.compact
 
     Notification.create!(attrs)

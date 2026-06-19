@@ -9,6 +9,14 @@ module Types
         field :created_at, GraphQL::Types::ISO8601DateTime, null: false
         field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
         field :user, Types::UserType, null: false
+
+        field :like_count, Integer, null: false
+
+        field :if_liked, Boolean, null: false
+
+        def if_liked
+            object.list_likes.exists?(user_id: context[:current_user].id)
+        end
         
         field :media_in_lists, [Types::MediaInListType], null: false do
             argument :page_num, Integer, required: false, default_value: 1
@@ -17,6 +25,10 @@ module Types
 
         def media_in_lists (page_num:, limit:)
             object.media_in_lists.includes(:media).recent.page(page_num, limit)
+        end
+
+        def like_count
+            object.list_likes.count
         end
 
     end

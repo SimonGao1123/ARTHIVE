@@ -50,17 +50,27 @@ class List < ApplicationRecord
     }
     
     scope :content_type_filter, ->(content_type) {
-        where("content_type @> ARRAY[?]::varchar[]", content_type)
+        if content_type != "all"
+            where("content_type @> ARRAY[?]::varchar[]", content_type)
+        end
     }
 
+    # gets most popular lists
+    scope :trending_lists, -> (content_type: "all", user_id: nil) {
+        joins(:list_likes)
+            .where("list_likes.created_at > NOW() - INTERVAL '1 week'")
+            .group(:id)
+            .order(Arel.sql("COUNT(list_likes.id) DESC"))
+            .user_visible_filter(user_id)
+            .content_type_filter(content_type)
+    }
     scope :user_visible_filter, ->(current_user_id) {
         # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
-        where(if_private: false).or(where(user_id: current_user_id))
+        where(if_private: false).or(where(user_id: current_user_id)).where(user_id: User.visible_to(current_user_id).select(:id))
     }
     def self.search(query:, embedded_query:, search_filter:, current_user_id:)
         base_search = List.semantic_search(query, "list", embedded_query)
             .user_visible_filter(current_user_id)
-            .where(user_id: User.visible_to(current_user_id).select(:id))
 
         if search_filter.present?
             search_filter.each do |filter|

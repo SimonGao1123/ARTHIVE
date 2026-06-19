@@ -7,7 +7,9 @@ class Notification < ApplicationRecord
 
         threads: ["comment_on_thread", "like_on_thread"],
 
-        quote_reviews: ["review_quoted"]
+        quote_reviews: ["review_quoted"],
+
+        lists: ["like_on_list"],
     }.freeze
     belongs_to :receiver, class_name: "User"
     belongs_to :sender, class_name: "User"
@@ -21,6 +23,7 @@ class Notification < ApplicationRecord
     belongs_to :parent_thread, class_name: "CommunityThread", optional: true
     belongs_to :comment_thread, class_name: "CommunityThread", optional: true
     belongs_to :follow, optional: true
+    belongs_to :list, optional: true
 
     validates :message_id, uniqueness: true
 
@@ -71,6 +74,12 @@ class Notification < ApplicationRecord
         if ACTIONS[:quote_reviews].include?(self.action)
             if self.review.blank? || self.parent_thread.blank?
                 errors.add(:base, "Review and parent thread are required for this action")
+            end
+        end
+
+        if ACTIONS[:lists].include?(self.action)
+            if self.list.blank?
+                errors.add(:base, "List is required for this action")
             end
         end
     end

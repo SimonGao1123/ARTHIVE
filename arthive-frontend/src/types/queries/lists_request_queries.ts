@@ -89,6 +89,8 @@ export const OBTAIN_LIST_PAGE_QUERY = gql`
                 tags
                 createdAt
                 updatedAt
+                likeCount
+                ifLiked
             }
             mediaInLists {
                 media {
@@ -140,6 +142,8 @@ export type ObtainListPageResponse = {
             tags: string[],
             createdAt: string,
             updatedAt: string,
+            likeCount: number,
+            ifLiked: boolean,
         }
         mediaInLists: {
             media: Media
@@ -160,8 +164,64 @@ export type ListType = {
     tags: string[],
     createdAt: string,
     updatedAt: string,
+    likeCount: number,
+    ifLiked: boolean,
     user: User,
     mediaInLists: {
         media: Media
     } []
+}
+
+export const OBTAIN_TRENDING_LISTS_QUERY = gql`
+    query ObtainTrendingLists($contentType: ContentTypeEnum!, $first: Int!, $after: String, $last: Int, $before: String) {
+        obtainTrendingLists(contentType: $contentType, first: $first, after: $after, last: $last, before: $before) {
+            edges {
+                node {
+                    id
+                    name
+                    tags
+                    user {
+                        id
+                        username
+                        profilePicture
+                    }
+                    ifLiked
+                    likeCount
+                    mediaInLists(pageNum: 1, limit: 3) {
+                        media {
+                            id
+                            coverImage
+                        }
+                    }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+                hasPreviousPage
+                startCursor
+            }
+        }
+    }
+`
+
+export type ObtainTrendingListsInput = {
+    contentType: "book" | "film" | "series" | "game" | "all"
+    first: number
+    after: string | null
+    last: number | null
+    before: string | null
+}
+export type ObtainTrendingListsResponse = {
+    obtainTrendingLists: {
+        edges: {
+            node: ListType
+        } []
+        pageInfo: {
+            hasNextPage: boolean
+            endCursor: string | null
+            hasPreviousPage: boolean
+            startCursor: string | null
+        }
+    }
 }

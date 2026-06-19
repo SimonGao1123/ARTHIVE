@@ -13,8 +13,10 @@ import { addOrRemoveMediaData } from "../data/add_or_remove_media_data";
 import type { EditListDetailsResponse, EditListDetailsInput } from "../types/mutations/create_edit_list_mutation";
 import { editListDetails } from "../data/edit_list_details";
 import { contentTypeColor } from "../lib/contentTypeColors";
-import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from "../lib/StyledComponents";
+import { EyeIcon, EyeOffIcon, LikeButton, PencilIcon, TrashIcon } from "../lib/StyledComponents";
 import { DetailedMediaCard } from "../lib/DetailedMediaCard";
+import { LIKE_LIST_MUTATION, type LikeListInput, type LikeListResponse } from "../types/mutations/like_list_mutation";
+import { likeListFunction } from "../data/like_list_function";
 
 const LIMIT = 3
 
@@ -38,6 +40,22 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
     })
     const [addOrRemoveMediaInListMutation, { loading: removeLoading, error: removeError }] =
         useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
+    const [likeList] = useMutation<LikeListResponse, LikeListInput>(LIKE_LIST_MUTATION)
+    const [currLiked, setCurrLiked] = useState<boolean>(false)
+    const [likeCount, setLikeCount] = useState<number>(0)
+
+    useEffect(() => {
+        if (listData) {
+            setCurrLiked(listData.ifLiked)
+            setLikeCount(listData.likeCount)
+        }
+    }, [listData?.id])
+
+    function handleLikeList() {
+        if (!list_id) return
+        setCurrLiked(prev => !prev)
+        likeListFunction(setCurrLiked, likeList, list_id, setUser, navigate, setLikeCount)
+    }
 
     useEffect(() => {
         if (!list_id) navigate("/")
@@ -80,21 +98,26 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
                     <h1 className="text-2xl font-bold text-white">{listData?.name ?? "…"}</h1>
                 </div>
 
-                { targetUser?.id === user.id ? (
-                <button
-                    type="button"
-                    onClick={() => setIfEditListDetails(!ifEditListDetails)}
-                    className={
-                        "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm transition border " +
-                        (ifEditListDetails
-                            ? "bg-violet-500/20 text-violet-300 border-violet-500/40"
-                            : "border-white/10 text-gray-400 hover:text-white hover:bg-white/5")
-                    }
-                >
-                    <PencilIcon />
-                    {ifEditListDetails ? "Cancel" : "Edit"}
-                </button>
-                ) : <></>}
+                <div className="flex items-center gap-3">
+                    {listData && (
+                        <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeList} />
+                    )}
+                    { targetUser?.id === user.id ? (
+                    <button
+                        type="button"
+                        onClick={() => setIfEditListDetails(!ifEditListDetails)}
+                        className={
+                            "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm transition border " +
+                            (ifEditListDetails
+                                ? "bg-violet-500/20 text-violet-300 border-violet-500/40"
+                                : "border-white/10 text-gray-400 hover:text-white hover:bg-white/5")
+                        }
+                    >
+                        <PencilIcon />
+                        {ifEditListDetails ? "Cancel" : "Edit"}
+                    </button>
+                    ) : <></>}
+                </div>
             </div>
 
             {/* List details / edit form */}

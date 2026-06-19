@@ -65,6 +65,12 @@ function resolveNotification(n: NotificationData, navigate: (path: string) => vo
                 subtitle: n.commentThread?.content,
                 onClick: () => go(`/community/${n.parentThread?.community?.media?.id}/thread/${n.commentThread?.id}`),
             }
+        case "like_on_list":
+            return {
+                label: `${sender} liked your list`,
+                title: n.list?.name ?? "Your list",
+                onClick: () => go(`/list/${n.list?.id}`),
+            }
         case "review_quoted":
             return {
                 label: `${sender} quoted your review`,

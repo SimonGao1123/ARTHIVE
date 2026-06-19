@@ -42,6 +42,7 @@ module Types
     field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
     field :obtain_liked_or_finished_media, resolver: Resolvers::ObtainLikedOrFinishedMediaResolver
     field :obtain_archivr_conversation, resolver: Resolvers::ObtainArchivrConversationResolver
+    field :obtain_trending_lists, resolver: Resolvers::ObtainTrendingListsResolver
 
   end
 end
