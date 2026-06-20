@@ -87,7 +87,6 @@ class Media < ApplicationRecord
     def self.because_of_reviews(content_type: "all", user_id: nil)
         user_review = Review.includes(:media)
         .where(user_id: user_id)
-        .where.not(rating: nil)
         .joins(:media).where.not(media: { embedding: nil })
         .order(Arel.sql("(reviews.created_at > NOW() - INTERVAL '7 days') DESC, rating DESC NULLS LAST"))
         .first

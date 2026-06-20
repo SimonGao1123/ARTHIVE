@@ -1,4 +1,5 @@
 class Notification < ApplicationRecord
+    include SharedScopeMethods
 
     ACTIONS = {
         follows: ["followed", "follow_request", "follow_request_accepted", "follow_request_rejected"],

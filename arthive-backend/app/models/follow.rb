@@ -9,6 +9,8 @@ class Follow < ApplicationRecord
     belongs_to :sender, class_name: "User"
     belongs_to :receiver, class_name: "User"
 
+    has_many :notifications, dependent: :delete_all
+
     enum :status, { accepted: "accepted", pending: "pending", rejected: "rejected" }, prefix: true
 
     validates :status, presence: true

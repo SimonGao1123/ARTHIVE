@@ -41,7 +41,7 @@ module Types
     end
 
     def average_rating
-      object.reviews.where.not(rating: nil).average(:rating).round(1) || 0
+      object.reviews.where.not(rating: nil).average(:rating)&.round(1) || 0
     end
 
     def if_favorite

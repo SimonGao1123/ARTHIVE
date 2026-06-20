@@ -25,8 +25,15 @@ module Types
 
     field :notifications_count, Int, null: false
 
+    field :follow_from_current_user, Types::FollowType, null: true
+
     def notifications_count
       return Notification.where(receiver_id: object.id, read_at: nil).count
+    end
+
+    def follow_from_current_user
+      return nil unless context[:current_user]
+      Follow.find_by(sender_id: context[:current_user].id, receiver_id: object.id)
     end
 
     # must be yourself to see pending follows count

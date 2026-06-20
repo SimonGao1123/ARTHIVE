@@ -1,11 +1,43 @@
-import { useMutation } from "@apollo/client/react"
-import { useEffect, useState } from "react"
-import { readNotificationsData } from "../data/read_notifications"
-import type { Notification as NotificationData, ReadNotificationsResponse, ReadNotificationsInput } from "../types/mutations/read_notifications_mutation"
-import { READ_NOTIFICATIONS_MUTATION } from "../types/mutations/read_notifications_mutation"
-import type { User } from "../types/user_types"
+import { useLazyQuery, useMutation } from "@apollo/client/react"
+import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useInfiniteScroll } from "../lib/useInfiniteScroll"
+import { obtainNotificationsData } from "../data/obtain_notifications_data"
+import { readNotificationsData } from "../data/read_notifications"
+import {
+    OBTAIN_NOTIFICATIONS_QUERY,
+    type Notification as NotificationData,
+    type ObtainNotificationsResponse,
+    type ReadNotificationsInput as ObtainNotificationsInput,
+    type ObtainNotificationFilterEnum,
+} from "../types/queries/obtain_notifications_query"
+import {
+    READ_NOTIFICATIONS_MUTATION,
+    type ReadNotificationsInput,
+    type ReadNotificationsResponse,
+} from "../types/mutations/read_notifications_mutation"
+import {
+    MANIPULATE_FOLLOW_MUTATION,
+    SEND_FOLLOW_MUTATION,
+    type ManipulateFollowInput,
+    type ManipulateFollowResponse,
+    type SendFollowInput,
+    type SendFollowResponse,
+} from "../types/mutations/follow_mutations"
+import { manipulateFollowRequest } from "../data/manipulate_follow_request"
+import { sendFollowRequest } from "../data/send_follow_request"
+import type { User } from "../types/user_types"
+
+const PAGE_SIZE = 15
+
+const FILTERS: [ObtainNotificationFilterEnum, string][] = [
+    ["all", "All"],
+    ["follows", "Follows"],
+    ["reviews", "Reviews"],
+    ["threads", "Threads"],
+    ["quote_reviews", "Quote reviews"],
+    ["lists", "Lists"],
+]
 
 function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime()
@@ -64,16 +96,65 @@ function resolveNotification(n: NotificationData, navigate: (path: string) => vo
                 title: n.parentThread?.community?.media?.title ?? "Your review",
                 onClick: () => go(`/community/${n.parentThread?.community?.media?.id}/thread/${n.parentThread?.id}`),
             }
+        case "like_on_list":
+            return {
+                label: `${sender} liked your list`,
+                title: n.list?.name ?? "Your list",
+                onClick: () => go(`/list/${n.list?.id}`),
+            }
         default:
             return { label: n.action, title: sender, onClick: () => go(`/profile/${n.sender?.id}`) }
     }
 }
 
-function NotificationRow({ notification, navigate }: { notification: NotificationData; navigate: (p: string) => void }) {
-    const { label, title, subtitle, onClick } = resolveNotification(notification, navigate)
+function hasActionableButton(n: NotificationData, u: User | null): boolean {
+    if (n.action === "follow_request") {
+        return n.follow?.status === "pending" && !!u && n.follow?.receiver?.id === u.id
+    }
+    return false
+}
+
+function NotificationRow({ notification, navigate, user, setUser, showActions, onMarkRead }: {
+    notification: NotificationData
+    navigate: (p: string) => void
+    user: User | null
+    setUser: (u: User | null) => void
+    showActions: boolean
+    onMarkRead?: (id: string) => void
+}) {
+    const r = resolveNotification(notification, navigate)
+    const subtitle = (r as any).subtitle as string | undefined
+
+    const [followStatus, setFollowStatus] = useState<string | null>(notification.follow?.status ?? null)
+    const [outgoingStatus, setOutgoingStatus] = useState<string | null>(
+        notification.sender?.followFromCurrentUser?.status ?? null
+    )
+
+    const [manipulateFollow] = useMutation<ManipulateFollowResponse, ManipulateFollowInput>(MANIPULATE_FOLLOW_MUTATION)
+    const [sendFollow] = useMutation<SendFollowResponse, SendFollowInput>(SEND_FOLLOW_MUTATION)
+
+    const showAcceptReject =
+        showActions &&
+        notification.action === "follow_request" &&
+        followStatus === "pending" &&
+        !!user &&
+        notification.follow?.receiver?.id === user.id
+
+    const showFollowBack =
+        showActions &&
+        notification.action === "followed" &&
+        (outgoingStatus === null || outgoingStatus === "rejected")
+
+    function applyFollowStatus(s: { id: string; status: string } | null) {
+        setFollowStatus(s?.status ?? "rejected")
+    }
+    function applyOutgoingStatus(s: { id: string; status: string } | null) {
+        setOutgoingStatus(s?.status ?? null)
+    }
+
     return (
         <div
-            onClick={onClick}
+            onClick={r.onClick}
             className="flex gap-4 px-6 py-4 items-start hover:bg-white/[0.03] transition cursor-pointer border-b border-white/5 last:border-b-0"
         >
             <img
@@ -83,76 +164,281 @@ function NotificationRow({ notification, navigate }: { notification: Notificatio
             />
             <div className="flex-1 min-w-0 flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-violet-400 font-medium leading-snug">{label}</span>
+                    <span className="text-sm text-violet-400 font-medium leading-snug">{r.label}</span>
                     <span className="text-xs text-gray-600 flex-shrink-0">{timeAgo(notification.createdAt)}</span>
                 </div>
-                <p className="text-base text-white leading-snug truncate">{title}</p>
+                <p className="text-base text-white leading-snug truncate">{r.title}</p>
                 {subtitle && (
                     <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{subtitle}</p>
+                )}
+
+                {showAcceptReject && (
+                    <div className="flex gap-2 mt-2">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                manipulateFollowRequest(manipulateFollow, notification.follow!.id, "accept", navigate, applyFollowStatus, setUser as any)
+                                onMarkRead?.(notification.id)
+                            }}
+                            className="px-3 py-1 text-xs rounded-full border bg-emerald-500/15 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25 transition"
+                        >
+                            Accept
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                manipulateFollowRequest(manipulateFollow, notification.follow!.id, "reject", navigate, applyFollowStatus, setUser as any)
+                                onMarkRead?.(notification.id)
+                            }}
+                            className="px-3 py-1 text-xs rounded-full border bg-red-500/15 text-red-300 border-red-500/40 hover:bg-red-500/25 transition"
+                        >
+                            Reject
+                        </button>
+                    </div>
+                )}
+
+                {showFollowBack && (
+                    <div className="flex gap-2 mt-2">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                sendFollowRequest(sendFollow, notification.sender.id, navigate, setUser as any, applyOutgoingStatus)
+                            }}
+                            className="px-3 py-1 text-xs rounded-full border border-violet-500/40 text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 transition"
+                        >
+                            Follow back
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
     )
 }
 
-export default function NotificationsPage({ setUser }: { setUser: (user: User | null) => void; user: User | null }) {
+function SkeletonRows({ count = 4 }: { count?: number }) {
+    return (
+        <div className="flex flex-col">
+            {Array.from({ length: count }).map((_, i) => (
+                <div key={i} className="flex gap-4 px-6 py-4 items-start border-b border-white/5 last:border-b-0 animate-pulse">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0" />
+                    <div className="flex-1 flex flex-col gap-2 pt-1">
+                        <div className="h-3 bg-white/10 rounded w-2/5" />
+                        <div className="h-3 bg-white/5 rounded w-3/5" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+export default function NotificationsPage({ setUser, user }: { setUser: (user: User | null) => void; user: User | null }) {
     const navigate = useNavigate()
-    const [notifications, setNotifications] = useState<NotificationData[]>([])
-    const [cursor, setCursor] = useState<string | null>(null)
-    const [hasNextPage, setHasNextPage] = useState<boolean>(false)
-    const [loadCount, setLoadCount] = useState(0)
-    const [readNotifications, { error, loading }] = useMutation<ReadNotificationsResponse, ReadNotificationsInput>(READ_NOTIFICATIONS_MUTATION)
+
+    const [unread, setUnread] = useState<NotificationData[]>([])
+    const [unreadCursor, setUnreadCursor] = useState<string | null>(null)
+    const [unreadHasNext, setUnreadHasNext] = useState<boolean>(false)
+    const [unreadCount, setUnreadCount] = useState<number>(0)
+    const [loadCountUnread, setLoadCountUnread] = useState(0)
+
+    const [read, setRead] = useState<NotificationData[]>([])
+    const [readCursor, setReadCursor] = useState<string | null>(null)
+    const [readHasNext, setReadHasNext] = useState<boolean>(false)
+    const [readCount, setReadCount] = useState<number>(0)
+    const [loadCountRead, setLoadCountRead] = useState(0)
+
+    const [showRead, setShowRead] = useState<boolean>(false)
+    const [filter, setFilter] = useState<ObtainNotificationFilterEnum>("all")
+
+    const [obtainNotifications, { loading, error }] = useLazyQuery<ObtainNotificationsResponse, ObtainNotificationsInput>(OBTAIN_NOTIFICATIONS_QUERY, {
+        fetchPolicy: "no-cache",
+    })
+    const [readNotifications] = useMutation<ReadNotificationsResponse, ReadNotificationsInput>(READ_NOTIFICATIONS_MUTATION)
+
+    // Initial fetch: both buckets. Re-runs whenever the filter changes, clearing
+    // any rows from the previous filter so the page renders a clean filtered set.
+    useEffect(() => {
+        setUnread([])
+        setUnreadCursor(null)
+        setUnreadHasNext(false)
+        setUnreadCount(0)
+        setLoadCountUnread(0)
+        setRead([])
+        setReadCursor(null)
+        setReadHasNext(false)
+        setReadCount(0)
+        setLoadCountRead(0)
+        obtainNotificationsData(
+            null, PAGE_SIZE,
+            null, PAGE_SIZE,
+            setUnread, setUnreadCursor, setUnreadHasNext, setUnreadCount,
+            setRead, setReadCursor, setReadHasNext, setReadCount,
+            filter,
+            obtainNotifications, navigate, setUser,
+        )
+    }, [filter])
+
+    // Paginate unread only
+    useEffect(() => {
+        if (loadCountUnread === 0) return
+        obtainNotificationsData(
+            unreadCursor, PAGE_SIZE,
+            null, 0,
+            setUnread, setUnreadCursor, setUnreadHasNext, setUnreadCount,
+            setRead, setReadCursor, setReadHasNext, setReadCount,
+            filter,
+            obtainNotifications, navigate, setUser,
+        )
+    }, [loadCountUnread])
+
+    // Paginate read only
+    useEffect(() => {
+        if (loadCountRead === 0) return
+        obtainNotificationsData(
+            null, 0,
+            readCursor, PAGE_SIZE,
+            setUnread, setUnreadCursor, setUnreadHasNext, setUnreadCount,
+            setRead, setReadCursor, setReadHasNext, setReadCount,
+            filter,
+            obtainNotifications, navigate, setUser,
+        )
+    }, [loadCountRead])
+
+    // Mark-as-read happens once on unmount, with whatever unread IDs were loaded
+    // during the session. Doing it mid-session would shift the server's underlying
+    // unread/read relations and invalidate the offset-based pagination cursors,
+    // which causes items to be skipped or duplicated across buckets.
+    // IDs to mark-as-read on unmount. Seeded with non-actionable unread rows as
+    // they load; actionable rows (follow_request / followed with visible button)
+    // get added only when the user clicks the corresponding button.
+    const idsToMarkRef = useRef<Set<string>>(new Set())
 
     useEffect(() => {
-        readNotificationsData(cursor, 20, setNotifications as any, setCursor, setHasNextPage, readNotifications, navigate, setUser)
-    }, [loadCount])
+        unread.forEach(n => {
+            if (!hasActionableButton(n, user)) {
+                idsToMarkRef.current.add(n.id)
+            }
+        })
+    }, [unread, user])
 
-    const sentinelRef = useInfiniteScroll({
-        hasNextPage,
+    function markNotificationRead(id: string) {
+        idsToMarkRef.current.add(id)
+    }
+
+    useEffect(() => {
+        return () => {
+            const ids = Array.from(idsToMarkRef.current)
+            if (ids.length > 0) {
+                readNotificationsData(ids, readNotifications, navigate, setUser)
+            }
+        }
+    }, [])
+
+    const [unreadContainer, setUnreadContainer] = useState<HTMLDivElement | null>(null)
+    const [readContainer, setReadContainer] = useState<HTMLDivElement | null>(null)
+
+    const unreadSentinelRef = useInfiniteScroll({
+        hasNextPage: unreadHasNext,
         loading,
-        onLoadMore: () => setLoadCount(c => c + 1),
+        onLoadMore: () => setLoadCountUnread(c => c + 1),
+        root: unreadContainer,
+    })
+    const readSentinelRef = useInfiniteScroll({
+        hasNextPage: readHasNext,
+        loading,
+        onLoadMore: () => setLoadCountRead(c => c + 1),
+        root: readContainer,
     })
 
+    const initialLoading = loading && unread.length === 0 && read.length === 0
+
     return (
-        <div className="max-w-2xl mx-auto flex flex-col gap-6">
+        <main className="max-w-3xl mx-auto grid grid-cols-[1fr_9rem] gap-6 items-start">
+            <div className="flex flex-col gap-6 min-w-0">
             <div>
                 <h1 className="text-2xl font-bold text-white">Notifications</h1>
                 <p className="text-sm text-gray-500 mt-1">Your recent activity and updates</p>
             </div>
 
-            <div className="bg-[#171519] rounded-2xl border border-white/5 overflow-hidden">
-                {error && <p className="text-red-400 text-sm px-6 py-4">{error.message}</p>}
+            {error && <p className="text-red-400 text-sm">{error.message}</p>}
 
-                {loading && (
-                    <div className="flex flex-col">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="flex gap-4 px-6 py-4 items-start border-b border-white/5 last:border-b-0 animate-pulse">
-                                <div className="w-10 h-10 rounded-full bg-white/10 flex-shrink-0" />
-                                <div className="flex-1 flex flex-col gap-2 pt-1">
-                                    <div className="h-3 bg-white/10 rounded w-2/5" />
-                                    <div className="h-3 bg-white/5 rounded w-3/5" />
-                                </div>
-                            </div>
-                        ))}
+            <section>
+                <div className="flex items-center justify-between mb-2 px-1">
+                    <h2 className="text-sm font-semibold text-white">
+                        Unread <span className="text-gray-500 font-normal">({unreadCount})</span>
+                    </h2>
+                </div>
+                <div
+                    ref={setUnreadContainer}
+                    className="bg-[#171519] rounded-2xl border border-white/5 overflow-y-auto max-h-[55vh]"
+                >
+                    {initialLoading ? (
+                        <SkeletonRows count={4} />
+                    ) : unread.length === 0 ? (
+                        <div className="flex flex-col items-center gap-3 py-12 text-center">
+                            <svg className="w-9 h-9 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                            <p className="text-gray-500 text-sm">You're all caught up</p>
+                        </div>
+                    ) : (
+                        <>
+                            {unread.map(n => (
+                                <NotificationRow key={n.id} notification={n} navigate={navigate} user={user} setUser={setUser} showActions={true} onMarkRead={markNotificationRead} />
+                            ))}
+                            {unreadHasNext && <div ref={unreadSentinelRef} className="h-1" />}
+                        </>
+                    )}
+                </div>
+            </section>
+
+            <section>
+                <button
+                    onClick={() => setShowRead(s => !s)}
+                    className="flex items-center justify-between w-full text-left text-sm font-semibold text-white px-1 hover:text-violet-300 transition"
+                >
+                    <span>
+                        Read notifications <span className="text-gray-500 font-normal">({readCount})</span>
+                    </span>
+                    <span className="text-gray-500">{showRead ? "▾" : "▸"}</span>
+                </button>
+
+                {showRead && (
+                    <div
+                        ref={setReadContainer}
+                        className="bg-[#171519] rounded-2xl border border-white/5 overflow-y-auto max-h-[55vh] mt-2"
+                    >
+                        {read.length === 0 && !loading ? (
+                            <p className="text-gray-500 text-sm text-center py-8">No read notifications yet.</p>
+                        ) : (
+                            <>
+                                {read.map(n => (
+                                    <NotificationRow key={n.id} notification={n} navigate={navigate} user={user} setUser={setUser} showActions={false} />
+                                ))}
+                                {readHasNext && <div ref={readSentinelRef} className="h-1" />}
+                            </>
+                        )}
                     </div>
                 )}
-
-                {!loading && notifications.length === 0 && (
-                    <div className="flex flex-col items-center gap-3 py-16 text-center">
-                        <svg className="w-10 h-10 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                        <p className="text-gray-500 text-sm">No notifications yet</p>
-                    </div>
-                )}
-
-                {notifications.map(n => (
-                    <NotificationRow key={n.id} notification={n} navigate={navigate} />
-                ))}
-
-                {hasNextPage && <div ref={sentinelRef} className="h-1" />}
+            </section>
             </div>
-        </div>
+
+            <aside className="sticky top-6 flex flex-col gap-2">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">Filter</span>
+                {FILTERS.map(([value, label]) => (
+                    <label key={value} className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer hover:text-white transition">
+                        <input
+                            type="radio"
+                            name="notif-filter"
+                            value={value}
+                            checked={filter === value}
+                            onChange={() => setFilter(value)}
+                            className="accent-violet-500"
+                        />
+                        {label}
+                    </label>
+                ))}
+            </aside>
+        </main>
     )
 }

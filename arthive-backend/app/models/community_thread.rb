@@ -7,6 +7,8 @@ class CommunityThread < ApplicationRecord
 
     has_many :thread_likes, dependent: :destroy
     has_many :activities, -> { where(activity_type: "CommunityThread") }, foreign_key: :activity_id, dependent: :delete_all
+    has_many :parent_thread_notifications, class_name: "Notification", foreign_key: :parent_thread_id, dependent: :delete_all
+    has_many :comment_thread_notifications, class_name: "Notification", foreign_key: :comment_thread_id, dependent: :delete_all
 
     # NOTE: if parent_thread/root_thread is present, then the current thread is NOT the root thread
     # else if they are BOTH nil then the current thread is the root thread

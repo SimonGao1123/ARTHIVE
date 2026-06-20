@@ -7,6 +7,7 @@ class Review < ApplicationRecord
 
     has_many :review_comments, dependent: :delete_all
     has_many :review_likes, dependent: :delete_all
+    has_many :notifications, dependent: :delete_all
 
     has_many :activities, -> { where(activity_type: "Review") }, foreign_key: :activity_id, dependent: :delete_all
 

@@ -8,6 +8,7 @@ class ReviewComment < ApplicationRecord
     validates :user_id, presence: true
 
     has_many :activities, -> { where(activity_type: "ReviewComment") }, foreign_key: :activity_id, dependent: :delete_all
+    has_many :notifications, dependent: :delete_all
 
     scope :query_filter, ->(query) {
         if query.present?

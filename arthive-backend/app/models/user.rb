@@ -6,6 +6,7 @@ class User < ApplicationRecord
     has_many :review_likes
     has_many :lists, dependent: :destroy
     has_many :community_threads, dependent: :destroy
+    has_many :list_members, dependent: :destroy
     has_many :thread_likes, dependent: :destroy
 
     has_many :notifications, foreign_key: "receiver_id"

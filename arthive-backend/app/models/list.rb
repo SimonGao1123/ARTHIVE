@@ -7,6 +7,8 @@ class List < ApplicationRecord
     has_neighbors :embedding
 
     has_many :list_likes, dependent: :destroy
+    has_many :notifications, dependent: :delete_all
+    has_many :list_members, dependent: :destroy
     validates :name, presence: true
     validates :if_private, inclusion: { in: [true, false] }
     validates :user_id, presence: true
