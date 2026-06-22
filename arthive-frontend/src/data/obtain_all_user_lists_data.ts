@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "../types/user_types";
-import type { AllUserListType } from "../types/queries/lists_request_queries";
+import type { AllUserListType, RoleFilter } from "../types/queries/lists_request_queries";
 import { logout } from "./logout";
 
 const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
@@ -17,8 +17,9 @@ export function obtainAllUserListsData(
     setUser: any,
     pageNum: number,
     excludeMediaId: string | null,
+    roleFilter: RoleFilter,
 ) {
-    
+
     obtainAllUserLists({
         variables: {
             userId: user_id,
@@ -27,6 +28,7 @@ export function obtainAllUserListsData(
             limit: limit,
             query: query === "" ? null : query,
             excludeMediaId: excludeMediaId,
+            roleFilter: roleFilter,
         },
     }).then((res: any) => {
         const batch = res.data.obtainAllUserLists

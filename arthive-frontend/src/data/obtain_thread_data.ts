@@ -35,6 +35,7 @@ export function obtainThreadData(
             community: batch.community,
             parentThreadId: batch.parentThreadId,
             rootThreadId: batch.rootThreadId,
+            depth: batch.depth,
             likesCount: batch.likesCount,
             ifLiked: batch.ifLiked,
             childThreadsCount: batch.childThreadsCount,

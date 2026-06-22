@@ -2,15 +2,16 @@ import { useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
 import { useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
-import type { AllUserListType, ObtainAllUserListsInput, ObtainAllUserListsResponse } from "../types/queries/lists_request_queries"
+import type { AllUserListType, ObtainAllUserListsInput, ObtainAllUserListsResponse, RoleFilter } from "../types/queries/lists_request_queries"
 import { OBTAIN_ALL_USER_LISTS_QUERY } from "../types/queries/lists_request_queries"
 import { useLazyQuery } from "@apollo/client/react"
 import { obtainAllUserListsData } from "../data/obtain_all_user_lists_data"
 import ContentFilter from "../lib/ContentFilter"
 import { NumberedPagination } from "../lib/NumberedPagination"
 import { contentTypeColor } from "../lib/contentTypeColors"
+import RoleFilterPanel from "../lib/RoleFilter"
 
-const LIMIT = 2
+const LIMIT = 10
 
 export default function AllUserListsPage({setUser}: {setUser: (user: User | null) => void}) {
     const { user_id } = useParams()
@@ -58,12 +59,20 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
     const [totalPages, setTotalPages] = useState<number>(0)
+    const [roleFilter, setRoleFilter] = useState<RoleFilter>(null)
 
     const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "game" | "all") => {
         if (nextContentType === contentType) return
         setLists([])
         setPageNum(1)
         setContentType(nextContentType)
+    }
+
+    const handleRoleFilterChange = (nextRole: RoleFilter) => {
+        if (nextRole === roleFilter) return
+        setLists([])
+        setPageNum(1)
+        setRoleFilter(nextRole)
     }
 
     const [obtainAllUserLists, { loading, error }] = useLazyQuery<ObtainAllUserListsResponse, ObtainAllUserListsInput>(OBTAIN_ALL_USER_LISTS_QUERY, {
@@ -74,8 +83,8 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
             navigate("/")
             return
         }
-        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum, excludeMediaId)
-    }, [contentType, pageNum, query])
+        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum, excludeMediaId, roleFilter)
+    }, [contentType, pageNum, query, roleFilter])
 
     return (
         <div className="flex flex-col gap-4">
@@ -110,34 +119,38 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
             )}
             {loading && <div className="text-gray-400 text-sm">Loading…</div>}
 
-            <div className="flex flex-col gap-3">
-                {lists && lists.length === 0 && !loading ? (
-                    <p className="text-gray-500 text-sm py-6 text-center">No lists found.</p>
-                ) : null}
-                {lists && lists.map((list) => (
-                    <div key={list.id} className="bg-[#171519] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
-                        <ListCard list={list}/>
-                        {if_adding_media && addOrRemoveMediaFromList && (
-                            listsWithMedia.includes(list.id) ?
-                            <button
-                                onClick={() => addOrRemoveMediaFromList(list.id, false)}
-                                className="self-end bg-red-500 hover:bg-red-400 text-white px-4 py-1.5 rounded-full text-sm transition"
-                            >
-                                - Remove from list
-                            </button>
-                            :
-                            <button
-                                onClick={() => addOrRemoveMediaFromList(list.id, true)}
-                                className="self-end bg-violet-500 hover:bg-violet-400 text-white px-4 py-1.5 rounded-full text-sm transition"
-                            >
-                                + Add to list
-                            </button>
-                        )}
-                    </div>
-                ))}
+            <div className="flex gap-6 items-start">
+                <div className="flex-1 min-w-0 flex flex-col gap-3">
+                    {lists && lists.length === 0 && !loading ? (
+                        <p className="text-gray-500 text-sm py-6 text-center">No lists found.</p>
+                    ) : null}
+                    {lists && lists.map((list) => (
+                        <div key={list.id} className="bg-[#171519] rounded-2xl border border-white/5 p-4 flex flex-col gap-3">
+                            <ListCard list={list}/>
+                            {if_adding_media && addOrRemoveMediaFromList && (
+                                listsWithMedia.includes(list.id) ?
+                                <button
+                                    onClick={() => addOrRemoveMediaFromList(list.id, false)}
+                                    className="self-end bg-red-500 hover:bg-red-400 text-white px-4 py-1.5 rounded-full text-sm transition"
+                                >
+                                    - Remove from list
+                                </button>
+                                :
+                                <button
+                                    onClick={() => addOrRemoveMediaFromList(list.id, true)}
+                                    className="self-end bg-violet-500 hover:bg-violet-400 text-white px-4 py-1.5 rounded-full text-sm transition"
+                                >
+                                    + Add to list
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                    <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
+                </div>
+                {!if_adding_media && (
+                    <RoleFilterPanel currRole={roleFilter} setRole={handleRoleFilterChange} />
+                )}
             </div>
-
-            <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
         </div>
     )
 }

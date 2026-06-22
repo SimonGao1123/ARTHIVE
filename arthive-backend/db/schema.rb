@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_22_003051) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -85,6 +85,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_003051) do
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.integer "depth", default: 0
     t.vector "embedding", limit: 1024
     t.bigint "parent_thread_id"
     t.bigint "review_id"

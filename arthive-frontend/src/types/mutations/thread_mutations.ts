@@ -31,6 +31,7 @@ export const CREATE_THREAD_MUTATION = gql`
             ifLiked
             parentThreadId
             rootThreadId
+            depth
             review {
                 id
                 content
@@ -95,6 +96,7 @@ export const EDIT_THREAD_MUTATION = gql`
             ifLiked
             parentThreadId
             rootThreadId
+            depth
             review {
                 id
                 content

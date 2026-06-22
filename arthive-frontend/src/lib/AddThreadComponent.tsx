@@ -16,9 +16,10 @@ type AddThreadComponentProps = {
     rootThreadId: string | null
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>
     onCreated?: () => void
+    replyingToUsername: string | null
 }
 
-export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads, onCreated}: AddThreadComponentProps) {
+export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads, onCreated, replyingToUsername}: AddThreadComponentProps) {
     const [open, setOpen] = useState(false)
     const isRoot = parentThreadId === null && rootThreadId === null
 
@@ -42,6 +43,7 @@ export function AddThreadComponent({media_id, setUser, parentThreadId, rootThrea
                     isRoot={isRoot}
                     onClose={() => setOpen(false)}
                     onCreated={onCreated}
+                    replyingToUsername={replyingToUsername}
                 />
             )}
         </>
@@ -53,7 +55,7 @@ type AddThreadModalProps = AddThreadComponentProps & {
     onClose: () => void
 }
 
-function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThreads, isRoot, onClose, onCreated}: AddThreadModalProps) {
+function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThreads, isRoot, onClose, onCreated, replyingToUsername}: AddThreadModalProps) {
     const [createThread, {loading, error}] = useMutation<CreateThreadResponse, CreateThreadInput>(CREATE_THREAD_MUTATION)
     const [content, setContent] = useState("")
     const [title, setTitle] = useState<string | null>(null)
@@ -88,9 +90,16 @@ function AddThreadModal({media_id, setUser, parentThreadId, rootThreadId, setThr
                 onPaste={(e) => handleAttachImages({files: Array.from(e.clipboardData.files), newImages: newImages, setNewImages: setNewImages})}
             >
                 <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">
-                        {isRoot ? "New Thread" : "Reply"}
-                    </p>
+                    <div className="flex flex-col gap-1">
+                        <p className="text-xs text-gray-400 uppercase tracking-wider">
+                            {isRoot ? "New Thread" : "Reply"}
+                        </p>
+                        {replyingToUsername && (
+                            <p className="text-xs text-gray-400">
+                                Replying to <span className="text-violet-300 font-medium">@{replyingToUsername}</span>
+                            </p>
+                        )}
+                    </div>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-white text-2xl leading-none transition"

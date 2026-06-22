@@ -17,6 +17,7 @@ module Types
         field :image_details, [Types::ImageDetailsType], null: true
 
         field :review, Types::ReviewType, null: true
+        field :depth, Int, null: false
         field :has_review, Boolean, null: false
 
         def has_review

@@ -28,6 +28,14 @@ module Mutations
                 review = Review.find_by(id: review_id)
             end
 
+            parent_thread = nil
+            if parent_thread_id.present?
+                parent_thread = CommunityThread.find_by(id: parent_thread_id)
+                if !parent_thread.present?
+                    raise GraphQL::ExecutionError, "Parent thread #{parent_thread_id} not found"
+                end
+            end
+
             new_thread = CommunityThread.new(
                 community_id: community_id,
                 user_id: context[:current_user].id,
@@ -35,7 +43,8 @@ module Mutations
                 title: title,
                 parent_thread_id: parent_thread_id,
                 root_thread_id: root_thread_id,
-                review: review
+                review: review,
+                depth: parent_thread.present? ? parent_thread.depth + 1 : 0
             )
             if !new_thread.save
                 raise GraphQL::ExecutionError, new_thread.errors.full_messages.join(", ")

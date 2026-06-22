@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
 import type { ObtainThreadInput, ObtainThreadResponse } from "../types/queries/thread_request_queries"
 import { useLazyQuery, useMutation } from "@apollo/client/react"
@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import type { CommunityThread } from "../types/queries/community_request_queries"
 import { OBTAIN_THREAD_QUERY } from "../types/queries/thread_request_queries"
 import { obtainThreadData } from "../data/obtain_thread_data"
-import { CommunityThreads } from "../lib/CommunityThread"
+import { NestedThreadList } from "../lib/CommunityThread"
 import { LIKE_THREAD_MUTATION, type LikeThreadInput, type LikeThreadResponse } from "../types/mutations/thread_mutations"
 import { likeThreadFunction } from "../data/like_thread_function"
 import { AddThreadComponent } from "../lib/AddThreadComponent"
@@ -15,11 +15,13 @@ import { ReviewReferenceCard, ReviewUnavailableCard } from "../lib/ChatReference
 import EditThreadComponent from "../lib/EditThreadComponent"
 import { LikeButton, CommentIcon } from "../lib/StyledComponents"
 import { useInfiniteScroll } from "../lib/useInfiniteScroll"
-const LIMIT = 2
+const LIMIT = 5
 export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
+    const location = useLocation()
     const {thread_id} = useParams()
     const {media_id} = useParams()
+    const focusThreadId = (location.state as {focusThreadId?: string} | null)?.focusThreadId ?? null
 
     const [obtainThread, {loading, error}] = useLazyQuery<ObtainThreadResponse, ObtainThreadInput>(OBTAIN_THREAD_QUERY, {
         fetchPolicy: "no-cache",
@@ -48,6 +50,16 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
             obtainThreadData(thread_id!, cursor, setCursor, LIMIT, obtainThread, setMainThread, setChildThreads, setIfNextPage, setUser, navigate)
         }
     }, [thread_id, loadCount])
+
+    useEffect(() => {
+        if (!mainThread || !media_id) return
+        if (mainThread.rootThreadId && mainThread.rootThreadId !== mainThread.id) {
+            navigate(`/community/${media_id}/thread/${mainThread.rootThreadId}`, {
+                replace: true,
+                state: { focusThreadId: mainThread.id },
+            })
+        }
+    }, [mainThread, media_id])
 
     const sentinelRef = useInfiniteScroll({
         hasNextPage: ifNextPage,
@@ -88,13 +100,23 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
                     rootThreadId={mainThread.rootThreadId || mainThread.id}
                     setThreads={setChildThreads}
                     onCreated={scrollRepliesToTop}
+                    replyingToUsername={mainThread.user.username}
                 />
             )}
 
-            {childThreads.length > 0 && (
+            {childThreads.length > 0 && mainThread && (
                 <div ref={repliesTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-1">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Replies</p>
-                    <CommunityThreads threads={childThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id!} user={user} />
+                    <NestedThreadList
+                        threads={childThreads}
+                        sentinelRef={sentinelRef}
+                        ifNextPage={ifNextPage}
+                        setUser={setUser}
+                        user={user}
+                        media_id={media_id!}
+                        focusThreadId={focusThreadId}
+                        parentUsername={mainThread.user.username}
+                    />
                 </div>
             )}
         </div>
@@ -108,7 +130,7 @@ type ThreadPageContentProps = {
     user: User | null
     review: Review | null
 }
-export function ThreadPageContent({mainThread, media_id, setUser, user, review}: ThreadPageContentProps) {
+export function ThreadPageContent({mainThread, media_id: _media_id, setUser, user, review}: ThreadPageContentProps) {
     const navigate = useNavigate()
     const [currLiked, setCurrLiked] = useState(mainThread.ifLiked)
     const [likeCount, setLikeCount] = useState(mainThread.likesCount)
@@ -123,25 +145,6 @@ export function ThreadPageContent({mainThread, media_id, setUser, user, review}:
 
     return (
         <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
-            <div className="flex gap-2 flex-wrap">
-                {mainThread.parentThreadId && (
-                    <button
-                        onClick={() => navigate(`/community/${media_id}/thread/${mainThread.parentThreadId}`)}
-                        className="text-xs text-gray-500 hover:text-gray-300 transition"
-                    >
-                        ← Parent thread
-                    </button>
-                )}
-                {mainThread.rootThreadId && (
-                    <button
-                        onClick={() => navigate(`/community/${media_id}/thread/${mainThread.rootThreadId}`)}
-                        className="text-xs text-gray-500 hover:text-gray-300 transition"
-                    >
-                        ↑ Root thread
-                    </button>
-                )}
-            </div>
-
             {mainThread.title && (
                 <h2 className="text-xl font-bold text-white">{mainThread.title}</h2>
             )}

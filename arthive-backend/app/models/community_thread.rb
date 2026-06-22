@@ -5,6 +5,8 @@ class CommunityThread < ApplicationRecord
 
     has_neighbors :embedding
 
+    MAX_DEPTH = 5.freeze
+
     has_many :thread_likes, dependent: :destroy
     has_many :activities, -> { where(activity_type: "CommunityThread") }, foreign_key: :activity_id, dependent: :delete_all
     has_many :parent_thread_notifications, class_name: "Notification", foreign_key: :parent_thread_id, dependent: :delete_all
@@ -29,10 +31,26 @@ class CommunityThread < ApplicationRecord
 
     belongs_to :review, optional: true
 
+    validate :depth_validation
+    validate :depth_limit_validation
+
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { (saved_change_to_content? || saved_change_to_title?) && root_thread_id.nil? && parent_thread_id.nil? }
 
 
     private
+
+    def depth_validation
+        if self.parent_thread_id.present?
+            self.depth = self.parent_thread.depth + 1
+        end
+    end
+
+    def depth_limit_validation
+        if self.depth > MAX_DEPTH
+            errors.add(:depth, "depth cannot be greater than #{MAX_DEPTH}")
+        end
+    end
+
     def enqueue_embedding
         return if SQS_CLIENT.nil?
         SQS_CLIENT.send_message(

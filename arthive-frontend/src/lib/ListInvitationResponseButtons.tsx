@@ -24,7 +24,7 @@ export default function ListInvitationResponseButtons({ listMember, setUser, onR
     const [status, setStatus] = useState<string>(listMember.status)
     const [respondToListInvite, { loading }] = useMutation<RespondToListInviteResponse, RespondToListInviteInput>(RESPOND_TO_LIST_INVITE_MUTATION)
 
-    if (status !== "pending") return null
+    if (status !== "pending") return null // once accepted or rejected, don't show the buttons
 
     function handle(accept: boolean, e: React.MouseEvent) {
         e.stopPropagation()

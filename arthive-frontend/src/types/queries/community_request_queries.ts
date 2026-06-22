@@ -12,6 +12,7 @@ export type CommunityThread = {
     childThreadsCount: number,
     parentThreadId: string | null,
     rootThreadId: string | null,
+    depth: number,
     ifLiked: boolean,
     community: Community | null,
     imageDetails: {
@@ -119,7 +120,8 @@ export const OBTAIN_COMMUNITY_QUERY = gql`
                         }
                         parentThreadId
                         rootThreadId
-    
+                        depth
+
                     }
                 }
                 pageInfo {

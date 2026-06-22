@@ -27,7 +27,8 @@ export const OBTAIN_THREAD_QUERY = gql`
             }
             parentThreadId
             rootThreadId
-            
+            depth
+
             likesCount
             ifLiked
             childThreadsCount
@@ -69,6 +70,7 @@ export const OBTAIN_THREAD_QUERY = gql`
                     node {
                         parentThreadId
                         rootThreadId
+                        depth
                         id
                         content
                         title
@@ -133,6 +135,7 @@ export type ObtainThreadResponse = {
         community: Community
         parentThreadId: string | null
         rootThreadId: string | null
+        depth: number
         likesCount: number
         ifLiked: boolean
         childThreadsCount: number

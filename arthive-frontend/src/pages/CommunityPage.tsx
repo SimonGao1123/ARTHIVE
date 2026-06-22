@@ -57,7 +57,7 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
 
             {community && <CommunityDetails community={community} />}
 
-            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} onCreated={scrollThreadsToTop} />
+            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} onCreated={scrollThreadsToTop} replyingToUsername={null} />
 
             <div ref={threadsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
                 <div className="flex gap-2">

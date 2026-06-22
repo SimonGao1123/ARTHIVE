@@ -1,9 +1,11 @@
 import { gql } from "@apollo/client"
 import type { User } from "../user_types"
 import type { Media } from "../media_type"
+export type RoleFilter = "owner" | "admin" | "member" | null
+
 export const OBTAIN_ALL_USER_LISTS_QUERY = gql`
-    query ObtainAllUserLists($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!, $query: String, $excludeMediaId: ID) {
-        obtainAllUserLists(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType, query: $query, excludeMediaId: $excludeMediaId) {
+    query ObtainAllUserLists($userId: ID!, $pageNum: Int!, $limit: Int!, $contentType: String!, $query: String, $excludeMediaId: ID, $roleFilter: ListMemberRoleEnum) {
+        obtainAllUserLists(userId: $userId, pageNum: $pageNum, limit: $limit, contentType: $contentType, query: $query, excludeMediaId: $excludeMediaId, roleFilter: $roleFilter) {
             lists {
                 id
                 name
@@ -69,6 +71,7 @@ export type ObtainAllUserListsInput = {
     contentType: "book" | "film" | "series" | "game" | "all"
     query: string | null
     excludeMediaId: string | null
+    roleFilter: RoleFilter
 }
 export type ObtainAllUserListsResponse = {
     obtainAllUserLists: {
