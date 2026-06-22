@@ -6,7 +6,7 @@ module Resolvers
         argument :page_num, Int, required: false, default_value: 1
         argument :limit, Int, required: false, default_value: 10
         argument :content_type, String, required: false, default_value: "all"
-        argument :query, String, required: false, default_value: null
+        argument :query, String, required: false, default_value: nil
         
         argument :exclude_media_id, ID, required: false, default_value: nil
 
@@ -23,15 +23,16 @@ module Resolvers
                 raise GraphQL::ExecutionError, "User #{user_id} not found"
             end
 
-            lists = user.content_type_lists(content_type).semantic_search(query, "list", nil).recent
+            lists = List.content_type_filter(content_type).semantic_search(query, "list", nil).recent
 
+            # NOTE IF EXCLUDED MEDIA EXISTS THEN USER IS TRYING TO ADD MEDIA TO LIST
             if exclude_media_id.present?
                 lists = lists.where.not(id: MediaInList.select(:list_id).where(media_id: exclude_media_id))
+                lists = lists.user_editable_filter(context[:current_user].id)
+            else
+                lists = lists.user_membership_filter(context[:current_user].id)
             end
-            # hide private lists
-            if user_id.to_i != context[:current_user].id.to_i
-                lists = lists.where(if_private: false)
-            end
+
             total_count = lists.count
             total_pages = (total_count.to_f / limit).ceil
 

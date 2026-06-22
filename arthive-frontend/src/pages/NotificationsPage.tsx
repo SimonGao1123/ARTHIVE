@@ -26,6 +26,7 @@ import {
 } from "../types/mutations/follow_mutations"
 import { manipulateFollowRequest } from "../data/manipulate_follow_request"
 import { sendFollowRequest } from "../data/send_follow_request"
+import ListInvitationResponseButtons from "../lib/ListInvitationResponseButtons"
 import type { User } from "../types/user_types"
 
 const PAGE_SIZE = 15
@@ -37,6 +38,7 @@ const FILTERS: [ObtainNotificationFilterEnum, string][] = [
     ["threads", "Threads"],
     ["quote_reviews", "Quote reviews"],
     ["lists", "Lists"],
+    ["list_members", "List Invites"],
 ]
 
 function timeAgo(iso: string): string {
@@ -102,6 +104,18 @@ function resolveNotification(n: NotificationData, navigate: (path: string) => vo
                 title: n.list?.name ?? "Your list",
                 onClick: () => go(`/list/${n.list?.id}`),
             }
+        case "invite_to_list":
+            return {
+                label: `${sender} invited you to a list as a ${n.listMember?.role}`,
+                title: n.listMember?.list?.name ?? "A list",
+                onClick: () => go(`/list/${n.listMember?.list?.id}`),
+            }
+        case "list_invite_accepted":
+            return {
+                label: `${sender} accepted your list invite for the ${n.listMember?.role} role`,
+                title: n.listMember?.list?.name ?? "Your list",
+                onClick: () => go(`/list/${n.listMember?.list?.id}`),
+            }
         default:
             return { label: n.action, title: sender, onClick: () => go(`/profile/${n.sender?.id}`) }
     }
@@ -110,6 +124,9 @@ function resolveNotification(n: NotificationData, navigate: (path: string) => vo
 function hasActionableButton(n: NotificationData, u: User | null): boolean {
     if (n.action === "follow_request") {
         return n.follow?.status === "pending" && !!u && n.follow?.receiver?.id === u.id
+    }
+    if (n.action === "invite_to_list") {
+        return !!n.listMember && n.listMember.status === "pending"
     }
     return false
 }
@@ -209,6 +226,17 @@ function NotificationRow({ notification, navigate, user, setUser, showActions, o
                             Follow back
                         </button>
                     </div>
+                )}
+
+                {showActions
+                    && notification.action === "invite_to_list"
+                    && notification.listMember
+                    && notification.listMember.status === "pending" && (
+                    <ListInvitationResponseButtons
+                        listMember={notification.listMember}
+                        setUser={setUser}
+                        onResponded={() => onMarkRead?.(notification.id)}
+                    />
                 )}
             </div>
         </div>

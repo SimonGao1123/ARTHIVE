@@ -43,13 +43,12 @@ has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
             self.reviews.includes(:review_comments, :review_likes).where(media: { content_type: content_type })
         end
     end
-    
-    def content_type_lists(content_type)
-        if content_type == "all"
-            self.lists.includes(media_in_lists: :media)
-        else
-            self.lists.where("content_type @> ARRAY[?]::varchar[]", [content_type]).includes(media_in_lists: :media)
-        end
+
+    def self.searchable_list_users(list)
+        member_ids = list.list_members.where.not(status: "rejected").pluck(:user_id)
+        member_ids << list.user_id
+
+        User.where.not(id: member_ids)
     end
     
     def followers_count

@@ -26,7 +26,7 @@ module ArchivrTools
                     },
                     user_scope: {
                         type: "string",
-                        description: "'current_user' (default) or 'anyone', 'current_user' if user asks about their own lists, 'anyone' if user asks about other users' lists" 
+                        description: "default is 'anyone', or can be 'current_user' if user asks about their own lists, 'anyone' if user asks about other users' lists" 
                     },
                     similarity_hint: {
                         type: "string",
@@ -47,7 +47,7 @@ module ArchivrTools
         # context = {media_id, user_id}, injected by dispatcher
         def self.execute(args, context)
             media_scope_mode = args["media_scope"] || "containing_this_media"
-            user_scope_mode = args["user_scope"] || "current_user"
+            user_scope_mode = args["user_scope"] || "anyone"
             hint_embedding =
                 if args["similarity_hint"].present?
                     EmbeddingService.embed(args["similarity_hint"])
@@ -85,7 +85,6 @@ module ArchivrTools
                 scope = scope.where(user_id: context[:user_id])
             else
                 scope = scope.user_visible_filter(context[:user_id])
-                .where(user_id: User.visible_to(context[:user_id]).select(:id))
             end
             
 

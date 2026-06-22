@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_22_003051) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -122,13 +122,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
 
   create_table "list_members", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "joined_at", null: false
+    t.datetime "joined_at"
     t.bigint "list_id", null: false
     t.string "role", default: "member", null: false
+    t.bigint "sent_by_user_id"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["list_id"], name: "index_list_members_on_list_id"
+    t.index ["sent_by_user_id"], name: "index_list_members_on_sent_by_user_id"
     t.index ["user_id"], name: "index_list_members_on_user_id"
   end
 
@@ -185,6 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
     t.datetime "created_at", null: false
     t.bigint "follow_id"
     t.bigint "list_id"
+    t.bigint "list_member_id"
     t.string "message_id", null: false
     t.bigint "parent_thread_id"
     t.datetime "read_at"
@@ -196,6 +199,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
     t.index ["comment_thread_id"], name: "index_notifications_on_comment_thread_id"
     t.index ["follow_id"], name: "index_notifications_on_follow_id"
     t.index ["list_id"], name: "index_notifications_on_list_id"
+    t.index ["list_member_id"], name: "index_notifications_on_list_member_id"
     t.index ["parent_thread_id"], name: "index_notifications_on_parent_thread_id"
     t.index ["receiver_id"], name: "index_notifications_on_receiver_id"
     t.index ["review_comment_id"], name: "index_notifications_on_review_comment_id"
@@ -282,6 +286,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
   add_foreign_key "list_likes", "users"
   add_foreign_key "list_members", "lists"
   add_foreign_key "list_members", "users"
+  add_foreign_key "list_members", "users", column: "sent_by_user_id"
   add_foreign_key "lists", "users"
   add_foreign_key "media", "users"
   add_foreign_key "media_in_lists", "lists"
@@ -289,6 +294,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_20_071431) do
   add_foreign_key "notifications", "community_threads", column: "comment_thread_id"
   add_foreign_key "notifications", "community_threads", column: "parent_thread_id"
   add_foreign_key "notifications", "follows"
+  add_foreign_key "notifications", "list_members"
   add_foreign_key "notifications", "lists"
   add_foreign_key "notifications", "review_comments"
   add_foreign_key "notifications", "reviews"

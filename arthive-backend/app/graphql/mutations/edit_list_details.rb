@@ -17,13 +17,17 @@ module Mutations
             if !list.present?
                 raise GraphQL::ExecutionError, "List #{args[:list_id]} not found"
             end
-            if list.user.id != context[:current_user].id
-                raise GraphQL::ExecutionError, "You are not the owner of list #{args[:list_id]}"
+            if !List.editable_by_user(context[:current_user].id, list)
+                raise GraphQL::ExecutionError, "You are not allowed to edit this list"
             end
 
-            if args[:delete_list]
+
+            if args[:delete_list] && list.user_id == context[:current_user].id
                 list.destroy!
                 return nil
+            end
+            if args[:delete_list] && list.user_id != context[:current_user].id
+                raise GraphQL::ExecutionError, "You are not the owner of this list"
             end
 
             updates = args.except(:list_id, :delete_list)

@@ -15,6 +15,8 @@ import { editListDetails } from "../data/edit_list_details";
 import { contentTypeColor } from "../lib/contentTypeColors";
 import { EyeIcon, EyeOffIcon, LikeButton, PencilIcon, TrashIcon } from "../lib/StyledComponents";
 import { DetailedMediaCard } from "../lib/DetailedMediaCard";
+import ListMembersDropdown from "../lib/ListMembersDropdown";
+import InviteMembersPanel from "../lib/InviteMembersPanel";
 import { LIKE_LIST_MUTATION, type LikeListInput, type LikeListResponse } from "../types/mutations/like_list_mutation";
 import { likeListFunction } from "../data/like_list_function";
 
@@ -100,9 +102,21 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
 
                 <div className="flex items-center gap-3">
                     {listData && (
+                        <ListMembersDropdown
+                            owner={targetUser ? { id: String(targetUser.id), username: targetUser.username, profilePicture: targetUser.profilePicture ?? null } : null}
+                            publicMembers={listData.publicListMembers ?? null}
+                            allMembers={listData.allListMembers ?? null}
+                            canEdit={!!listData.ifEditable}
+                            currentUserId={String(user.id)}
+                            currentUserRole={listData.role as "owner" | "admin" | "member" | null}
+                            setUser={setUser}
+                            listId={listData.id}
+                        />
+                    )}
+                    {listData && (
                         <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeList} />
                     )}
-                    { targetUser?.id === user.id ? (
+                    { listData?.ifEditable ? (
                     <button
                         type="button"
                         onClick={() => setIfEditListDetails(!ifEditListDetails)}
@@ -121,13 +135,14 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
             </div>
 
             {/* List details / edit form */}
-            {ifEditListDetails && targetUser?.id === user.id ? (
+            {ifEditListDetails && listData?.ifEditable ? (
                 <EditListDetails
                     listData={listData as ListType}
                     setListData={setListData}
                     setUser={setUser}
                     navigate={navigate}
                     setIfEditListDetails={setIfEditListDetails}
+                    currentStatus={listData?.role as "admin" | "member" | "owner" | null}
                 />
             ) : (
                 <ListDetails listData={listData} />
@@ -167,7 +182,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
                                 media_data={media}
                                 setRemoveMediaId={setRemoveMediaId}
                                 setMediaInLists={setMediaInLists}
-                                canRemove={targetUser?.id === user.id}
+                                canRemove={listData?.ifEditable ?? false}
                             />
                         ))}
                     </div>
@@ -187,6 +202,18 @@ function ListDetails({ listData }: { listData: ListType | null }) {
                 <p className="text-gray-300 leading-relaxed">{listData.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2">
+                {listData.role && (
+                    <span className={
+                        "text-xs px-2 py-0.5 rounded-full border " +
+                        (listData.role === "owner"
+                            ? "border-violet-500/40 text-violet-300 bg-violet-500/10"
+                            : listData.role === "admin"
+                            ? "border-emerald-500/40 text-emerald-300 bg-emerald-500/10"
+                            : "border-white/10 text-gray-400 bg-white/5")
+                    }>
+                        {listData.role[0].toUpperCase() + listData.role.slice(1)}
+                    </span>
+                )}
                 <span className={`text-xs px-2 py-0.5 rounded-full border ${listData.ifPrivate ? "border-amber-500/40 text-amber-300 bg-amber-500/10" : "border-emerald-500/40 text-emerald-300 bg-emerald-500/10"}`}>
                     {listData.ifPrivate ? "Private" : "Public"}
                 </span>
@@ -239,13 +266,14 @@ function ListMediaCard({ media_data, setRemoveMediaId, setMediaInLists, canRemov
     )
 }
 
-function EditListDetails({ listData, setListData, setUser, navigate, setIfEditListDetails }: { listData: ListType, setListData: Dispatch<SetStateAction<ListType | null>>, setUser: (user: User | null) => void, navigate: any, setIfEditListDetails: Dispatch<SetStateAction<boolean>> }) {
+function EditListDetails({ listData, setListData, setUser, navigate, setIfEditListDetails, currentStatus }: { listData: ListType, setListData: Dispatch<SetStateAction<ListType | null>>, setUser: (user: User | null) => void, navigate: any, setIfEditListDetails: Dispatch<SetStateAction<boolean>>, currentStatus: "admin" | "member" | "owner" | null }) {
     const [editListDetailsMutation, { loading, error }] = useMutation<EditListDetailsResponse, EditListDetailsInput>(EDIT_LIST_DETAILS_MUTATION)
 
     const [newName, setNewName] = useState<string>(listData?.name ?? "")
     const [newDescription, setNewDescription] = useState<string>(listData?.description ?? "")
     const [newTags, setNewTags] = useState<string>(listData?.tags?.join(", ") ?? "")
     const [newIfPrivate, setNewIfPrivate] = useState<boolean>(listData?.ifPrivate ?? false)
+    const [inviteMembersOpen, setInviteMembersOpen] = useState<boolean>(false)
 
     return (
         <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-5">
@@ -306,6 +334,26 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
                 </button>
             </div>
 
+            <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Members</label>
+                <button
+                    type="button"
+                    onClick={() => setInviteMembersOpen(true)}
+                    className="self-end px-4 py-1.5 rounded-full text-sm transition border border-violet-500/40 text-violet-300 bg-violet-500/10 hover:bg-violet-500/20"
+                >
+                    + Members
+                </button>
+            </div>
+
+            {inviteMembersOpen && (
+                <InviteMembersPanel
+                    listId={listData.id}
+                    setUser={setUser}
+                    onClose={() => setInviteMembersOpen(false)}
+                    currentStatus={currentStatus}
+                />
+            )}
+
             <div className="flex gap-3">
                 <button
                     onClick={() => {
@@ -330,6 +378,7 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
                     Cancel
                 </button>
                 <button
+                    disabled={listData?.role !== "owner"}
                     type="button"
                     onClick={() => {
                         editListDetails(listData?.id as string, newName, newIfPrivate, newTags, newDescription, setUser, navigate, editListDetailsMutation, setListData, true)

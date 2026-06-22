@@ -14,11 +14,8 @@ module Mutations
                     raise GraphQL::ExecutionError, "List not found"
                 end
 
-                if !User.if_visible_to_user(context[:current_user].id, list.user.id)
-                    raise GraphQL::ExecutionError, "You are not allowed to like this list"
-                end
-
-                if list.if_private && list.user.id != context[:current_user].id
+                
+                if !List.if_visible_to_user(context[:current_user].id, list)
                     raise GraphQL::ExecutionError, "You are not allowed to like this list"
                 end
 

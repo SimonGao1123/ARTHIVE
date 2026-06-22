@@ -58,17 +58,57 @@ class List < ApplicationRecord
     }
 
     # gets most popular lists
-    scope :trending_lists, -> (content_type: "all", user_id: nil) {
-        joins(:list_likes)
+    scope :trending_lists, ->(content_type: "all", user_id: nil) {
+        where(id: List.user_visible_filter(user_id).select(:id))
+            .joins(:list_likes)
             .where("list_likes.created_at > NOW() - INTERVAL '1 week'")
             .group(:id)
             .order(Arel.sql("COUNT(list_likes.id) DESC"))
-            .user_visible_filter(user_id)
             .content_type_filter(content_type)
     }
+
+    def self.if_visible_to_user(user_id, list)
+
+        if list.list_members.where(user_id: user_id, status: "accepted").exists? || list.user_id == user_id
+            return true
+        end
+
+        if !User.if_visible_to_user(user_id, list.user_id) || list.if_private
+            return false
+        end
+
+        return true
+    end
+    def self.editable_by_user(user_id, list)
+
+        return list.user_id == user_id || list.list_members.where(user_id: user_id, status: "accepted", role: "admin").exists?
+    end
     scope :user_visible_filter, ->(current_user_id) {
         # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
-        where(if_private: false).or(where(user_id: current_user_id)).where(user_id: User.visible_to(current_user_id).select(:id))
+        left_outer_joins(:list_members)
+        .where(
+            "(lists.if_private = false AND lists.user_id IN (:visible))
+            OR lists.user_id = :uid
+            OR (list_members.user_id = :uid AND list_members.status = 'accepted')",
+            visible: User.visible_to(current_user_id).select(:id),
+            uid: current_user_id
+        ).distinct
+    }
+    scope :user_editable_filter, ->(current_user_id) {
+        left_outer_joins(:list_members)
+        .where(
+            "(lists.user_id = :uid OR 
+            (list_members.user_id = :uid AND list_members.status = 'accepted' AND list_members.role = 'admin'))",
+            uid: current_user_id
+        ).distinct
+    }
+    # filters lists that user owns / is a member of / admin
+    scope :user_membership_filter, ->(current_user_id) {
+        left_outer_joins(:list_members)
+        .where(
+            "lists.user_id = :uid OR (list_members.user_id = :uid AND list_members.status = 'accepted')",
+            uid: current_user_id
+        ).distinct
     }
     def self.search(query:, embedded_query:, search_filter:, current_user_id:)
         base_search = List.semantic_search(query, "list", embedded_query)
@@ -88,7 +128,11 @@ class List < ApplicationRecord
     end
 
 
-    def self.add_or_remove_media(list_id, media_ids, if_add)
+    def self.add_or_remove_media(list_id, media_ids, if_add, user_id)
+        user = User.find_by(id: user_id)
+        if !user.present?
+            return {error: "User not found"}
+        end
         list = List.find_by(id: list_id)
 
         if !list.present?
@@ -115,7 +159,7 @@ class List < ApplicationRecord
                         raise ActiveRecord::Rollback
                     end
 
-                    Activity.log(user: list.user, subject: media_in_list, status: "created", snapshot: {
+                    Activity.log(user: user, subject: media_in_list, status: "created", snapshot: {
                         list_name: list.name
                     })
 

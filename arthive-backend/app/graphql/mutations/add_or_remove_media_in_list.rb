@@ -13,11 +13,12 @@ module Mutations
             if !list.present?
                 raise GraphQL::ExecutionError, "List #{list_id} not found"
             end
-            if list.user.id != context[:current_user].id
-                raise GraphQL::ExecutionError, "You are not the owner of list #{list_id}"
+
+            if !List.editable_by_user(context[:current_user].id, list)
+                raise GraphQL::ExecutionError, "You are not allowed to edit this list"
             end
 
-            result = List.add_or_remove_media(list_id, media_ids, if_add)
+            result = List.add_or_remove_media(list_id, media_ids, if_add, context[:current_user].id)
             if result.is_a?(Hash) && result[:error].present?
                 raise GraphQL::ExecutionError, result[:error]
             end

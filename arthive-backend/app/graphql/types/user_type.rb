@@ -31,6 +31,7 @@ module Types
       return Notification.where(receiver_id: object.id, read_at: nil).count
     end
 
+    # finds if follow exists from current user to this user
     def follow_from_current_user
       return nil unless context[:current_user]
       Follow.find_by(sender_id: context[:current_user].id, receiver_id: object.id)

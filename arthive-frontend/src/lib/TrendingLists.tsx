@@ -111,6 +111,11 @@ function ListCard({list}: {list: ListType}) {
                         {list.user.username}
                     </span>
                 </div>
+                {list.role && (
+                    <span className="text-[10px] uppercase tracking-wider text-violet-300/70 px-1.5 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/30 flex-shrink-0">
+                        {list.role}
+                    </span>
+                )}
                 <span className={`flex items-center gap-1 text-xs transition flex-shrink-0 ${list.ifLiked ? "text-pink-400" : "text-gray-500"}`}>
                     <HeartIcon filled={list.ifLiked} />
                     <span>{list.likeCount}</span>

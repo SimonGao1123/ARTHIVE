@@ -20,6 +20,8 @@ export const OBTAIN_ALL_USER_LISTS_QUERY = gql`
                         coverImage
                     }
                 }
+                ifEditable
+                role
             }
             pageInfo {
                 totalPages
@@ -55,6 +57,8 @@ export type AllUserListType = {
             coverImage: string | null,
         }
     } []
+    ifEditable: boolean | null,
+    role: string | null,
 }
 
 
@@ -91,6 +95,22 @@ export const OBTAIN_LIST_PAGE_QUERY = gql`
                 updatedAt
                 likeCount
                 ifLiked
+                ifEditable
+                role
+                publicListMembers {
+                    id
+                    status
+                    role
+                    joinedAt
+                    user { id username profilePicture }
+                }
+                allListMembers {
+                    id
+                    status
+                    role
+                    joinedAt
+                    user { id username profilePicture }
+                }
             }
             mediaInLists {
                 media {
@@ -131,6 +151,14 @@ export type ObtainListPageInput = {
     limit: number,
     query: string | null
 }
+export type ListMemberSummary = {
+    id: string
+    status: "pending" | "accepted" | "rejected"
+    role: "member" | "admin"
+    joinedAt: string | null
+    user: { id: string, username: string, profilePicture: string | null }
+}
+
 export type ObtainListPageResponse = {
     obtainListPage: {
         list: {
@@ -144,6 +172,10 @@ export type ObtainListPageResponse = {
             updatedAt: string,
             likeCount: number,
             ifLiked: boolean,
+            ifEditable: boolean | null,
+            role: string | null,
+            publicListMembers: ListMemberSummary[] | null,
+            allListMembers: ListMemberSummary[] | null,
         }
         mediaInLists: {
             media: Media
@@ -169,7 +201,11 @@ export type ListType = {
     user: User,
     mediaInLists: {
         media: Media
-    } []
+    } [],
+    ifEditable: boolean | null,
+    role: string | null,
+    publicListMembers?: ListMemberSummary[] | null,
+    allListMembers?: ListMemberSummary[] | null,
 }
 
 export const OBTAIN_TRENDING_LISTS_QUERY = gql`
@@ -193,6 +229,8 @@ export const OBTAIN_TRENDING_LISTS_QUERY = gql`
                             coverImage
                         }
                     }
+                    ifEditable
+                    role
                 }
             }
             pageInfo {

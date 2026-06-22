@@ -34,6 +34,9 @@ module Resolvers
                 when "lists"
                     unread_notifications = unread_notifications.where(action: Notification::ACTIONS[:lists])
                     read_notifications = read_notifications.where(action: Notification::ACTIONS[:lists])
+                when "list_members"
+                    unread_notifications = unread_notifications.where(action: Notification::ACTIONS[:list_members])
+                    read_notifications = read_notifications.where(action: Notification::ACTIONS[:list_members])
                 end
 
             end

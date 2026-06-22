@@ -33,5 +33,9 @@ module Types
     field :read_notifications, mutation: Mutations::ReadNotifications
 
     field :message_archivr, mutation: Mutations::MessageArchivr
+
+    field :invite_user_to_list, mutation: Mutations::InviteUserToList
+    field :respond_to_list_invite, mutation: Mutations::RespondToListInvite
+    field :alter_list_membership, mutation: Mutations::AlterListMembership
   end
 end

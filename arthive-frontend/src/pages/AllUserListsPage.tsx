@@ -168,9 +168,23 @@ function ListCard({list}: {list: AllUserListType}) {
                     >
                         {list.name}
                     </h2>
-                    <span className={`text-xs px-2 py-0.5 rounded-full border flex-shrink-0 ${list.ifPrivate ? "border-amber-500/40 text-amber-300 bg-amber-500/10" : "border-emerald-500/40 text-emerald-300 bg-emerald-500/10"}`}>
-                        {list.ifPrivate ? "Private" : "Public"}
-                    </span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        {list.role && (
+                            <span className={
+                                "text-xs px-2 py-0.5 rounded-full border " +
+                                (list.role === "owner"
+                                    ? "border-violet-500/40 text-violet-300 bg-violet-500/10"
+                                    : list.role === "admin"
+                                    ? "border-emerald-500/40 text-emerald-300 bg-emerald-500/10"
+                                    : "border-white/10 text-gray-400 bg-white/5")
+                            }>
+                                {list.role[0].toUpperCase() + list.role.slice(1)}
+                            </span>
+                        )}
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${list.ifPrivate ? "border-amber-500/40 text-amber-300 bg-amber-500/10" : "border-emerald-500/40 text-emerald-300 bg-emerald-500/10"}`}>
+                            {list.ifPrivate ? "Private" : "Public"}
+                        </span>
+                    </div>
                 </div>
 
                 <p className="text-sm text-gray-300">{list.description || <span className="text-gray-500 italic">No description</span>}</p>

@@ -70,6 +70,20 @@ export const OBTAIN_NOTIFICATIONS_QUERY = gql`
                             id
                             name
                         }
+                        listMember {
+                            id
+                            list {
+                                id
+                                name
+                            }
+                            role
+                            status
+                            sentByUser {
+                                id
+                                username
+                                profilePicture
+                            }
+                        }
                     }
                 }
                 pageInfo {
@@ -136,6 +150,20 @@ export const OBTAIN_NOTIFICATIONS_QUERY = gql`
                             id
                             name
                         }
+                        listMember {
+                            id
+                            list {
+                                id
+                                name
+                            }
+                            role
+                            status
+                            sentByUser {
+                                id
+                                username
+                                profilePicture
+                            }
+                        }
                     }
                 }
                 pageInfo {
@@ -155,7 +183,7 @@ export type ReadNotificationsInput = {
     filter: ObtainNotificationFilterEnum 
 }
 
-export type ObtainNotificationFilterEnum = "all" | "follows" | "reviews" | "threads" | "quote_reviews" | "lists"
+export type ObtainNotificationFilterEnum = "all" | "follows" | "reviews" | "threads" | "quote_reviews" | "lists" | "list_members"
 export type Notification = {
     id: string,
     sender: User & { followFromCurrentUser: { id: string, status: string } | null },
@@ -167,6 +195,13 @@ export type Notification = {
     parentThread: CommunityThread,
     commentThread: CommunityThread,
     list: { id: string, name: string } | null,
+    listMember: {
+        id: string,
+        status: "pending" | "accepted" | "rejected",
+        role: string,
+        list: { id: string, name: string },
+        sentByUser: { id: string, username: string, profilePicture: string | null } | null,
+    } | null,
 }
 
 export type ObtainNotificationsResponse = {

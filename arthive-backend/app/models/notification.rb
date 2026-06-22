@@ -11,6 +11,8 @@ class Notification < ApplicationRecord
         quote_reviews: ["review_quoted"],
 
         lists: ["like_on_list"],
+
+        list_members: ["invite_to_list", "list_invite_accepted"],
     }.freeze
     belongs_to :receiver, class_name: "User"
     belongs_to :sender, class_name: "User"
@@ -25,6 +27,8 @@ class Notification < ApplicationRecord
     belongs_to :comment_thread, class_name: "CommunityThread", optional: true
     belongs_to :follow, optional: true
     belongs_to :list, optional: true
+    belongs_to :list_member, optional: true
+
 
     validates :message_id, uniqueness: true
 
@@ -81,6 +85,12 @@ class Notification < ApplicationRecord
         if ACTIONS[:lists].include?(self.action)
             if self.list.blank?
                 errors.add(:base, "List is required for this action")
+            end
+        end
+
+        if ACTIONS[:list_members].include?(self.action)
+            if self.list_member.blank?
+                errors.add(:base, "List member is required for this action")
             end
         end
     end

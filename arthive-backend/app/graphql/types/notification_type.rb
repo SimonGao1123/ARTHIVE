@@ -12,6 +12,6 @@ module Types
         field :parent_thread, Types::CommunityThreadType, null: true
         field :comment_thread, Types::CommunityThreadType, null: true
         field :list, Types::ListType, null: true
-
+        field :list_member, Types::ListMemberType, null: true
     end
 end
