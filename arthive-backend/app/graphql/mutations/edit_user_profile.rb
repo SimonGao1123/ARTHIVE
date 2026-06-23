@@ -22,11 +22,18 @@ module Mutations
             # password is optional
             updates = args.except(:password)
 
+            was_public = current_user.visibility == "public"
+
             if current_user.update(updates)
                 if args[:password].present?
                     # update password if it was changed
                     current_user.update(password: args[:password])
                 end
+
+                if was_public && current_user.visibility != "public"
+                    ListLike.normalize_for_owner(current_user.id)
+                end
+
                 return current_user
             else
                 raise GraphQL::ExecutionError, current_user.errors.full_messages.join(", ")

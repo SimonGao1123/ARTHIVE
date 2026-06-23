@@ -21,6 +21,10 @@ module Mutations
 
             list_member.respond_to_invite(accept)
 
+            if !accept
+                ListLike.normalize_for_list(list_member.list)
+            end
+
             if accept
                 SQS_CLIENT.send_message(
                     queue_url: SQS_QUEUE_URL,

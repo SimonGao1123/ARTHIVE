@@ -1,8 +1,9 @@
 import { gql } from "@apollo/client"
 import type { Media } from "../media_type"
-export const OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY = gql`
-    query ObtainLikedOrFinishedMedia($userId: ID!, $type: String!, $contentType: ContentTypeEnum!, $pageNum: Int, $limit: Int, $query: String) {
-        obtainLikedOrFinishedMedia(userId: $userId, type: $type, contentType: $contentType, pageNum: $pageNum, limit: $limit, query: $query) {
+
+export const OBTAIN_FINISHED_MEDIA_QUERY = gql`
+    query ObtainFinishedMedia($userId: ID!, $contentType: ContentTypeEnum!, $pageNum: Int, $limit: Int, $query: String) {
+        obtainFinishedMedia(userId: $userId, contentType: $contentType, pageNum: $pageNum, limit: $limit, query: $query) {
             user {
                 id
                 username
@@ -28,17 +29,16 @@ export const OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY = gql`
     }
 `
 
-export type ObtainLikedOrFinishedMediaInput = {
+export type ObtainFinishedMediaInput = {
     userId: string
-    type: "liked" | "finished"
     contentType: "book" | "film" | "series" | "game" | "all"
     pageNum: number
     limit: number
     query: string | null
 }
 
-export type ObtainLikedOrFinishedMediaResponse = {
-    obtainLikedOrFinishedMedia: {
+export type ObtainFinishedMediaResponse = {
+    obtainFinishedMedia: {
         user: {
             id: string
             username: string

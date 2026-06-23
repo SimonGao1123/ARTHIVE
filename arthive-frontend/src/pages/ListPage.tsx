@@ -19,6 +19,8 @@ import ListMembersDropdown from "../lib/ListMembersDropdown";
 import InviteMembersPanel from "../lib/InviteMembersPanel";
 import { LIKE_LIST_MUTATION, type LikeListInput, type LikeListResponse } from "../types/mutations/like_list_mutation";
 import { likeListFunction } from "../data/like_list_function";
+import { deleteAllListMembersData } from "../data/delete_all_list_members_data";
+import { DELETE_ALL_LIST_MEMBERS_MUTATION, type DeleteAllListMembersMutation, type DeleteAllListMembersMutationVariables } from "../types/mutations/list_delete_members_mutation";
 
 const LIMIT = 3
 
@@ -45,7 +47,6 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
     const [likeList] = useMutation<LikeListResponse, LikeListInput>(LIKE_LIST_MUTATION)
     const [currLiked, setCurrLiked] = useState<boolean>(false)
     const [likeCount, setLikeCount] = useState<number>(0)
-
     useEffect(() => {
         if (listData) {
             setCurrLiked(listData.ifLiked)
@@ -274,6 +275,7 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
     const [newTags, setNewTags] = useState<string>(listData?.tags?.join(", ") ?? "")
     const [newIfPrivate, setNewIfPrivate] = useState<boolean>(listData?.ifPrivate ?? false)
     const [inviteMembersOpen, setInviteMembersOpen] = useState<boolean>(false)
+    const [deleteAllListMembersMutation] = useMutation<DeleteAllListMembersMutation, DeleteAllListMembersMutationVariables>(DELETE_ALL_LIST_MEMBERS_MUTATION)
 
     return (
         <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-5">
@@ -387,6 +389,14 @@ function EditListDetails({ listData, setListData, setUser, navigate, setIfEditLi
                     className="bg-red-500 hover:bg-red-400 text-white px-6 py-2 rounded-full text-sm transition"
                 >
                     Delete List</button>
+                <button
+                    disabled={listData?.role !== "owner"}
+                    type="button"
+                    onClick={() => deleteAllListMembersData(listData.id, navigate, setUser, deleteAllListMembersMutation)}
+                    className="bg-red-500 hover:bg-red-400 text-white px-6 py-2 rounded-full text-sm transition"
+                >
+                    Delete Members
+                </button>
             </div>
         </div>
     )

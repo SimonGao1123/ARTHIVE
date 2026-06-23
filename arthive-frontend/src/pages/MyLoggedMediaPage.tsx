@@ -3,18 +3,19 @@ import { useLazyQuery } from "@apollo/client/react"
 import { useNavigate, useParams } from "react-router-dom"
 import type { User } from "../types/user_types"
 import {
-    OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY,
-    type ObtainLikedOrFinishedMediaInput,
-    type ObtainLikedOrFinishedMediaResponse,
-} from "../types/queries/liked_or_finished_media_query"
-import { obtainLikedOrFinishedMediaFunction } from "../data/obtain_liked_or_finished_media"
+    OBTAIN_FINISHED_MEDIA_QUERY,
+    type ObtainFinishedMediaInput,
+    type ObtainFinishedMediaResponse,
+} from "../types/queries/finished_media_query"
+import { obtainFinishedMediaFunction } from "../data/obtain_finished_media"
 import ContentFilter from "../lib/ContentFilter"
 import { NumberedPagination } from "../lib/NumberedPagination"
 import { DetailedMediaCard } from "../lib/DetailedMediaCard"
 import type { Media } from "../types/media_type"
+
 const LIMIT = 10
 
-export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: "liked" | "finished"; setUser: (user: User | null) => void }) {
+export default function MyLoggedMediaPage({ setUser }: { setUser: (user: User | null) => void }) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
@@ -26,7 +27,7 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageUser, setPageUser] = useState<{ id: string; username: string } | null>(null)
 
-    const [getMedia] = useLazyQuery<ObtainLikedOrFinishedMediaResponse, ObtainLikedOrFinishedMediaInput>(OBTAIN_LIKED_OR_FINISHED_MEDIA_QUERY, {
+    const [getMedia] = useLazyQuery<ObtainFinishedMediaResponse, ObtainFinishedMediaInput>(OBTAIN_FINISHED_MEDIA_QUERY, {
         fetchPolicy: "no-cache",
     })
 
@@ -47,17 +48,17 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
         setQuery("")
         setCurrQuery("")
         setContentType("all")
-    }, [type, user_id])
+    }, [user_id])
 
     useEffect(() => {
         if (!user_id) return
-        obtainLikedOrFinishedMediaFunction(user_id, type, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser, setPageUser)
-    }, [type, user_id, contentType, pageNum, query])
+        obtainFinishedMediaFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser, setPageUser)
+    }, [user_id, contentType, pageNum, query])
 
     return (
         <div className="flex flex-col gap-6">
             <h1 className="text-2xl font-bold text-white">
-                {pageUser ? `${pageUser.username}'s ${type === "liked" ? "Liked Media" : "Logged Media"}` : (type === "liked" ? "Liked Media" : "Logged Media")}
+                {pageUser ? `${pageUser.username}'s Logged Media` : "Logged Media"}
             </h1>
 
             <ContentFilter currContentType={contentType} setContentType={handleContentTypeChange} />
@@ -84,8 +85,8 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
                 <p className="text-gray-500 text-sm text-center py-8">No media found.</p>
             ) : (
                 <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))" }}>
-                    {media.map((media) => (
-                        <DetailedMediaCard key={media.id} media={media} />
+                    {media.map((m) => (
+                        <DetailedMediaCard key={m.id} media={m} />
                     ))}
                 </div>
             )}
@@ -94,4 +95,3 @@ export default function UserLikedOrFinishedMediaPage({ type, setUser }: { type: 
         </div>
     )
 }
-

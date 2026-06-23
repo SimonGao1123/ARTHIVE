@@ -80,6 +80,7 @@ class Follow < ApplicationRecord
         end
 
         self.update!(status: STATUSES[:rejected])
+        ListLike.normalize_for_owner(self.receiver_id)
     end
 
     def cancel_follow(user_id)

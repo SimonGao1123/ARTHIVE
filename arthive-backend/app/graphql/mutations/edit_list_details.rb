@@ -32,11 +32,17 @@ module Mutations
 
             updates = args.except(:list_id, :delete_list)
 
+            was_private = list.if_private
             if !list.update(updates)
                 raise GraphQL::ExecutionError, list.errors.full_messages.join(", ")
             end
+
+            if list.if_private && !was_private
+                ListLike.normalize_for_list(list)
+            end
+
             Activity.log(user: context[:current_user], subject: list, status: "updated", snapshot: {
-                name: list.name
+                list_name: list.name
             })
 
             return list

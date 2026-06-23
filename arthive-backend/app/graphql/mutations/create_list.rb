@@ -24,7 +24,7 @@ module Mutations
             end
 
             Activity.log(user: context[:current_user], subject: list, status: "created", snapshot: {
-                name: list.name
+                list_name: list.name
             })
             
             content_type = Set.new

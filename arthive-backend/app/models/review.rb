@@ -150,4 +150,23 @@ class Review < ApplicationRecord
         return base_search.recent.includes(:user, :media)
     end
 
+    def self.obtain_review_likes_page(user, content_type, query, page_num, limit)
+        reviews = Review.where(id: ReviewLike.where(user_id: user.id).select(:review_id))
+                        .includes(:media)
+                        .semantic_search(query, "review", nil)
+                        .recent
+        if content_type != "all"
+            reviews = reviews.joins(:media).where(media: { content_type: content_type })
+        end
+        total_count = reviews.count
+        total_pages = (total_count.to_f / limit).ceil
+        return {
+            reviews: reviews.page(page_num, limit),
+            user: user,
+            page_info: {
+                total_pages: total_pages,
+                total_count: total_count
+            }
+        }
+    end
 end

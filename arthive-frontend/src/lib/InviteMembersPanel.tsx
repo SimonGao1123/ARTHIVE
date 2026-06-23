@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useLazyQuery, useMutation } from "@apollo/client/react"
 import { useNavigate } from "react-router-dom"
 import {
@@ -182,66 +182,106 @@ function RoleConfirmPopup({ user, listId, setUser, onCancel, onSent, currentStat
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4 arthive-fade-in" onClick={onCancel}>
-            <div className="bg-[#171519] rounded-2xl border border-white/10 p-6 max-w-sm w-full flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center gap-3">
-                    <img
-                        src={user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
-                        alt={user.username}
-                        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                    />
-                    <div className="flex flex-col min-w-0">
-                        <span className="text-sm text-gray-400">Invite</span>
-                        <span className="text-base text-white font-medium truncate">@{user.username}</span>
-                    </div>
+            <div className="bg-[#171519] rounded-2xl border border-white/10 p-5 max-w-md w-full flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        aria-label="Close"
+                        className="text-gray-400 hover:text-white text-xl leading-none transition"
+                    >
+                        ×
+                    </button>
                 </div>
 
-                {currentStatus === "owner" && (
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Role</label>
-                        <div className="flex gap-2">
-                            {(["member", "admin"] as const).map(r => (
-                                <button
-                                    key={r}
-                                    type="button"
-                                    onClick={() => setRole(r)}
-                                    className={
-                                        "flex-1 px-3 py-1.5 text-sm rounded-full border capitalize transition " +
-                                        (role === r
-                                            ? "bg-violet-500/20 text-violet-300 border-violet-500/40"
-                                            : "border-white/10 text-gray-400 hover:text-white hover:bg-white/5")
-                                    }
-                                >
-                                    {r}
-                                </button>
-                            ))}
-                        </div>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full pl-1 pr-2 py-1">
+                        <img
+                            src={user.profilePicture ?? "/default-ARTHIVE-pfp.png"}
+                            alt={user.username}
+                            className="w-7 h-7 rounded-full object-cover"
+                        />
+                        <span className="text-sm text-white truncate max-w-[12rem]">@{user.username}</span>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            aria-label="Remove"
+                            className="text-gray-400 hover:text-white text-sm leading-none ml-1"
+                        >
+                            ×
+                        </button>
                     </div>
-                )}
+
+                    <RoleDropdown role={role} setRole={setRole} disabled={currentStatus !== "owner"} />
+
+                    <button
+                        type="button"
+                        onClick={send}
+                        disabled={loading}
+                        className="ml-6 bg-violet-500 hover:bg-violet-400 disabled:opacity-50 text-white px-4 py-1.5 rounded-full text-sm transition"
+                    >
+                        {loading ? "Sending…" : "Send invite"}
+                    </button>
+                </div>
 
                 {error && (
                     <p className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
                         {error}
                     </p>
                 )}
-
-                <div className="flex justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 px-4 py-1.5 rounded-full text-sm transition"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={send}
-                        disabled={loading}
-                        className="bg-violet-500 hover:bg-violet-400 disabled:opacity-50 text-white px-4 py-1.5 rounded-full text-sm transition"
-                    >
-                        {loading ? "Sending…" : "Send invite"}
-                    </button>
-                </div>
             </div>
+        </div>
+    )
+}
+
+function RoleDropdown({role, setRole, disabled}: {role: "member" | "admin", setRole: (r: "member" | "admin") => void, disabled: boolean}) {
+    const [open, setOpen] = useState(false)
+    const ref = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (!open) return
+        const onDoc = (e: MouseEvent) => {
+            if (!ref.current?.contains(e.target as Node)) setOpen(false)
+        }
+        document.addEventListener("mousedown", onDoc)
+        return () => document.removeEventListener("mousedown", onDoc)
+    }, [open])
+
+    if (disabled) {
+        return (
+            <span className="px-3 py-1.5 text-sm rounded-full border border-white/10 text-gray-400 bg-white/5 capitalize">
+                Member
+            </span>
+        )
+    }
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                type="button"
+                onClick={() => setOpen(o => !o)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-white/10 text-gray-200 hover:bg-white/5 transition capitalize"
+            >
+                {role}
+                <span className="text-xs text-gray-400">▼</span>
+            </button>
+            {open && (
+                <div className="absolute top-full mt-1 right-0 bg-[#0a090c] border border-white/10 rounded-xl shadow-2xl py-1 z-10 min-w-[7rem]">
+                    {(["member", "admin"] as const).map(r => (
+                        <button
+                            key={r}
+                            type="button"
+                            onClick={() => { setRole(r); setOpen(false) }}
+                            className={
+                                "w-full text-left px-3 py-1.5 text-sm capitalize transition " +
+                                (role === r ? "text-violet-300 bg-violet-500/10" : "text-gray-300 hover:bg-white/5")
+                            }
+                        >
+                            {r}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

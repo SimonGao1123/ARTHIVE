@@ -29,7 +29,8 @@ import CreateListPage from './pages/CreateListPage'
 import CommunityPage from './pages/CommunityPage'
 import ThreadPage from './pages/ThreadPage'
 import SearchPageResults from './pages/SearchPageResults'
-import UserLikedOrFinishedMediaPage from './pages/UserLikedOrFinishedMediaPage'
+import MyLoggedMediaPage from './pages/MyLoggedMediaPage'
+import MyLikesPage from './pages/MyLikesPage'
 import NotificationsPage from './pages/NotificationsPage'
 function App() {
   const location = useLocation()
@@ -68,8 +69,8 @@ function App() {
           <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
           <Route path="/all_reviews/:user_id" element={<AllUserReviewsPage setUser={setUser}/>} />
           <Route path="/all_lists/:user_id" element={<AllUserListsPage setUser={setUser}/>} />
-          <Route path="/liked/:user_id" element={<UserLikedOrFinishedMediaPage type="liked" setUser={setUser}/>} />
-          <Route path="/finished/:user_id" element={<UserLikedOrFinishedMediaPage type="finished" setUser={setUser}/>} />
+          <Route path="/liked/:user_id" element={<MyLikesPage setUser={setUser}/>} />
+          <Route path="/finished/:user_id" element={<MyLoggedMediaPage setUser={setUser}/>} />
 
           <Route path="*" element={<NotFoundPage />} />
           <Route path="/media/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />

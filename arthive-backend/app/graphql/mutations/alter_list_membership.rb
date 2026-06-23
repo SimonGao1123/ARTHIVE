@@ -30,6 +30,7 @@ module Mutations
                 raise GraphQL::ExecutionError, "You cannot alter your own membership"
             end
 
+            # Ensures either admin or owner
             if !List.editable_by_user(context[:current_user].id, list)
                 raise GraphQL::ExecutionError, "You are not allowed to edit this list"
             end
@@ -53,6 +54,7 @@ module Mutations
                 end
 
                 list_member.destroy!
+                ListLike.normalize_for_list(list)
                 return list_member
             # only owners can change roles
             elsif action == "change_role" && role.present? && context_role == "owner"

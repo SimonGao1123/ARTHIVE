@@ -194,4 +194,22 @@ class List < ApplicationRecord
 
         return list
     end
+
+    def self.obtain_list_likes_page(user, query, page_num, limit, content_type, context_user_id)
+        lists = List.where(id: ListLike.where(user_id: user.id).select(:list_id))
+                    .content_type_filter(content_type)
+                    .semantic_search(query, "list", nil)
+                    .user_visible_filter(context_user_id)
+
+        total_count = lists.count
+        total_pages = (total_count.to_f / limit).ceil
+        return {
+            lists: lists.page(page_num, limit),
+            user: user,
+            page_info: {
+                total_pages: total_pages,
+                total_count: total_count
+            }
+        }
+    end
 end

@@ -221,15 +221,27 @@ class Media < ApplicationRecord
         return base_search
     end
 
-    def self.liked_or_finished_media(user_id, content_type, query, page_num, limit, type)
+    def self.obtain_media_likes_page(user, content_type, query, page_num, limit)
+        liked_media_ids = Review.where(user_id: user.id, if_favorite: true).select(:media_id)
+        base_search = Media.where(id: liked_media_ids)
+                           .content_type_filter(content_type)
+                           .semantic_search(query, "media", nil)
+                           .recent
+        total_count = base_search.count
+        total_pages = (total_count.to_f / limit).ceil
+        return {
+            user: user,
+            media: base_search.page(page_num, limit),
+            page_info: {
+                total_pages: total_pages,
+                total_count: total_count
+            }
+        }
+    end
+
+    def self.finished_media(user_id, content_type, query, page_num, limit)
         reviews = Review.includes(:media).where(user_id: user_id)
-        if type == "liked"
-            reviews = reviews.where(if_favorite: true)
-        elsif type == "finished"
-            reviews = reviews.where(if_finished: true)
-        else
-            raise GraphQL::ExecutionError, "Invalid type"
-        end
+        reviews = reviews.where(if_finished: true)
 
         user = User.find_by(id: user_id)
         if !user.present?
