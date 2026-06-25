@@ -18,10 +18,10 @@ import { LIKE_LIST_MUTATION } from "@/apollo/mutations/list_mutations"
 import type { LikeListInput, LikeListResponse } from "@/types/mutations/list_mutations_types"
 import { likeListFunction } from "@/data/lists/likeListFunction";
 import EditListDetails from "@/features/lists/components/EditListDetails";
+import LeaveListButton from "./components/LeaveListButton";
 const LIMIT = 3
 
 export default function ListPage({ user, setUser }: { user: User | null, setUser: (user: User | null) => void }) {
-    if (!user) return null
     const { list_id } = useParams()
     const navigate = useNavigate()
 
@@ -75,7 +75,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
         refreshList()
     }, [list_id, pageNum, query])
 
-    if (!list_id) return null
+    if (!user || !list_id) return null
 
     return (
         <div className="flex flex-col gap-6">
@@ -109,6 +109,9 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
                             setUser={setUser}
                             listId={listData.id}
                         />
+                    )}
+                    {listData && listData.role !== null && (
+                        <LeaveListButton listId={listData.id} setUser={setUser} navigate={navigate} />
                     )}
                     {listData && (
                         <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeList} />

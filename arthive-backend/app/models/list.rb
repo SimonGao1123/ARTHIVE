@@ -83,6 +83,9 @@ class List < ApplicationRecord
 
         return list.user_id == user_id || list.list_members.where(user_id: user_id, status: "accepted", role: "admin").exists?
     end
+    def self.if_member_of_list(user_id, list)
+        ListMember.exists?(list_id: list.id, user_id: user_id, status: "accepted") || list.user_id == user_id
+    end
     scope :user_visible_filter, ->(current_user_id) {
         # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
         left_outer_joins(:list_members)

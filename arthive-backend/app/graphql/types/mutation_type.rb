@@ -38,5 +38,6 @@ module Types
     field :respond_to_list_invite, mutation: Mutations::RespondToListInvite
     field :alter_list_membership, mutation: Mutations::AlterListMembership
     field :delete_all_list_members, mutation: Mutations::DeleteAllListMembers
+    field :leave_list, mutation: Mutations::LeaveList
   end
 end

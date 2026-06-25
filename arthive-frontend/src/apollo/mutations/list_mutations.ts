@@ -8,8 +8,15 @@ import type {
     AcceptListInviteInput, AcceptListInviteResponse,
     InviteUserToListInput, InviteUserToListResponse,
     RespondToListInviteInput, RespondToListInviteResponse,
+    LeaveListResponse,
+    LeaveListInput,
 } from "@/types/mutations/list_mutations_types"
 
+export const LEAVE_LIST_MUTATION: TypedDocumentNode<LeaveListResponse, LeaveListInput> = gql`
+    mutation LeaveList($input: LeaveListInput!) {
+        leaveList(input: $input)
+    }
+`
 export const ALTER_LIST_MEMBERSHIP_MUTATION: TypedDocumentNode<AlterListMembershipResponse, AlterListMembershipInput> = gql`
     mutation AlterListMembership($input: AlterListMembershipInput!) {
         alterListMembership(input: $input) {

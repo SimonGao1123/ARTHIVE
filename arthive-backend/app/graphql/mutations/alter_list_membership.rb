@@ -54,6 +54,7 @@ module Mutations
                 end
 
                 list_member.destroy!
+                
                 ListLike.normalize_for_list(list)
                 return list_member
             # only owners can change roles

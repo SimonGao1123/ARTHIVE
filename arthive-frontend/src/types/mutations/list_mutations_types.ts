@@ -1,6 +1,15 @@
 import type { ListType } from "@/types/queries/list_queries_types"
 import type { User } from "@/types/domain/user"
 
+export type LeaveListInput = {
+    input: {
+        listId: string
+    }
+}
+
+export type LeaveListResponse = {
+    leaveList: boolean
+}
 export type ListMemberType = {
     id: string
     list: ListType
