@@ -1,12 +1,11 @@
 import type { Dispatch, SetStateAction } from "react"
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function obtainRecentUserActivityFunction(
     userId: string,
     setRecentUserActivity: any,
     setUser: any,
-    navigate: any,
+    _navigate: any,
     obtainRecentUserActivity: any,
     cursor: string | null,
     setCursor: Dispatch<SetStateAction<string | null>>,
@@ -30,8 +29,6 @@ export function obtainRecentUserActivityFunction(
         })
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

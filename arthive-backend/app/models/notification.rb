@@ -10,7 +10,7 @@ class Notification < ApplicationRecord
 
         quote_reviews: ["review_quoted"],
 
-        lists: ["like_on_list"],
+        lists: ["like_on_list", "save_on_list"],
 
         list_members: ["invite_to_list", "list_invite_accepted"],
     }.freeze

@@ -37,7 +37,7 @@ module Mutations
                  ListMember.find_by(list_id: list_id, user_id: context[:current_user].id).destroy!
             end
 
-            ListLike.normalize_for_list(list)
+            list.normalize_likes_saves_for_list
 
             return true
         end

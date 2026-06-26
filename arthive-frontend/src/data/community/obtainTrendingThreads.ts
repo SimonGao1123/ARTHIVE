@@ -1,15 +1,13 @@
 import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import type { Dispatch, SetStateAction } from "react"
-import { logout } from "@/data/auth/logout"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
 export function obtainTrendingThreadsFunction(
     obtainTrendingThreads: any,
     limit: number,
     mediaIdScope: string | null,
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>,
-    navigate: any,
+    _navigate: any,
     setUser: any
 ) {
     obtainTrendingThreads({ variables: { limit, mediaIdScope } })
@@ -17,8 +15,6 @@ export function obtainTrendingThreadsFunction(
             setThreads(data.data.obtainTrendingThreads)
         })
         .catch((error: any) => {
-            if (unauth_messages.includes(error.message)) {
-                logout(setUser, navigate)
-            }
+            handleReadUnauth(error, setUser)
         })
 }

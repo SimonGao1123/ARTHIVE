@@ -9,10 +9,11 @@ import ContentFilter from "@/shared/components/ContentFilter"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import { DetailedMediaCard } from "@/features/media/components/DetailedMediaCard"
 import type { Media } from "@/types/domain/media"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 const LIMIT = 10
 
-export default function MyLoggedMediaPage({ setUser }: { setUser: (user: User | null) => void }) {
+export default function MyLoggedMediaPage({ setUser, user }: { setUser: (user: User | null) => void, user: User | null }) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
@@ -48,9 +49,11 @@ export default function MyLoggedMediaPage({ setUser }: { setUser: (user: User | 
     }, [user_id])
 
     useEffect(() => {
-        if (!user_id) return
+        if (!user_id || !user) return
         obtainFinishedMediaFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser, setPageUser)
-    }, [user_id, contentType, pageNum, query])
+    }, [user_id, contentType, pageNum, query, user])
+
+    if (!user) return <SignInPrompt title="Sign in to view logged media" message="Sign in to browse logged media." />
 
     return (
         <div className="flex flex-col gap-6">

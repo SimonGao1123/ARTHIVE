@@ -1,13 +1,11 @@
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 import type { User } from "@/types/domain/user"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function NewestExplorePageDataFetch(
 
-    navigate: any, 
-    setUser: (user: User | null) => void, 
-    contentType: "book" | "film" | "series" | "game" | "all", 
+    _navigate: any,
+    setUser: (user: User | null) => void,
+    contentType: "book" | "film" | "series" | "game" | "all",
     limit: number,
     setNextCursor: (nextCursor: string | null) => void,
     setPrevCursor: (prevCursor: string | null) => void,
@@ -15,15 +13,15 @@ export function NewestExplorePageDataFetch(
     go_next_page: boolean,
     setIfPrevPage: (ifPrevPage: boolean) => void,
     setIfNextPage: (ifNextPage: boolean) => void,
-    setAllMedia: any, 
+    setAllMedia: any,
     getNewestExplorePageMedia: any) {
-    getNewestExplorePageMedia({ variables: go_next_page ? { 
-        contentType, 
-        first: limit, 
+    getNewestExplorePageMedia({ variables: go_next_page ? {
+        contentType,
+        first: limit,
         after: cursor
     } : {
-        contentType, 
-        last: limit, 
+        contentType,
+        last: limit,
         before: cursor
     } })
     .then((data: any) => {
@@ -34,8 +32,6 @@ export function NewestExplorePageDataFetch(
         setIfNextPage(data.data.newestExploreMedia.pageInfo.hasNextPage ?? false)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

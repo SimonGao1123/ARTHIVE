@@ -39,15 +39,23 @@ export default function AppShell({user, setUser}: {user: User | null, setUser: (
 
             <div className="flex flex-1 gap-6 px-12 pb-12">
                 <aside className="w-56 flex-shrink-0 flex flex-col gap-6 relative">
-                    <div className="flex justify-center">
+                    <div className="flex flex-col items-center gap-2">
                         <img
                             width={80}
                             height={80}
-                            onClick={() => navigate(`/profile/${user?.id}`)}
+                            onClick={() => user ? navigate(`/profile/${user.id}`) : navigate("/login")}
                             src={user?.profilePicture ? user.profilePicture : "/default-ARTHIVE-pfp.png"}
                             alt="Profile Picture"
                             className="w-20 h-20 rounded-full object-cover cursor-pointer ring-2 ring-white/10 hover:ring-violet-500/50 transition"
                         />
+                        {!user && (
+                            <button
+                                onClick={() => navigate("/login")}
+                                className="text-xs bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 border border-violet-500/40 px-3 py-1 rounded-full transition"
+                            >
+                                Sign in
+                            </button>
+                        )}
                     </div>
 
                     <nav className="bg-[#171519] rounded-2xl border border-white/5 py-2">

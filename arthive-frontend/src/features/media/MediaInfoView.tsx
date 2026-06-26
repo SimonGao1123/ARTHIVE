@@ -125,13 +125,15 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
                                 </div>
                             )}
                         </div>
-                        <UserMediaReview
-                            mediaId={Number(id)}
-                            setUser={setUser}
-                            mediaInfo={mediaInfo}
-                            onOpenAddToLists={() => setShowAddMediaToList(true)}
-                            onReviewChanged={handleReviewChanged}
-                        />
+                        {user && (
+                            <UserMediaReview
+                                mediaId={Number(id)}
+                                setUser={setUser}
+                                mediaInfo={mediaInfo}
+                                onOpenAddToLists={() => setShowAddMediaToList(true)}
+                                onReviewChanged={handleReviewChanged}
+                            />
+                        )}
                     </div>
 
                     {/* Right column: media info + AI summary + reviews list */}
@@ -149,7 +151,7 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
                                 <p className="text-gray-300 text-sm leading-relaxed">{mediaInfo.reviewsAiSummary}</p>
                             </div>
                         )}
-                        <MediaReviews id={id ?? ""} setUser={setUser} reviewCount={mediaInfo.reviewCount} reviewChange={reviewChange} />
+                        <MediaReviews id={id ?? ""} setUser={setUser} user={user} reviewCount={mediaInfo.reviewCount} reviewChange={reviewChange} />
                     </div>
                 </div>
             ) : null}

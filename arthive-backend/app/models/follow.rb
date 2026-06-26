@@ -21,6 +21,12 @@ class Follow < ApplicationRecord
 
     validate :sender_receiver_uniqueness
 
+    # users.followers_count / users.following_count track only accepted follows.
+    # Stock counter_cache would count rejected/pending too — manage manually.
+    after_create  :increment_user_follow_counts_if_accepted
+    after_update  :sync_user_follow_counts_on_status_change
+    after_destroy :decrement_user_follow_counts_if_accepted
+
     private
     def sender_receiver_uniqueness
         if self.sender_id == self.receiver_id
@@ -28,8 +34,34 @@ class Follow < ApplicationRecord
         end
     end
 
+    def increment_user_follow_counts_if_accepted
+        return unless status == STATUSES[:accepted]
+        User.increment_counter(:followers_count, receiver_id)
+        User.increment_counter(:following_count, sender_id)
+    end
 
-    public 
+    def sync_user_follow_counts_on_status_change
+        return unless saved_change_to_status?
+        was_accepted = saved_change_to_status.first == STATUSES[:accepted]
+        is_accepted  = saved_change_to_status.last  == STATUSES[:accepted]
+        return if was_accepted == is_accepted
+        if is_accepted
+            User.increment_counter(:followers_count, receiver_id)
+            User.increment_counter(:following_count, sender_id)
+        else
+            User.decrement_counter(:followers_count, receiver_id)
+            User.decrement_counter(:following_count, sender_id)
+        end
+    end
+
+    def decrement_user_follow_counts_if_accepted
+        return unless status == STATUSES[:accepted]
+        User.decrement_counter(:followers_count, receiver_id)
+        User.decrement_counter(:following_count, sender_id)
+    end
+
+
+    public
     def self.send_follow(sender_id, receiver_id)
 
         begin
@@ -80,7 +112,7 @@ class Follow < ApplicationRecord
         end
 
         self.update!(status: STATUSES[:rejected])
-        ListLike.normalize_for_owner(self.receiver_id)
+        List.normalize_likes_saves_for_owner(self.receiver_id)
     end
 
     def cancel_follow(user_id)

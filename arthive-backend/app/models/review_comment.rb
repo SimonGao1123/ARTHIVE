@@ -1,6 +1,6 @@
 class ReviewComment < ApplicationRecord
     include SharedScopeMethods
-    belongs_to :review
+    belongs_to :review, counter_cache: true
     belongs_to :user
 
     validates :comment, presence: true

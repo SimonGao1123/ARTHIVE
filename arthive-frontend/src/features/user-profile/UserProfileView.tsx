@@ -24,7 +24,7 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
 
     useEffect(() => {
         ObtainUserProfileFetch(getUserProfile, setUserProfileData, id!, setUser, navigate)
-    }, [user?.id])
+    }, [user?.id, id])
 
     useEffect(() => {
         if (userProfileData) {
@@ -86,7 +86,7 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
                             )}
                         </div>
 
-                        {!isOwnProfile && (
+                        {!isOwnProfile && user && (
                             <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/5">
                                 <OutgoingFollowButton
                                     profileId={id!}

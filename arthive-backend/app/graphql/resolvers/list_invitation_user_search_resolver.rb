@@ -20,7 +20,7 @@ module Resolvers
             end
             
 
-            possible_users = User.searchable_list_users(list).query_filter(query)
+            possible_users = User.searchable_list_users(list).query_filter(query).with_attached_profile_picture
 
 
             return possible_users.limit(limit)

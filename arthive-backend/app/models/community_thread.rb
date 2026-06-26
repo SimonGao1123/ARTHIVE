@@ -14,7 +14,7 @@ class CommunityThread < ApplicationRecord
 
     # NOTE: if parent_thread/root_thread is present, then the current thread is NOT the root thread
     # else if they are BOTH nil then the current thread is the root thread
-    belongs_to :parent_thread, class_name: "CommunityThread", optional: true
+    belongs_to :parent_thread, class_name: "CommunityThread", optional: true, counter_cache: :child_threads_count
     belongs_to :root_thread, class_name: "CommunityThread", optional: true
 
     has_many :child_threads, class_name: "CommunityThread", foreign_key: "parent_thread_id", dependent: :destroy
@@ -76,14 +76,23 @@ class CommunityThread < ApplicationRecord
     end
     public
 
+    # Trending = recent likes * 2 + recent replies * 3.
+    # Scoring expression lives inline in ORDER BY (no `SELECT … AS hotness_score`
+    # alias) so eager_loaded chains (e.g. `.includes(:user, …).with_attached_*`)
+    # don't trip on a SELECT-DISTINCT alias-not-found error.
     scope :sort_by_trending, -> {
         where(parent_thread_id: nil, root_thread_id: nil)
-        .select(Arel.sql(
-            "community_threads.*, " \
-            "(SELECT COUNT(*) FROM thread_likes WHERE created_at > NOW() - INTERVAL '1 week' AND thread_likes.community_thread_id = community_threads.id) * 2 + " \
-            "(SELECT COUNT(*) FROM community_threads AS ct WHERE created_at > NOW() - INTERVAL '1 week' AND ct.parent_thread_id = community_threads.id) * 3 AS hotness_score"
-        ))
-        .order(Arel.sql("hotness_score DESC"))
+        .order(Arel.sql(<<~SQL.squish))
+            (
+              (SELECT COUNT(*) FROM thread_likes
+               WHERE thread_likes.community_thread_id = community_threads.id
+                 AND thread_likes.created_at > NOW() - INTERVAL '1 week') * 2
+              +
+              (SELECT COUNT(*) FROM community_threads AS ct
+               WHERE ct.parent_thread_id = community_threads.id
+                 AND ct.created_at > NOW() - INTERVAL '1 week') * 3
+            ) DESC
+        SQL
     }
     scope :sort_by_likes, -> {
         left_joins(:thread_likes)
@@ -93,7 +102,8 @@ class CommunityThread < ApplicationRecord
     }
 
     scope :order_threads, -> (current_user_id) {
-        includes(:user, :child_threads, :thread_likes)
+        with_attached_images
+        .includes({ user: { profile_picture_attachment: :blob } }, { community: :media }, :child_threads, :thread_likes)
         .in_order_of(:user_id, [current_user_id], filter: false)
         .sort_by_likes
         .recent

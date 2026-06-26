@@ -7,6 +7,7 @@ import { OBTAIN_INCOMING_FOLLOWS_QUERY, OBTAIN_OUTGOING_FOLLOWS_QUERY } from "@/
 import { obtainFollowsDetailsFunction } from "@/data/user/obtainFollowsDetails"
 import ManipulateFollowButton from "@/features/follows/components/ManipulateFollowButton"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 type UserFollowDetailsProps = {
     setUser: (user: User | null) => void,
@@ -48,8 +49,11 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
         if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) {
             navigate("/*")
         }
+        if (!user) return
         obtainFollowsDetails()
-    }, [pageNum, query])
+    }, [pageNum, query, user])
+
+    if (!user) return <SignInPrompt title="Sign in to view follows" message="Sign in to see follower and following details." />
 
     return (
         <div className="flex flex-col gap-6">

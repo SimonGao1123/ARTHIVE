@@ -11,14 +11,16 @@ import type { AddOrRemoveMediaInListInput, AddOrRemoveMediaInListResponse } from
 import { ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION } from "@/apollo/mutations/media_mutations"
 import { addOrRemoveMediaData } from "@/data/media/addOrRemoveMediaData";
 import { contentTypeColor } from "@/shared/utils/contentTypeColors";
-import { LikeButton, PencilIcon } from "@/shared/components/StyledComponents";
+import { LikeButton, PencilIcon, SaveButton } from "@/shared/components/StyledComponents";
 import ListMediaCard from "@/features/lists/components/ListMediaCard";
 import ListMembersDropdown from "@/features/lists/components/ListMembersDropdown";
-import { LIKE_LIST_MUTATION } from "@/apollo/mutations/list_mutations"
-import type { LikeListInput, LikeListResponse } from "@/types/mutations/list_mutations_types"
+import { LIKE_LIST_MUTATION, SAVE_LIST_MUTATION } from "@/apollo/mutations/list_mutations"
+import type { LikeListInput, LikeListResponse, SaveListInput, SaveListResponse } from "@/types/mutations/list_mutations_types"
 import { likeListFunction } from "@/data/lists/likeListFunction";
+import { saveListFunction } from "@/data/lists/saveListFunction";
 import EditListDetails from "@/features/lists/components/EditListDetails";
 import LeaveListButton from "./components/LeaveListButton";
+import { SignInPromptModal } from "@/shared/components/SignInPrompt";
 const LIMIT = 3
 
 export default function ListPage({ user, setUser }: { user: User | null, setUser: (user: User | null) => void }) {
@@ -34,6 +36,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
     const [currQuery, setCurrQuery] = useState<string>("")
     const [removeMediaId, setRemoveMediaId] = useState<string>("")
     const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
+    const [showSignInModal, setShowSignInModal] = useState(false)
 
     const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY, {
         fetchPolicy: "no-cache",
@@ -43,17 +46,32 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
     const [likeList] = useMutation<LikeListResponse, LikeListInput>(LIKE_LIST_MUTATION)
     const [currLiked, setCurrLiked] = useState<boolean>(false)
     const [likeCount, setLikeCount] = useState<number>(0)
+
+    const [saveList] = useMutation<SaveListResponse, SaveListInput>(SAVE_LIST_MUTATION)
+    const [currSaved, setCurrSaved] = useState<boolean>(false)
+    const [saveCount, setSaveCount] = useState<number>(0)
+
     useEffect(() => {
         if (listData) {
             setCurrLiked(listData.ifLiked)
             setLikeCount(listData.likeCount)
+            setCurrSaved(listData.ifSaved)
+            setSaveCount(listData.savedCount)
         }
     }, [listData?.id])
 
     function handleLikeList() {
         if (!list_id) return
+        if (!user) { setShowSignInModal(true); return }
         setCurrLiked(prev => !prev)
         likeListFunction(setCurrLiked, likeList, list_id, setUser, navigate, setLikeCount)
+    }
+
+    function handleSaveList() {
+        if (!list_id) return
+        if (!user) { setShowSignInModal(true); return }
+        setCurrSaved(prev => !prev)
+        saveListFunction(setCurrSaved, saveList, list_id, setUser, navigate, setSaveCount)
     }
 
     useEffect(() => {
@@ -75,7 +93,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
         refreshList()
     }, [list_id, pageNum, query])
 
-    if (!user || !list_id) return null
+    if (!list_id) return null
 
     return (
         <div className="flex flex-col gap-6">
@@ -104,17 +122,20 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
                             publicMembers={listData.publicListMembers ?? null}
                             allMembers={listData.allListMembers ?? null}
                             canEdit={!!listData.ifEditable}
-                            currentUserId={String(user.id)}
+                            currentUserId={user ? String(user.id) : ""}
                             currentUserRole={listData.role as "owner" | "admin" | "member" | null}
                             setUser={setUser}
                             listId={listData.id}
                         />
                     )}
-                    {listData && listData.role !== null && (
+                    {user && listData && listData.role !== null && (
                         <LeaveListButton listId={listData.id} setUser={setUser} navigate={navigate} />
                     )}
                     {listData && (
                         <LikeButton liked={currLiked} count={likeCount} onClick={handleLikeList} />
+                    )}
+                    {listData && (
+                        <SaveButton saved={currSaved} count={saveCount} onClick={handleSaveList} />
                     )}
                     { listData?.ifEditable ? (
                     <button
@@ -135,7 +156,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
             </div>
 
             {/* List details / edit form */}
-            {ifEditListDetails && listData?.ifEditable ? (
+            {ifEditListDetails && user && listData?.ifEditable ? (
                 <EditListDetails
                     listData={listData as ListType}
                     setListData={setListData}
@@ -190,6 +211,13 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
             </div>
 
             <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
+
+            <SignInPromptModal
+                open={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                title="Sign in to like this list"
+                message="Sign in to like lists and save your favorites."
+            />
         </div>
     )
 }

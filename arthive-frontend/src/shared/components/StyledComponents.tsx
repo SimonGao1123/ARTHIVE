@@ -73,6 +73,30 @@ export function LikeButton({ liked, count, loading, onClick }: { liked: boolean;
     )
 }
 
+export function BookmarkIcon({ filled }: { filled: boolean }) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ transition: "fill 150ms ease-out" }}>
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+        </svg>
+    )
+}
+
+export function SaveButton({ saved, count, loading, onClick }: { saved: boolean; count: number; loading?: boolean; onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`transition flex items-center gap-1.5 ${saved ? "text-violet-400 hover:text-violet-300" : "text-gray-400 hover:text-white"}`}
+        >
+            {loading ? (
+                <span className="w-4 h-4 flex items-center justify-center text-xs leading-none">…</span>
+            ) : (
+                <BookmarkIcon filled={saved} />
+            )}
+            <span>{count}</span>
+        </button>
+    )
+}
+
 export function PencilIcon() {
     return (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

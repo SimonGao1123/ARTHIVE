@@ -1,7 +1,5 @@
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
 export function obtainListDetails(
     listId: string,
@@ -10,7 +8,7 @@ export function obtainListDetails(
     query: string | null,
     setUser: (user: User | null) => void,
     setTotalPages: (totalPages: number) => void,
-    navigate: any,
+    _navigate: any,
     obtainListPage: any,
     setTargetUser: (user: User | null) => void,
     setListData: any,
@@ -31,8 +29,6 @@ export function obtainListDetails(
         setTargetUser(batch.user)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

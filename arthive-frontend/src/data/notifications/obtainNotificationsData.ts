@@ -1,9 +1,7 @@
 import type { Dispatch, SetStateAction } from "react"
 import type { User } from "@/types/domain/user"
 import type { Notification, ObtainNotificationFilterEnum } from "@/types/queries/shared_queries_types"
-import { logout } from "@/data/auth/logout"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
 export function obtainNotificationsData(
     afterUnread: string | null,
@@ -20,7 +18,7 @@ export function obtainNotificationsData(
     setReadCount: (n: number) => void,
     filter: ObtainNotificationFilterEnum,
     obtainNotifications: any,
-    navigate: any,
+    _navigate: any,
     setUser: (user: User | null) => void,
 ) {
     obtainNotifications({
@@ -60,8 +58,6 @@ export function obtainNotificationsData(
         }
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

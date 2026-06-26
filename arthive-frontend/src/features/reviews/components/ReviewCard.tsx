@@ -7,15 +7,21 @@ import { useState } from "react"
 import type { User } from "@/types/domain/user"
 import { likeReviewFunction } from "@/data/reviews/likeReview"
 import { LikeButton, CommentIcon } from "@/shared/components/StyledComponents"
+import { SignInPromptModal } from "@/shared/components/SignInPrompt"
 
-export default function ReviewCard({review, setUser}: {review: any, setUser: (user: User | null) => void}) {
+export default function ReviewCard({review, setUser, user}: {review: any, setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
 
     const [currLiked, setCurrLiked] = useState<boolean>(review.ifLiked)
     const [likeCount, setLikeCount] = useState<number>(review.likeCount)
+    const [showSignInModal, setShowSignInModal] = useState(false)
 
     const [likeReview, {loading}] = useMutation<LikeReviewResponse, LikeReviewInput>(LIKE_REVIEW_MUTATION)
 
+    function handleLikeClick() {
+        if (!user) { setShowSignInModal(true); return }
+        likeReviewFunction(setCurrLiked, likeReview, review.id, setUser, navigate, setLikeCount)
+    }
     return (
         <article key={review.id} className="border-b border-white/5 py-4 first:pt-0 last:border-b-0">
             {review?.media?.title ? (
@@ -101,7 +107,7 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                         liked={currLiked}
                         count={likeCount}
                         loading={loading}
-                        onClick={() => likeReviewFunction(setCurrLiked, likeReview, review.id, setUser, navigate, setLikeCount)}
+                        onClick={handleLikeClick}
                     />
                     <button
                         onClick={() => navigate(`/review_info/${review.id}`)}
@@ -111,6 +117,8 @@ export default function ReviewCard({review, setUser}: {review: any, setUser: (us
                     </button>
                 </div>
             )}
+
+            <SignInPromptModal open={showSignInModal} onClose={() => setShowSignInModal(false)} title="Sign in to like reviews" message="Sign in to like reviews on ARTHIVE." />
         </article>
     )
 }

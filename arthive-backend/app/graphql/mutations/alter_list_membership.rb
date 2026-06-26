@@ -55,7 +55,7 @@ module Mutations
 
                 list_member.destroy!
                 
-                ListLike.normalize_for_list(list)
+                list.normalize_likes_saves_for_list
                 return list_member
             # only owners can change roles
             elsif action == "change_role" && role.present? && context_role == "owner"

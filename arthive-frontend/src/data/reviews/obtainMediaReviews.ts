@@ -1,9 +1,8 @@
 import type { ReviewsMediaSortEnum } from "@/types/queries/review_queries_types"
 import type { Review } from "@/types/domain/review"
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 import type { Dispatch, SetStateAction } from "react"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function obtainMediaReviewsFunction(
     mediaId: number,
     cursor: string | null,
@@ -12,7 +11,7 @@ export function obtainMediaReviewsFunction(
     query: string,
     obtainMediaReviews: any,
     setReviews: Dispatch<SetStateAction<Review[]>>,
-    navigate: any,
+    _navigate: any,
     setUser: any,
     setIfNextPage: Dispatch<SetStateAction<boolean>>,
     sortBy: ReviewsMediaSortEnum
@@ -34,8 +33,6 @@ export function obtainMediaReviewsFunction(
             setIfNextPage(data.data.obtainMediaReviews.pageInfo.hasNextPage)
         })
         .catch((error: any) => {
-            if (unauth_messages.includes(error.message)) {
-                logout(setUser, navigate)
-            }
+            handleReadUnauth(error, setUser)
         })
 }

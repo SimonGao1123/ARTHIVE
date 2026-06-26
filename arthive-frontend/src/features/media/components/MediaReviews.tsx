@@ -10,24 +10,27 @@ import ReviewCard from "@/features/reviews/components/ReviewCard"
 import ArchivrChat from "@/features/archivr/components/ArchivrChat"
 import { ArchivrLogo } from "@/shared/components/StyledComponents"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 const LIMIT = 2
 
 
 type MediaReviewsProps = {
     setUser: (user: User | null) => void
+    user: User | null
     id: string
     reviewCount: number
     reviewChange?: { review: Review | null; nonce: number } | null
 }
 
-export default function MediaReviews({ setUser, id, reviewCount, reviewChange }: MediaReviewsProps) {
+export default function MediaReviews({ setUser, user, id, reviewCount, reviewChange }: MediaReviewsProps) {
     const navigate = useNavigate()
 
     const [cursor, setCursor] = useState<string | null>(null)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
     const [showArchivr, setShowArchivr] = useState(false)
+    const [showArchivrSignIn, setShowArchivrSignIn] = useState(false)
 
     const [loadCount, setLoadCount] = useState(0)
     const [obtainMediaReviews, {error, loading}] = useLazyQuery<ObtainMediaReviewsResponse, ObtainMediaReviewsInput>(OBTAIN_MEDIA_REVIEWS_QUERY, {
@@ -37,7 +40,7 @@ export default function MediaReviews({ setUser, id, reviewCount, reviewChange }:
     const [reviews, setReviews] = useState<Review[]>([])
 
     const sentinelRef = useInfiniteScroll({
-        hasNextPage: ifNextPage,
+        hasNextPage: ifNextPage && !!user,
         loading,
         onLoadMore: () => setLoadCount(c => c + 1),
     })
@@ -123,7 +126,7 @@ export default function MediaReviews({ setUser, id, reviewCount, reviewChange }:
                     />
                 </div>
                 <button
-                    onClick={() => setShowArchivr(true)}
+                    onClick={() => user ? setShowArchivr(true) : setShowArchivrSignIn(true)}
                     className="flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 hover:bg-violet-500/20 rounded-full px-4 py-2 text-sm transition"
                 >
                     <ArchivrLogo size={16} />
@@ -136,18 +139,40 @@ export default function MediaReviews({ setUser, id, reviewCount, reviewChange }:
 
             <div className="flex flex-col">
                 {reviews.map((review) => (
-                    <ReviewCard key={review.id} setUser={setUser} review={review} />
+                    <ReviewCard key={review.id} setUser={setUser} review={review} user={user ?? null} />
                 ))}
             </div>
 
-            {ifNextPage && <div ref={sentinelRef} className="h-1" />}
+            {ifNextPage && (user ? (
+                <div ref={sentinelRef} className="h-1" />
+            ) : (
+                <div className="mt-4">
+                    <SignInPrompt title="Sign in to see more reviews" message="Sign in to keep scrolling through reviews." />
+                </div>
+            ))}
 
-            <ArchivrChat
-                mediaId={id}
-                setUser={setUser}
-                isOpen={showArchivr}
-                onClose={() => setShowArchivr(false)}
-            />
+            {user && (
+                <ArchivrChat
+                    mediaId={id}
+                    setUser={setUser}
+                    isOpen={showArchivr}
+                    onClose={() => setShowArchivr(false)}
+                />
+            )}
+
+            {showArchivrSignIn && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                    onClick={() => setShowArchivrSignIn(false)}
+                >
+                    <div className="max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                        <SignInPrompt
+                            title="Sign in to use Archivr"
+                            message="Archivr is your AI companion for ARTHIVE. Sign in to chat about this media."
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 

@@ -31,7 +31,7 @@ module Resolvers
 
 
 
-            reviews = user.content_type_reviews(content_type).includes(:media).recent.semantic_search(query, "review", nil)
+            reviews = user.content_type_reviews(content_type).recent.semantic_search(query, "review", nil)
             total_count = reviews.count
             total_pages = (total_count.to_f / limit).ceil
 

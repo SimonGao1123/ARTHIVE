@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_26_120001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -82,6 +82,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
   end
 
   create_table "community_threads", force: :cascade do |t|
+    t.integer "child_threads_count", default: 0, null: false
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
@@ -90,6 +91,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
     t.bigint "parent_thread_id"
     t.bigint "review_id"
     t.bigint "root_thread_id"
+    t.integer "thread_likes_count", default: 0, null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -135,12 +137,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
     t.index ["user_id"], name: "index_list_members_on_user_id"
   end
 
+  create_table "list_saves", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["list_id", "user_id"], name: "index_list_saves_on_list_id_and_user_id", unique: true
+    t.index ["list_id"], name: "index_list_saves_on_list_id"
+    t.index ["user_id"], name: "index_list_saves_on_user_id"
+  end
+
   create_table "lists", force: :cascade do |t|
     t.string "content_type", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.string "description"
     t.vector "embedding", limit: 1024
     t.boolean "if_private", default: false, null: false
+    t.integer "list_likes_count", default: 0, null: false
+    t.integer "list_saves_count", default: 0, null: false
+    t.integer "media_in_lists_count", default: 0, null: false
     t.string "name", null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
@@ -162,6 +177,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
     t.string "organization"
     t.integer "page_count"
     t.text "reviews_ai_summary"
+    t.integer "reviews_count", default: 0, null: false
     t.string "series_title"
     t.string "summary", null: false
     t.string "title", null: false
@@ -236,6 +252,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
     t.boolean "if_finished", null: false
     t.bigint "media_id", null: false
     t.float "rating"
+    t.integer "review_comments_count", default: 0, null: false
+    t.integer "review_likes_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["embedding"], name: "index_reviews_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
@@ -260,6 +278,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
     t.datetime "created_at", null: false
     t.string "description"
     t.string "email", null: false
+    t.integer "followers_count", default: 0, null: false
+    t.integer "following_count", default: 0, null: false
     t.boolean "if_admin", default: false, null: false
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
@@ -288,6 +308,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_22_180056) do
   add_foreign_key "list_members", "lists"
   add_foreign_key "list_members", "users"
   add_foreign_key "list_members", "users", column: "sent_by_user_id"
+  add_foreign_key "list_saves", "lists"
+  add_foreign_key "list_saves", "users"
   add_foreign_key "lists", "users"
   add_foreign_key "media", "users"
   add_foreign_key "media_in_lists", "lists"

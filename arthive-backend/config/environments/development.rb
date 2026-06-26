@@ -12,15 +12,7 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = false
 
-  # bullet n+1 detection
-  config.after_initialize do
-    Bullet.enable = true
-    Bullet.alert = false
-    Bullet.bullet_logger = true
-    Bullet.console = true
-    Bullet.rails_logger = true
-    Bullet.add_footer = true
-  end
+  # Bullet config + safelist lives in config/initializers/bullet.rb
   # for bullet log: tail -f log/bullet.log
 
   # Show full error reports.

@@ -1,10 +1,9 @@
 import type { ListType } from "@/types/queries/list_queries_types";
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function trendingListsExplorePageData(
-    navigate: any,
+    _navigate: any,
     setUser: (user: User | null) => void,
     currContentType: "book" | "film" | "series" | "game" | "all",
     limit: number,
@@ -36,8 +35,6 @@ export function trendingListsExplorePageData(
         setPrevCursor(data.data.obtainTrendingLists.pageInfo.startCursor)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

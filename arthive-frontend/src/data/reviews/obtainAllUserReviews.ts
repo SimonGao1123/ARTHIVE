@@ -1,8 +1,7 @@
 import type { AllReview } from "@/types/domain/review";
-import { logout } from "@/data/auth/logout";
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function obtainAllUserReviewsFunction(
     user_id: string,
@@ -14,7 +13,7 @@ export function obtainAllUserReviewsFunction(
     obtainAllUserReviews: any,
     setReviews: Dispatch<SetStateAction<AllReview[]>>,
     setTargetUser: Dispatch<SetStateAction<User | null>>,
-    navigate: any,
+    _navigate: any,
     setUser: any) {
 
         obtainAllUserReviews({
@@ -30,10 +29,8 @@ export function obtainAllUserReviewsFunction(
             setReviews(batch.reviews)
             setTotalPages(batch.pageInfo.totalPages)
             setTargetUser(batch.user)
-            
+
         }).catch((err: any) => {
-            if (unauth_messages.includes(err.message)) {
-                logout(setUser, navigate)
-            }
+            handleReadUnauth(err, setUser)
         })
     }

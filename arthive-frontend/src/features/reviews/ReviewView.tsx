@@ -14,10 +14,11 @@ import { likeReviewFunction } from "@/data/reviews/likeReview"
 import WriteReviewComment from "@/features/reviews/components/WriteReviewComment"
 import { LikeButton, CommentIcon } from "@/shared/components/StyledComponents"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
+import { SignInPromptModal } from "@/shared/components/SignInPrompt"
 
 const LIMIT = 10
 
-export default function ReviewPage({setUser}: {setUser: (user: User | null) => void}) {
+export default function ReviewPage({setUser, user}: {setUser: (user: User | null) => void, user?: User | null}) {
     const {review_id} = useParams()
     const navigate = useNavigate()
 
@@ -67,26 +68,29 @@ export default function ReviewPage({setUser}: {setUser: (user: User | null) => v
     return (
         <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-6">
             {loading && <p className="text-gray-400 text-sm">Loading…</p>}
-            
+
             {mainReview && (
                 <MainReviewComponent
                     commentCount={commentCount}
                     mainReview={mainReview}
                     setUser={setUser}
                     onWriteComment={() => setShowCommentModal(true)}
+                    user={user ?? null}
                 />
             )}
 
             <div ref={commentsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500 uppercase tracking-wider">Comments</p>
-                    <button
-                        onClick={() => setShowCommentModal(true)}
-                        className="flex items-center gap-1.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 px-4 py-2 rounded-full text-sm transition"
-                    >
-                        <span className="text-lg leading-none">+</span>
-                        Comment
-                    </button>
+                    {user && (
+                        <button
+                            onClick={() => setShowCommentModal(true)}
+                            className="flex items-center gap-1.5 bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 px-4 py-2 rounded-full text-sm transition"
+                        >
+                            <span className="text-lg leading-none">+</span>
+                            Comment
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex gap-2">
@@ -159,16 +163,23 @@ function UserReviewCommentComponent({comment}: {comment: ReviewComment}) {
     )
 }
 
-function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment}: {
+function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment, user}: {
     commentCount: number
     mainReview: MainReview
     setUser: (user: User | null) => void
     onWriteComment: () => void
+    user: User | null
 }) {
     const navigate = useNavigate()
     const [currLiked, setCurrLiked] = useState(mainReview.ifLiked)
     const [likeCount, setLikeCount] = useState(mainReview.likeCount)
     const [likeReview] = useMutation<LikeReviewResponse, LikeReviewInput>(LIKE_REVIEW_MUTATION)
+    const [showSignInModal, setShowSignInModal] = useState(false)
+
+    function handleLikeClick() {
+        if (!user) { setShowSignInModal(true); return }
+        likeReviewFunction(setCurrLiked, likeReview, mainReview.id, setUser, navigate, setLikeCount)
+    }
 
     return (
         <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-5">
@@ -247,16 +258,24 @@ function MainReviewComponent({commentCount, mainReview, setUser, onWriteComment}
                 <LikeButton
                     liked={currLiked}
                     count={likeCount}
-                    onClick={() => likeReviewFunction(setCurrLiked, likeReview, mainReview.id, setUser, navigate, setLikeCount)}
+                    onClick={handleLikeClick}
                 />
                 <button
                     onClick={onWriteComment}
-                    className="hover:text-white transition flex items-center gap-1.5"
+                    disabled={!user}
+                    className="hover:text-white transition flex items-center gap-1.5 disabled:cursor-not-allowed"
                 >
                     <CommentIcon />
                     <span>{commentCount}</span>
                 </button>
             </div>
+
+            <SignInPromptModal
+                open={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                title="Sign in to like this review"
+                message="Sign in to like reviews and join the conversation."
+            />
         </div>
     )
 }

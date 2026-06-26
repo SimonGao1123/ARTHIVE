@@ -3,5 +3,6 @@ module Types
         value "member", "Member"
         value "admin", "Admin"
         value "owner", "Owner"
+        value "saved", "Saved"
     end
 end

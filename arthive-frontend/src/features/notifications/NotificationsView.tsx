@@ -15,6 +15,7 @@ import { manipulateFollowRequest } from "@/data/user/manipulateFollowRequest"
 import { sendFollowRequest } from "@/data/user/sendFollowRequest"
 import ListInvitationResponseButtons from "@/features/lists/components/ListInvitationResponseButtons"
 import type { User } from "@/types/domain/user"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 const PAGE_SIZE = 15
 
@@ -102,6 +103,12 @@ function resolveNotification(n: NotificationData, navigate: (path: string) => vo
                 label: `${sender} accepted your list invite for the ${n.listMember?.role} role`,
                 title: n.listMember?.list?.name ?? "Your list",
                 onClick: () => go(`/list/${n.listMember?.list?.id}`),
+            }
+        case "save_on_list":
+            return {
+                label: `${sender} saved your list`,
+                title: n.list?.name ?? "Your list",
+                onClick: () => go(`/list/${n.list?.id}`),
             }
         default:
             return { label: n.action, title: sender, onClick: () => go(`/profile/${n.sender?.id}`) }
@@ -365,6 +372,8 @@ export default function NotificationsPage({ setUser, user }: { setUser: (user: U
     })
 
     const initialLoading = loading && unread.length === 0 && read.length === 0
+
+    if (!user) return <SignInPrompt title="Sign in to view notifications" message="Sign in to see your notifications." />
 
     return (
         <main className="max-w-3xl mx-auto grid grid-cols-[1fr_9rem] gap-6 items-start">

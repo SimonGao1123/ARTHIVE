@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import { hottestExplorePageData } from "@/data/explore/hottestExplorePageData"
 import { MediaCard } from "@/features/media/components/MediaCard"
 
-export default function HottestMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
+export default function HottestMediaLibrary({setUser, currContentType, limit}: {setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
     const [getHottestExplorePageMedia, {loading}] = useLazyQuery<HottestExplorePageMediaResponse, HottestExplorePageMediaInput>(HOTTEST_EXPLORE_PAGE_MEDIA_QUERY, {
         fetchPolicy: "no-cache",

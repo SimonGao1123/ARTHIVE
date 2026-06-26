@@ -6,13 +6,9 @@ module Resolvers
         argument :content_type, Types::ContentTypeEnum, required: false
 
         def resolve(content_type: "all")
-            validate_user
-            
-            media_page = Media.newest_explore_page(content_type: content_type, user_id: context[:current_user].id)
-            
-            
-    
-            media_page
+            Media.newest_explore_page(content_type: content_type, user_id: context[:current_user]&.id)
+                .includes(:user, :community)
+                .with_attached_cover_image
         end
     end
 end

@@ -9,8 +9,9 @@ import { obtainCommunityData } from "@/data/community/obtainCommunityData"
 import { CommunityThreads } from "@/features/community/components/CommunityThread"
 import { AddThreadComponent } from "@/features/community/components/AddThreadComponent"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
-const LIMIT = 1
+const LIMIT = 10
 export default function CommunityPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
     const { media_id } = useParams()
@@ -42,7 +43,7 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
     }, [query])
 
     const sentinelRef = useInfiniteScroll({
-        hasNextPage: ifNextPage,
+        hasNextPage: ifNextPage && !!user,
         loading,
         onLoadMore: () => setLoadCount(prev => prev + 1),
     })
@@ -57,7 +58,7 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
 
             {community && <CommunityDetails community={community} />}
 
-            <AddThreadComponent media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} onCreated={scrollThreadsToTop} replyingToUsername={null} />
+            <AddThreadComponent user={user} media_id={media_id ?? ""} setUser={setUser} parentThreadId={null} rootThreadId={null} setThreads={setRootThreads} onCreated={scrollThreadsToTop} replyingToUsername={null} />
 
             <div ref={threadsTopRef} className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex flex-col gap-4">
                 <div className="flex gap-2">
@@ -80,7 +81,10 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
                     </button>
                 </div>
 
-                <CommunityThreads threads={rootThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} user={user} />
+                <CommunityThreads threads={rootThreads} sentinelRef={sentinelRef} ifNextPage={ifNextPage && !!user} setUser={setUser} navigate={navigate} media_id={media_id ?? ""} user={user} />
+                {ifNextPage && !user && (
+                    <SignInPrompt title="Sign in to see more threads" message="Sign in to keep scrolling through community threads." />
+                )}
             </div>
         </div>
     )

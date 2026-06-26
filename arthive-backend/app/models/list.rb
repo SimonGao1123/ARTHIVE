@@ -7,6 +7,7 @@ class List < ApplicationRecord
     has_neighbors :embedding
 
     has_many :list_likes, dependent: :destroy
+    has_many :list_saves, class_name: "ListSave", dependent: :destroy
     has_many :notifications, dependent: :delete_all
     has_many :list_members, dependent: :destroy
     validates :name, presence: true
@@ -57,17 +58,37 @@ class List < ApplicationRecord
         end
     }
 
-    # gets most popular lists
+    # gets most popular lists.
+    # Score = recent-likes + recent-saves (each contributes 1 point), where
+    # "recent" means within the last week. Computed in two steps so the returned
+    # relation has NO `.group(:id)`, which otherwise collides with `.includes(...)`
+    # eager-loads (any joined-in column like users.id would need to appear in
+    # GROUP BY).
     scope :trending_lists, ->(content_type: "all", user_id: nil) {
-        where(id: List.user_visible_filter(user_id).select(:id))
-            .joins(:list_likes)
-            .where("list_likes.created_at > NOW() - INTERVAL '1 week'")
-            .group(:id)
-            .order(Arel.sql("COUNT(list_likes.id) DESC"))
-            .content_type_filter(content_type)
+        score_sql = <<~SQL.squish
+            (SELECT COUNT(*) FROM list_likes
+             WHERE list_likes.list_id = lists.id
+               AND list_likes.created_at > NOW() - INTERVAL '1 week')
+            +
+            (SELECT COUNT(*) FROM list_saves
+             WHERE list_saves.list_id = lists.id
+               AND list_saves.created_at > NOW() - INTERVAL '1 week')
+        SQL
+
+        ranked_ids = List
+            .where(id: List.user_visible_filter(user_id).select(:id))
+            .where("(#{score_sql}) > 0")
+            .order(Arel.sql("(#{score_sql}) DESC"))
+            .pluck(:id)
+
+        where(id: ranked_ids).in_order_of(:id, ranked_ids).content_type_filter(content_type)
     }
 
     def self.if_visible_to_user(user_id, list)
+        if user_id.nil?
+            return false if list.if_private
+            return User.if_visible_to_user(nil, list.user_id)
+        end
 
         if list.list_members.where(user_id: user_id, status: "accepted").exists? || list.user_id == user_id
             return true
@@ -87,15 +108,19 @@ class List < ApplicationRecord
         ListMember.exists?(list_id: list.id, user_id: user_id, status: "accepted") || list.user_id == user_id
     end
     scope :user_visible_filter, ->(current_user_id) {
-        # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
-        left_outer_joins(:list_members)
-        .where(
-            "(lists.if_private = false AND lists.user_id IN (:visible))
-            OR lists.user_id = :uid
-            OR (list_members.user_id = :uid AND list_members.status = 'accepted')",
-            visible: User.visible_to(current_user_id).select(:id),
-            uid: current_user_id
-        ).distinct
+        if current_user_id.nil?
+            where(if_private: false, user_id: User.where(visibility: "public").select(:id))
+        else
+            # hide lists where user is not visible, and hide lists that are private UNLESS the user is the owner
+            left_outer_joins(:list_members)
+            .where(
+                "(lists.if_private = false AND lists.user_id IN (:visible))
+                OR lists.user_id = :uid
+                OR (list_members.user_id = :uid AND list_members.status = 'accepted')",
+                visible: User.visible_to(current_user_id).select(:id),
+                uid: current_user_id
+            ).distinct
+        end
     }
     scope :user_editable_filter, ->(current_user_id) {
         left_outer_joins(:list_members)
@@ -127,7 +152,7 @@ class List < ApplicationRecord
             end
         end
 
-        return base_search.includes(:user, :media_in_lists => :media).recent
+        return base_search.includes(:user, :list_likes, { list_members: :user }, media_in_lists: :media).recent
     end
 
 
@@ -207,7 +232,7 @@ class List < ApplicationRecord
         total_count = lists.count
         total_pages = (total_count.to_f / limit).ceil
         return {
-            lists: lists.page(page_num, limit),
+            lists: lists.page(page_num, limit).includes(:user, :list_likes, list_members: :user),
             user: user,
             page_info: {
                 total_pages: total_pages,
@@ -215,4 +240,20 @@ class List < ApplicationRecord
             }
         }
     end
+
+
+    def normalize_likes_saves_for_list
+        return if self.blank?
+        self.list_likes.find_each do |like|
+            like.destroy unless List.if_visible_to_user(like.user_id, self)
+        end
+        self.list_saves.find_each do |save|
+            save.destroy unless List.if_visible_to_user(save.user_id, self)
+        end
+    end
+
+    def normalize_likes_saves_for_owner(owner_id)
+        List.where(user_id: owner_id).find_each { |list| list.normalize_likes_saves_for_list }
+    end
+
 end

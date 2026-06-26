@@ -8,11 +8,11 @@ module Resolvers
             validate_user
 
             unread_notifications = Notification
-                .includes(:sender, :receiver, :review, :review_comment, :parent_thread, :comment_thread, :follow, :list)
+                .includes(:sender, :receiver, :review, :review_comment, :parent_thread, :comment_thread, :follow, :list, :list_member)
                 .where(receiver_id: context[:current_user].id, read_at: nil)
                 .recent
             read_notifications = Notification
-                .includes(:sender, :receiver, :review, :review_comment, :parent_thread, :comment_thread, :follow, :list)
+                .includes(:sender, :receiver, :review, :review_comment, :parent_thread, :comment_thread, :follow, :list, :list_member)
                 .where(receiver_id: context[:current_user].id)
                 .where.not(read_at: nil)
                 .recent

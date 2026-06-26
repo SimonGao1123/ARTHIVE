@@ -86,6 +86,10 @@ export const RECENT_USER_ACTIVITY_REQUEST: TypedDocumentNode<RecentUserActivityR
                             id
                             list { id }
                         }
+                        ... on ListSave {
+                            id
+                            list { id }
+                        }
                         ... on MediaInList {
                             id
                             media { id coverImage title }

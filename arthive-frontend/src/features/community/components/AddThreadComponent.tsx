@@ -9,8 +9,10 @@ import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import { UPLOAD_IMAGE_TO_S3_MUTATION } from "@/apollo/mutations/shared_mutations"
 import { TrashIcon } from "@/shared/components/StyledComponents"
 import { handleAttachImages } from "@/shared/utils/handleImageUpload"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 type AddThreadComponentProps = {
+    user: User | null
     media_id: string
     setUser: (user: User | null) => void
     parentThreadId: string | null
@@ -20,9 +22,18 @@ type AddThreadComponentProps = {
     replyingToUsername: string | null
 }
 
-export function AddThreadComponent({media_id, setUser, parentThreadId, rootThreadId, setThreads, onCreated, replyingToUsername}: AddThreadComponentProps) {
+export function AddThreadComponent({user, media_id, setUser, parentThreadId, rootThreadId, setThreads, onCreated, replyingToUsername}: AddThreadComponentProps) {
     const [open, setOpen] = useState(false)
     const isRoot = parentThreadId === null && rootThreadId === null
+
+    if (!user) {
+        return (
+            <SignInPrompt
+                title={isRoot ? "Sign in to start a thread" : "Sign in to reply"}
+                message="Sign in to join the community conversation."
+            />
+        )
+    }
 
     return (
         <>
@@ -51,7 +62,7 @@ export function AddThreadComponent({media_id, setUser, parentThreadId, rootThrea
     )
 }
 
-type AddThreadModalProps = AddThreadComponentProps & {
+type AddThreadModalProps = Omit<AddThreadComponentProps, "user"> & {
     isRoot: boolean
     onClose: () => void
 }

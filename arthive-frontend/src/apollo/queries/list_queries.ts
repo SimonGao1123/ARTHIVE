@@ -26,6 +26,8 @@ export const OBTAIN_ALL_USER_LISTS_QUERY: TypedDocumentNode<ObtainAllUserListsRe
                 }
                 ifEditable
                 role
+                ifSaved
+                savedCount
             }
             pageInfo {
                 totalPages
@@ -59,6 +61,8 @@ export const OBTAIN_LIST_PAGE_QUERY: TypedDocumentNode<ObtainListPageResponse, O
                 updatedAt
                 likeCount
                 ifLiked
+                savedCount
+                ifSaved
                 ifEditable
                 role
                 publicListMembers {

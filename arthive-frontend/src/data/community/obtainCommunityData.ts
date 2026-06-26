@@ -1,10 +1,9 @@
 import type { User } from "@/types/domain/user";
 import type { Community } from "@/types/queries/thread_queries_types";
 import type { CommunityThread } from "@/types/queries/thread_queries_types";
-import { logout } from "@/data/auth/logout";
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 import type { Dispatch, SetStateAction } from "react";
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function obtainCommunityData(
     mediaId: string,
     first: number,
@@ -14,7 +13,7 @@ export function obtainCommunityData(
     setRootThreads: Dispatch<SetStateAction<CommunityThread[]>>,
     setCursor: Dispatch<SetStateAction<string | null>>,
     obtainCommunity: any,
-    navigate: any,
+    _navigate: any,
     setUser: (user: User | null) => void,
     setIfNextPage: Dispatch<SetStateAction<boolean>>
 ) {
@@ -39,8 +38,6 @@ export function obtainCommunityData(
 
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

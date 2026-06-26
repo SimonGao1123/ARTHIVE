@@ -22,7 +22,7 @@ module Mutations
             list_member.respond_to_invite(accept)
 
             if !accept
-                ListLike.normalize_for_list(list_member.list)
+                list_member.list.normalize_likes_saves_for_list
             end
 
             if accept

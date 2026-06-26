@@ -14,12 +14,13 @@ import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import { DetailedMediaCard } from "@/features/media/components/DetailedMediaCard"
 import ReviewCard from "@/features/reviews/components/ReviewCard"
 import ListCard from "@/features/lists/components/ListCard"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 const LIMIT = 10
 
 type ContentType = ContentTypeWithAll
 
-export default function MyLikesPage({ setUser }: { setUser: (user: User | null) => void }) {
+export default function MyLikesPage({ setUser, user }: { setUser: (user: User | null) => void, user: User | null }) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
@@ -73,9 +74,11 @@ export default function MyLikesPage({ setUser }: { setUser: (user: User | null) 
     }, [user_id])
 
     useEffect(() => {
-        if (!user_id) return
+        if (!user_id || !user) return
         obtainLikesPageData(user_id, type, contentType, pageNum, LIMIT, query, getLikes, setMedia, setReviews, setLists, setTotalPages, setPageUser, navigate, setUser)
-    }, [user_id, type, contentType, pageNum, query])
+    }, [user_id, type, contentType, pageNum, query, user])
+
+    if (!user) return <SignInPrompt title="Sign in to view likes" message="Sign in to browse user likes." />
 
     const isEmpty = (type === "media" && media.length === 0)
         || (type === "reviews" && reviews.length === 0)
@@ -119,7 +122,7 @@ export default function MyLikesPage({ setUser }: { setUser: (user: User | null) 
             ) : type === "reviews" ? (
                 <div className="flex flex-col">
                     {reviews.map((r) => (
-                        <ReviewCard key={r.id} review={r} setUser={setUser} />
+                        <ReviewCard key={r.id} review={r} setUser={setUser} user={user ?? null} />
                     ))}
                 </div>
             ) : (

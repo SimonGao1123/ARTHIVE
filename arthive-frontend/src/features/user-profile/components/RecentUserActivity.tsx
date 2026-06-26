@@ -92,6 +92,8 @@ function ActivityCard({ activity }: { activity: Activity }) {
             return <ThreadLikeRow threadLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "ListLike":
             return <ListLikeRow listLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+        case "ListSave":
+            return <ListSaveRow listSave={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "List":
             return <ListRow status={activity.status} list={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
         case "CommunityThread":
@@ -241,6 +243,18 @@ function ListLikeRow({ listLike, snap, createdAt, navigate }: RowProps & { listL
             label="Liked list"
             title={snap?.listName ?? "Unknown list"}
             onRowClick={() => navigate(`/list/${listLike.list?.id}`)}
+            createdAt={createdAt}
+            navigate={navigate}
+        />
+    )
+}
+
+function ListSaveRow({ listSave, snap, createdAt, navigate }: RowProps & { listSave: any }) {
+    return (
+        <ActivityRow
+            label="Saved list"
+            title={snap?.listName ?? "Unknown list"}
+            onRowClick={() => navigate(`/list/${listSave.list?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
         />

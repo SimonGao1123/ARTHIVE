@@ -1,9 +1,7 @@
 import type { Dispatch, SetStateAction } from "react"
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 import type { User } from "@/types/domain/user"
 import type { MediaCardData, ContentTypeWithAll } from "@/types/common"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export type BecauseOfReviewsSource = {
     id: number
@@ -12,7 +10,7 @@ export type BecauseOfReviewsSource = {
 }
 
 export function becauseOfReviewsExplorePageData(
-    navigate: any,
+    _navigate: any,
     setUser: (user: User | null) => void,
     currContentType: ContentTypeWithAll,
     limit: number,
@@ -50,8 +48,6 @@ export function becauseOfReviewsExplorePageData(
         setPrevCursor(payload.media.pageInfo.startCursor)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

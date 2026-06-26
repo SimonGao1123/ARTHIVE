@@ -27,7 +27,7 @@ class ListLikeTest < ActiveSupport::TestCase
     list = make_list(owner, if_private: true)
     like = ListLike.create!(user_id: liker.id, list_id: list.id)
 
-    ListLike.normalize_for_list(list)
+    list.normalize_likes_saves_for_list
 
     refute ListLike.exists?(id: like.id), "expected non-member like to be deleted"
   end
@@ -37,7 +37,7 @@ class ListLikeTest < ActiveSupport::TestCase
     list = make_list(owner, if_private: true)
     like = ListLike.create!(user_id: owner.id, list_id: list.id)
 
-    ListLike.normalize_for_list(list)
+    list.normalize_likes_saves_for_list
 
     assert ListLike.exists?(id: like.id), "expected owner's own like to survive"
   end
@@ -49,7 +49,7 @@ class ListLikeTest < ActiveSupport::TestCase
     ListMember.create!(list_id: list.id, user_id: member.id, status: "accepted", role: "member")
     like = ListLike.create!(user_id: member.id, list_id: list.id)
 
-    ListLike.normalize_for_list(list)
+    list.normalize_likes_saves_for_list
 
     assert ListLike.exists?(id: like.id), "expected accepted member's like to survive"
   end
@@ -64,7 +64,7 @@ class ListLikeTest < ActiveSupport::TestCase
     non_follower_like = ListLike.create!(user_id: non_follower.id, list_id: list.id)
     follower_like = ListLike.create!(user_id: follower.id, list_id: list.id)
 
-    ListLike.normalize_for_list(list)
+    list.normalize_likes_saves_for_list
 
     refute ListLike.exists?(id: non_follower_like.id), "expected non-follower like to be deleted"
     assert ListLike.exists?(id: follower_like.id), "expected follower like to survive"
@@ -78,7 +78,7 @@ class ListLikeTest < ActiveSupport::TestCase
     like_a = ListLike.create!(user_id: stranger.id, list_id: list_a.id)
     like_b = ListLike.create!(user_id: stranger.id, list_id: list_b.id)
 
-    ListLike.normalize_for_owner(owner.id)
+    List.normalize_likes_saves_for_owner(owner.id)
 
     refute ListLike.exists?(id: like_a.id)
     refute ListLike.exists?(id: like_b.id)

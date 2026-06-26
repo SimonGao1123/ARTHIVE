@@ -7,7 +7,7 @@ import type { User } from "@/types/domain/user"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "@/features/media/components/MediaCard"
 
-export default function NewestMediaLibrary({user: _user, setUser, currContentType, limit}: {user: User, setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
+export default function NewestMediaLibrary({setUser, currContentType, limit}: {setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
     const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean, averageRating: number}[]>([])
     const [nextCursor, setNextCursor] = useState<string | null>(null)

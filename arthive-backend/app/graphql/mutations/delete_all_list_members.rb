@@ -18,7 +18,7 @@ module Mutations
             end
 
             list.list_members.destroy_all
-            ListLike.normalize_for_list(list)
+            list.normalize_likes_saves_for_list
             return true
         end
     end

@@ -1,9 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
 import type { AllUserListType, RoleFilter } from "@/types/queries/list_queries_types";
-import { logout } from "@/data/auth/logout";
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function obtainAllUserListsData(
     user_id: string,
     contentType: "book" | "film" | "series" | "game" | "all",
@@ -13,7 +12,7 @@ export function obtainAllUserListsData(
     obtainAllUserLists: any,
     setLists: Dispatch<SetStateAction<AllUserListType[]>>,
     setTargetUser: Dispatch<SetStateAction<User | null>>,
-    navigate: any,
+    _navigate: any,
     setUser: any,
     pageNum: number,
     excludeMediaId: string | null,
@@ -36,10 +35,6 @@ export function obtainAllUserListsData(
         setTotalPages(batch.pageInfo.totalPages)
         setTargetUser(batch.user)
     }).catch((err: any) => {
-        if (unauth_messages.includes(err.message)) {
-            logout(navigate, setUser)
-            navigate("/login")
-            setUser(null)
-        }
+        handleReadUnauth(err, setUser)
     })
 }

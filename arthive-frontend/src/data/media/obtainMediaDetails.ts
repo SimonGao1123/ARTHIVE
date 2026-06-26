@@ -1,8 +1,6 @@
 import type { Media } from "@/types/domain/media";
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
 export function ObtainMediaDetailsFetch(getMediaInfo: any, navigate: any, setUser: (user: User | null) => void, mediaId: number, setMediaInfo: (mediaInfo: Media | null) => void) {
     getMediaInfo({ variables: { mediaId } })
@@ -10,12 +8,9 @@ export function ObtainMediaDetailsFetch(getMediaInfo: any, navigate: any, setUse
         setMediaInfo(data.data.obtainMediaInfo)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } 
+        if (handleReadUnauth(error, setUser)) return
         if (error.message === "Media not found") {
             navigate("/*")
-            
         }
     })
 }

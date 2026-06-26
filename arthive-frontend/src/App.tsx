@@ -57,13 +57,13 @@ function App() {
         ) : null}
 
         <Route path="/" element={<ExplorePage setUser={setUser} user={user}/>} />
-        <Route path="/all_reviews/:user_id" element={<AllUserReviewsPage setUser={setUser}/>} />
-        <Route path="/all_lists/:user_id" element={<AllUserListsPage setUser={setUser}/>} />
-        <Route path="/liked/:user_id" element={<MyLikesPage setUser={setUser}/>} />
-        <Route path="/finished/:user_id" element={<MyLoggedMediaPage setUser={setUser}/>} />
+        <Route path="/all_reviews/:user_id" element={<AllUserReviewsPage setUser={setUser} user={user}/>} />
+        <Route path="/all_lists/:user_id" element={<AllUserListsPage setUser={setUser} user={user}/>} />
+        <Route path="/liked/:user_id" element={<MyLikesPage setUser={setUser} user={user}/>} />
+        <Route path="/finished/:user_id" element={<MyLoggedMediaPage setUser={setUser} user={user}/>} />
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/media/:id" element={<MediaInfoPage user={user} setUser={setUser}/>} />
-        <Route path="/review_info/:review_id" element={<ReviewPage setUser={setUser}/>} />
+        <Route path="/review_info/:review_id" element={<ReviewPage setUser={setUser} user={user}/>} />
         <Route path="/profile/:id" element={<UserProfilePage setUser={setUser} user={user}/>} />
         <Route path="/profile/:follow_type/:id" element={<UserFollowDetailsPage setUser={setUser} user={user}/>} />
         <Route path="/edit_profile" element={<EditUserProfilePage setUser={setUser} user={user}/>} />

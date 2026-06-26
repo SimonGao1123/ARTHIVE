@@ -1,7 +1,7 @@
 import type { User } from "@/types/domain/user"
 import type { Media } from "@/types/domain/media"
 
-export type RoleFilter = "owner" | "admin" | "member" | null
+export type RoleFilter = "owner" | "admin" | "member" | "saved" | null
 
 export type AllUserListType = {
     id: string
@@ -21,6 +21,8 @@ export type AllUserListType = {
     }[]
     ifEditable: boolean | null
     role: string | null
+    ifSaved: boolean
+    savedCount: number
 }
 
 export type ObtainAllUserListsInput = {
@@ -72,6 +74,8 @@ export type ObtainListPageResponse = {
             updatedAt: string
             likeCount: number
             ifLiked: boolean
+            savedCount: number
+            ifSaved: boolean
             ifEditable: boolean | null
             role: string | null
             publicListMembers: ListMemberSummary[] | null
@@ -99,6 +103,8 @@ export type ListType = {
     updatedAt: string
     likeCount: number
     ifLiked: boolean
+    savedCount: number
+    ifSaved: boolean
     user: User
     mediaInLists: {
         media: Media

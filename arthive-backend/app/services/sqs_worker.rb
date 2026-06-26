@@ -39,7 +39,15 @@ class SqsWorker
 
   def self.handle_message(message)
     ActiveRecord::Base.connection_pool.with_connection do
-      payload = JSON.parse(message.body)
+      payload = begin JSON.parse(message.body)
+      rescue JSON::ParserError => e
+        Rails.logger.error "[SQS] Failed to parse payload: #{e.message}"
+        SQS_CLIENT.delete_message(
+          queue_url: SQS_QUEUE_URL,
+          receipt_handle: message.receipt_handle
+        )
+        return
+      end
       case payload["type"]
       when "notification"
         process_notification(message, payload)

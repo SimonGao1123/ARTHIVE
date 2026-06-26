@@ -5,8 +5,6 @@ module Resolvers
         argument :media_id, ID, required: true
 
         def resolve(media_id:)
-            validate_user
-
             media = Media.find_by(id: media_id)
 
             if media.blank?

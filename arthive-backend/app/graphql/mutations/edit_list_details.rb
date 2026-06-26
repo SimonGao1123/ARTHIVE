@@ -38,7 +38,7 @@ module Mutations
             end
 
             if list.if_private && !was_private
-                ListLike.normalize_for_list(list)
+                list.normalize_likes_saves_for_list
             end
 
             Activity.log(user: context[:current_user], subject: list, status: "updated", snapshot: {

@@ -1,23 +1,19 @@
 import type { User } from "@/types/domain/user"
-import { logout } from "@/data/auth/logout"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
 export function ObtainUserProfileFetch(
-    getUserProfile: any, 
-    setUserProfileData: any, 
+    getUserProfile: any,
+    setUserProfileData: any,
     userId: string,
     setUser: (user: User | null) => void,
-    navigate: any
+    navigate: any,
 ) {
     getUserProfile({ variables: { userId } })
     .then((data: any) => {
         setUserProfileData(data.data.obtainUserProfile)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } 
+        if (handleReadUnauth(error, setUser)) return
         if (error.message === "User not found") {
             navigate(`/*`)
         }

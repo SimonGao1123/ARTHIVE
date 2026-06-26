@@ -16,6 +16,7 @@ import { ReviewReferenceCard, ReviewUnavailableCard } from "@/features/archivr/c
 import EditThreadComponent from "@/features/community/components/EditThreadComponent"
 import { LikeButton, CommentIcon } from "@/shared/components/StyledComponents"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
+import SignInPrompt, { SignInPromptModal } from "@/shared/components/SignInPrompt"
 const LIMIT = 5
 export default function ThreadPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
@@ -63,7 +64,7 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
     }, [mainThread, media_id])
 
     const sentinelRef = useInfiniteScroll({
-        hasNextPage: ifNextPage,
+        hasNextPage: ifNextPage && !!user,
         loading,
         onLoadMore: () => setLoadCount(prev => prev + 1),
     })
@@ -95,6 +96,7 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
 
             {mainThread && (
                 <AddThreadComponent
+                    user={user}
                     media_id={media_id!}
                     setUser={setUser}
                     parentThreadId={mainThread.id}
@@ -111,7 +113,7 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
                     <NestedThreadList
                         threads={childThreads}
                         sentinelRef={sentinelRef}
-                        ifNextPage={ifNextPage}
+                        ifNextPage={ifNextPage && !!user}
                         setUser={setUser}
                         user={user}
                         media_id={media_id!}
@@ -119,6 +121,10 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
                         parentUsername={mainThread.user.username}
                     />
                 </div>
+            )}
+
+            {ifNextPage && !user && mainThread && (
+                <SignInPrompt title="Sign in to see more replies" message="Sign in to keep reading replies on this thread." />
             )}
         </div>
     )
@@ -137,9 +143,11 @@ export function ThreadPageContent({mainThread, media_id: _media_id, setUser, use
     const [likeCount, setLikeCount] = useState(mainThread.likesCount)
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [editPopupOpen, setEditPopupOpen] = useState(false)
+    const [showSignInModal, setShowSignInModal] = useState(false)
 
 
     function handleLikeThread() {
+        if (!user) { setShowSignInModal(true); return }
         setCurrLiked(prev => !prev)
         likeThreadFunction(setCurrLiked, likeThread, mainThread.id, setUser, navigate, setLikeCount)
     }
@@ -194,6 +202,13 @@ export function ThreadPageContent({mainThread, media_id: _media_id, setUser, use
             {mainThread.hasReview && (review ? <ReviewReferenceCard review={review} /> : <ReviewUnavailableCard />)}
 
             {editPopupOpen && <EditThreadComponent thread={mainThread} setUser={setUser} setEditPopupOpen={setEditPopupOpen} />}
+
+            <SignInPromptModal
+                open={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                title="Sign in to like this thread"
+                message="Sign in to like and reply to community threads."
+            />
         </div>
     )
 }

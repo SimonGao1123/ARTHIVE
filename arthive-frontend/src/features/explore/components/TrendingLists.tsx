@@ -8,12 +8,11 @@ import { useNavigate } from "react-router-dom"
 import { HeartIcon } from "@/shared/components/StyledComponents"
 
 type TrendingListsProps = {
-    user: User
     setUser: (user: User | null) => void
     currContentType: "book" | "film" | "series" | "game" | "all"
     limit: number
 }
-export default function TrendingLists({ user: _user, setUser, currContentType, limit }: TrendingListsProps) {
+export default function TrendingLists({ setUser, currContentType, limit }: TrendingListsProps) {
     const [getTrendingLists, { loading, error }] = useLazyQuery<ObtainTrendingListsResponse, ObtainTrendingListsInput>(OBTAIN_TRENDING_LISTS_QUERY, {
         fetchPolicy: "no-cache",
     })

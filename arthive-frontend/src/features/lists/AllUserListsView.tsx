@@ -3,7 +3,8 @@ import type { User } from "@/types/domain/user"
 import { useNavigate } from "react-router-dom"
 import { useEffect } from "react"
 import { AllUserListsComponent } from "@/features/lists/components/AllUserListsComponent"
-export default function AllUserListsPage({setUser}: {setUser: (user: User | null) => void}) {
+import SignInPrompt from "@/shared/components/SignInPrompt"
+export default function AllUserListsPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
@@ -12,6 +13,7 @@ export default function AllUserListsPage({setUser}: {setUser: (user: User | null
     }, [user_id])
 
     if (!user_id) return null
+    if (!user) return <SignInPrompt title="Sign in to view lists" message="Sign in to browse user lists." />
 
     return (
         <div className="flex flex-col gap-4">

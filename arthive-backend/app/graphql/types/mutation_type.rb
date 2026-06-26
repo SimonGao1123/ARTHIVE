@@ -39,5 +39,6 @@ module Types
     field :alter_list_membership, mutation: Mutations::AlterListMembership
     field :delete_all_list_members, mutation: Mutations::DeleteAllListMembers
     field :leave_list, mutation: Mutations::LeaveList
+    field :save_list, mutation: Mutations::SaveList
   end
 end

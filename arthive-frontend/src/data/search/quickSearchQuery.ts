@@ -1,19 +1,18 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
 // only for a specific type (no all type) and NO FILTERS, just query
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function quickSearchQuery(
-    query: string, 
-    searchType: string, 
-    cursor: string | null, 
+    query: string,
+    searchType: string,
+    cursor: string | null,
     limit: number,
     setUser: (user: User) => void,
     setHasNextPage: (hasNextPage: boolean) => void,
     setCursor: (cursor: string | null) => void,
     setSearchResults: Dispatch<SetStateAction<any[]>>,
-    navigate: any,
+    _navigate: any,
     obtainQuickSearch: any
 ) {
     if (searchType != "media" && searchType != "user" && searchType != "review") {
@@ -57,11 +56,7 @@ export function quickSearchQuery(
                 break
         }
     }).catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(navigate, setUser)
-        }
-        else {
-            alert(error.message)
-        }
+        if (handleReadUnauth(error, setUser)) return
+        alert(error.message)
     })
 }

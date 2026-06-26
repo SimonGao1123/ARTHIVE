@@ -39,42 +39,33 @@ module Types
 
     # must be yourself to see pending follows count
     def pending_sent_follows_count
+      return nil unless context[:current_user]
       if context[:current_user].id != object.id
         return nil
       end
       return object.pending_sent_follows_count
     end
     def pending_received_follows_count
+      return nil unless context[:current_user]
       if context[:current_user].id != object.id
         return nil
       end
       return object.pending_received_follows_count
     end
 
-    def reviews 
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
-      if if_visible_to_user
-        return object.reviews
-      else
-        return []
-      end
+    def reviews
+      return [] unless dataloader.with(Sources::UserVisibility, context[:current_user]&.id).load(object.id)
+      object.reviews
     end
+
     def review_comments
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
-      if if_visible_to_user
-        return object.review_comments
-      else
-        return []
-      end
+      return [] unless dataloader.with(Sources::UserVisibility, context[:current_user]&.id).load(object.id)
+      object.review_comments
     end
 
     def review_likes
-      if_visible_to_user = User.if_visible_to_user(context[:current_user].id, object.id)
-      if if_visible_to_user
-        return object.review_likes
-      else
-        return []
-      end
+      return [] unless dataloader.with(Sources::UserVisibility, context[:current_user]&.id).load(object.id)
+      object.review_likes
     end
       
     

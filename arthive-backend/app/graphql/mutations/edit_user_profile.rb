@@ -31,7 +31,7 @@ module Mutations
                 end
 
                 if was_public && current_user.visibility != "public"
-                    ListLike.normalize_for_owner(current_user.id)
+                    List.normalize_likes_saves_for_owner(current_user.id)
                 end
 
                 return current_user

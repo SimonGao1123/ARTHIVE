@@ -5,9 +5,8 @@ module Resolvers
         argument :content_type, Types::ContentTypeEnum, required: false, default_value: "all"
 
         def resolve(content_type:)
-            validate_user
-
-            lists = List.trending_lists(content_type: content_type, user_id: context[:current_user].id)
+            lists = List.trending_lists(content_type: content_type, user_id: context[:current_user]&.id)
+                        .includes(:user, :list_likes, list_members: :user)
             return lists
         end
 

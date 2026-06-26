@@ -5,6 +5,7 @@ const ROLE_OPTIONS: { value: RoleFilter, label: string }[] = [
     { value: "owner",  label: "Owner" },
     { value: "admin",  label: "Admin" },
     { value: "member", label: "Member" },
+    { value: "saved",  label: "Saved" },
 ]
 
 type RoleFilterProps = {

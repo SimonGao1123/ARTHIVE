@@ -1,8 +1,6 @@
 import type { Dispatch, SetStateAction } from "react"
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 import type { FollowData } from "@/types/queries/follow_queries_types"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function obtainFollowsDetailsFunction(
     userId: string,
@@ -14,7 +12,7 @@ export function obtainFollowsDetailsFunction(
     setFollowsData: Dispatch<SetStateAction<FollowData[]>>,
     setUserData: Dispatch<SetStateAction<{id: string, username: string, profilePicture: string} | null>>,
     setCount: Dispatch<SetStateAction<number>>,
-    navigate: any,
+    _navigate: any,
     setUser: any,
     pageNum: number,
 ) {
@@ -34,8 +32,6 @@ export function obtainFollowsDetailsFunction(
         setTotalPages(batch.pageInfo.totalPages)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

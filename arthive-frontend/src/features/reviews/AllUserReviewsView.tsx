@@ -9,9 +9,10 @@ import ContentFilter from "@/shared/components/ContentFilter"
 import { obtainAllUserReviewsFunction } from "@/data/reviews/obtainAllUserReviews"
 import ReviewCard from "@/features/reviews/components/ReviewCard"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
+import SignInPrompt from "@/shared/components/SignInPrompt"
 
 const LIMIT = 10
-export default function AllUserReviewsPage({setUser}: {setUser: (user: User | null) => void}) {
+export default function AllUserReviewsPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const { user_id } = useParams()
     const navigate = useNavigate()
 
@@ -39,9 +40,11 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
     }
 
     useEffect(() => {
-        if (!user_id) return
+        if (!user_id || !user) return
         obtainAllUserReviewsFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getAllReviews, setReviews, setTargetUser, navigate, setUser)
-    }, [contentType, pageNum, query])
+    }, [contentType, pageNum, query, user])
+
+    if (!user) return <SignInPrompt title="Sign in to view reviews" message="Sign in to browse user reviews." />
 
     return (
         <div className="flex flex-col gap-6">
@@ -78,7 +81,7 @@ export default function AllUserReviewsPage({setUser}: {setUser: (user: User | nu
                         <p className="text-gray-500 text-sm text-center py-6">No reviews found.</p>
                     )}
                     {reviews.map((review) => (
-                        <ReviewCard key={review.id} setUser={setUser} review={review} />
+                        <ReviewCard key={review.id} setUser={setUser} review={review} user={user ?? null} />
                     ))}
                 </div>
 

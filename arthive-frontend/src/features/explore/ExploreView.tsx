@@ -42,7 +42,7 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
                     <span className="text-base font-semibold text-white">Trending</span>
                     <span className="text-xs text-gray-500">Most active this week</span>
                 </div>
-                {user && <HottestMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+                {<HottestMediaLibrary setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
 
             <section className="flex flex-col gap-3">
@@ -54,7 +54,7 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
                     <span className="text-base font-semibold text-white">Newest</span>
                     <span className="text-xs text-gray-500">Recently added</span>
                 </div>
-                {user && <NewestMediaLibrary user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+                {<NewestMediaLibrary setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
 
             <section className="flex flex-col gap-3">
@@ -62,7 +62,7 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
                     <span className="text-base font-semibold text-white">Trending Lists</span>
                     <span className="text-xs text-gray-500">Most liked this week</span>
                 </div>
-                {user && <TrendingLists user={user} setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
+                {<TrendingLists setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
             
         </div>

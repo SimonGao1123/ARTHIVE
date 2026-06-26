@@ -2,9 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { CommunityThread } from "@/types/queries/thread_queries_types";
 import type { User } from "@/types/domain/user";
 import type { NavigateFunction } from "react-router-dom";
-import { logout } from "@/data/auth/logout";
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
 
 export function obtainThreadData(
     threadId: string,
@@ -16,7 +14,7 @@ export function obtainThreadData(
     setChildThreads: Dispatch<SetStateAction<CommunityThread[]>>,
     setIfNextPage: (ifNextPage: boolean) => void,
     setUser: (user: User | null) => void,
-    navigate: NavigateFunction,
+    _navigate: NavigateFunction,
 ) {
     obtainThread({
         variables: {
@@ -53,8 +51,6 @@ export function obtainThreadData(
         setCursor(batch.childThreads.pageInfo.endCursor)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

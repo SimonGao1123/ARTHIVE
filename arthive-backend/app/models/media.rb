@@ -98,7 +98,9 @@ class Media < ApplicationRecord
         closest_media = source.nearest_neighbors(:embedding, distance: "cosine")
             .where.not(id: source.id)
             .content_type_filter(content_type)
-        
+            .includes(:user, :community)
+            .with_attached_cover_image
+
         return {
             media: closest_media,
             source: source
@@ -122,9 +124,11 @@ class Media < ApplicationRecord
     # review likes) with a confidence-weighted quality bump (avg rating - 3, scaled
     # by sqrt of the rated-review count). LN(1+x) prevents whales from dominating;
     # the quality term penalizes media trending below 3 stars.
+    # Scoring expression lives inline in ORDER BY (no `SELECT … AS hotness_score`
+    # alias) so eager_loaded chains (e.g. `.includes(...).with_attached_cover_image`)
+    # don't trip on a SELECT-DISTINCT alias-not-found error.
     scope :hottest_explore_page, ->(content_type: "all", user_id: nil) {
-        select(<<~SQL
-          media.*,
+        order(Arel.sql(<<~SQL.squish))
           (
             LN(1 + (
               SELECT COUNT(*) FROM reviews
@@ -159,10 +163,8 @@ class Media < ApplicationRecord
                   AND reviews.media_id = media.id
                   AND reviews.rating IS NOT NULL
             ), 0) * 1.2
-          ) AS hotness_score
+          ) DESC
         SQL
-        )
-        .order("hotness_score DESC")
         .content_type_filter(content_type)
         .recent
     }
@@ -191,7 +193,8 @@ class Media < ApplicationRecord
         .where(media_id: media_id)
         .where.not(content: [nil, ""])
         .where(user_id: User.visible_to(current_user_id).pluck(:id))
-        .includes(:user)
+        .includes(:user, :media, :review_comments, :review_likes)
+        .with_attached_images
         .in_order_of(:user_id, [current_user_id], filter: false)
 
         if sort_by == "newest"
@@ -218,7 +221,7 @@ class Media < ApplicationRecord
             end
         end
 
-        return base_search
+        return base_search.includes(:user, :community).with_attached_cover_image
     end
 
     def self.obtain_media_likes_page(user, content_type, query, page_num, limit)
@@ -231,7 +234,7 @@ class Media < ApplicationRecord
         total_pages = (total_count.to_f / limit).ceil
         return {
             user: user,
-            media: base_search.page(page_num, limit),
+            media: base_search.page(page_num, limit).includes(:user, :community).with_attached_cover_image,
             page_info: {
                 total_pages: total_pages,
                 total_count: total_count
@@ -252,7 +255,7 @@ class Media < ApplicationRecord
 
         total_count = base_search.count
         total_pages = (total_count.to_f / limit).ceil
-        base_search = base_search.page(page_num, limit)
+        base_search = base_search.page(page_num, limit).includes(:user, :community).with_attached_cover_image
         return {
             user: user,
             media: base_search,

@@ -12,16 +12,19 @@ import { OBTAIN_THREAD_QUERY } from "@/apollo/queries/thread_queries"
 import type { ObtainThreadInput, ObtainThreadResponse } from "@/types/queries/thread_queries_types"
 import { AddThreadComponent } from "./AddThreadComponent"
 import EditThreadComponent from "./EditThreadComponent"
+import { SignInPromptModal } from "@/shared/components/SignInPrompt"
 
 const MAX_DEPTH = 5
 const SHOW_MORE_BATCH = 5
 
-export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user: _user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
+export function CommunityThreadPaginated({thread, setUser, navigate, media_id, user}: {thread: CommunityThread, setUser: (user: User | null) => void, navigate: NavigateFunction, media_id: string, user: User | null}) {
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [currLiked, setCurrLiked] = useState(thread.ifLiked)
     const [likeCount, setLikeCount] = useState(thread.likesCount)
+    const [showSignInModal, setShowSignInModal] = useState(false)
 
     function handleLikeThread() {
+        if (!user) { setShowSignInModal(true); return }
         setCurrLiked(prev => !prev)
         likeThreadFunction(setCurrLiked, likeThread, thread.id, setUser, navigate, setLikeCount)
     }
@@ -92,6 +95,13 @@ export function CommunityThreadPaginated({thread, setUser, navigate, media_id, u
                     See replies →
                 </button>
             </div>
+
+            <SignInPromptModal
+                open={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                title="Sign in to like this thread"
+                message="Sign in to like and reply to community threads."
+            />
         </article>
     )
 }
@@ -140,6 +150,7 @@ export function NestedThreadCard({thread, media_id, setUser, user, focusThreadId
     const [loading, setLoading] = useState(false)
     const [collapsed, setCollapsed] = useState(false)
     const [editPopupOpen, setEditPopupOpen] = useState(false)
+    const [showSignInModal, setShowSignInModal] = useState(false)
 
     const cardRef = useRef<HTMLDivElement>(null)
     const canNest = thread.depth < MAX_DEPTH
@@ -176,6 +187,7 @@ export function NestedThreadCard({thread, media_id, setUser, user, focusThreadId
     }, [isFocused])
 
     function handleLikeThread() {
+        if (!user) { setShowSignInModal(true); return }
         setCurrLiked(prev => !prev)
         likeThreadFunction(setCurrLiked, likeThread, thread.id, setUser, navigate, setLikeCount)
     }
@@ -243,6 +255,7 @@ export function NestedThreadCard({thread, media_id, setUser, user, focusThreadId
                     {canNest && user && (
                         <div className="ml-auto">
                             <AddThreadComponent
+                                user={user}
                                 media_id={media_id}
                                 setUser={setUser}
                                 parentThreadId={thread.id}
@@ -281,6 +294,13 @@ export function NestedThreadCard({thread, media_id, setUser, user, focusThreadId
             )}
 
             {editPopupOpen && <EditThreadComponent thread={thread} setUser={setUser} setEditPopupOpen={setEditPopupOpen} />}
+
+            <SignInPromptModal
+                open={showSignInModal}
+                onClose={() => setShowSignInModal(false)}
+                title="Sign in to like this thread"
+                message="Sign in to like and reply to community threads."
+            />
         </div>
     )
 }

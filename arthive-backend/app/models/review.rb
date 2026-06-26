@@ -3,6 +3,8 @@ class Review < ApplicationRecord
 
     # POSSIBLY NEED ADJUSTMENT (higher = lax, lower = strict)
     belongs_to :user
+    # NOTE: counter_cache is managed manually so media.reviews_count only
+    # tracks reviews whose `content` is present (see *_review_count callbacks below).
     belongs_to :media
 
     has_many :review_comments, dependent: :delete_all
@@ -26,7 +28,34 @@ class Review < ApplicationRecord
 
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_content? }
 
+    # media.reviews_count tracks only reviews with content present.
+    # Stock counter_cache can't express that, so increment/decrement manually
+    # whenever content presence transitions across the create/update/destroy boundary.
+    after_create  :increment_media_review_count_if_content_present
+    after_update  :sync_media_review_count_on_content_change
+    after_destroy :decrement_media_review_count_if_content_present
+
     private
+    def increment_media_review_count_if_content_present
+        Media.increment_counter(:reviews_count, media_id) if content.present?
+    end
+
+    def sync_media_review_count_on_content_change
+        return unless saved_change_to_content?
+        was_present = saved_change_to_content.first.present?
+        is_present  = saved_change_to_content.last.present?
+        return if was_present == is_present
+        if is_present
+            Media.increment_counter(:reviews_count, media_id)
+        else
+            Media.decrement_counter(:reviews_count, media_id)
+        end
+    end
+
+    def decrement_media_review_count_if_content_present
+        Media.decrement_counter(:reviews_count, media_id) if content.present?
+    end
+
     def enqueue_embedding
         return if SQS_CLIENT.nil?
         SQS_CLIENT.send_message(
@@ -55,19 +84,18 @@ class Review < ApplicationRecord
         end
     end
 
+    # Trending = all-time likes + all-time comments * 2.
+    # Scoring expression lives inline in ORDER BY (no `SELECT … AS trending_score`
+    # alias) so eager_loaded chains (e.g. `.includes(...).with_attached_images`)
+    # don't trip on a SELECT-DISTINCT alias-not-found error.
     scope :sort_by_trending, -> {
-        select(<<~SQL
-            reviews.*,
+        order(Arel.sql(<<~SQL.squish))
             (
-                (SELECT COUNT(*) FROM review_likes WHERE review_likes.review_id = reviews.id)
-                +
-                (SELECT COUNT(*) FROM review_comments WHERE review_comments.review_id = reviews.id)
-                * 2
-            ) 
-            AS trending_score
+              (SELECT COUNT(*) FROM review_likes WHERE review_likes.review_id = reviews.id)
+              +
+              (SELECT COUNT(*) FROM review_comments WHERE review_comments.review_id = reviews.id) * 2
+            ) DESC
         SQL
-        )
-        .order("trending_score DESC")
         .includes(:user, :media)
     }
 
@@ -78,10 +106,12 @@ class Review < ApplicationRecord
             if review.present?
                 # if content is removed, delete all comments and likes
                 if content.blank?
-                    comment_ids = review.review_comments.map(&:id)
-                    like_ids = review.review_likes.map(&:id)
-                    review.review_comments.delete_all
-                    review.review_likes.delete_all
+                    comment_ids = review.review_comments.pluck(:id)
+                    like_ids = review.review_likes.pluck(:id)
+                    # destroy_all (not delete_all) so the per-row destroy callback
+                    # decrements reviews.review_comments_count / review_likes_count
+                    review.review_comments.destroy_all
+                    review.review_likes.destroy_all
 
                     Activity.where(activity_type: "ReviewComment", activity_id: comment_ids).destroy_all
                     Activity.where(activity_type: "ReviewLike", activity_id: like_ids).destroy_all
@@ -147,12 +177,13 @@ class Review < ApplicationRecord
             end
         end
 
-        return base_search.recent.includes(:user, :media)
+        return base_search.recent.includes(:user, :media, :review_comments, :review_likes).with_attached_images
     end
 
     def self.obtain_review_likes_page(user, content_type, query, page_num, limit)
         reviews = Review.where(id: ReviewLike.where(user_id: user.id).select(:review_id))
-                        .includes(:media)
+                        .includes(:user, :media, :review_comments, :review_likes)
+                        .with_attached_images
                         .semantic_search(query, "review", nil)
                         .recent
         if content_type != "all"

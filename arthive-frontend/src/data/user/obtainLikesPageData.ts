@@ -3,9 +3,7 @@ import type { Media } from "@/types/domain/media"
 import type { User } from "@/types/domain/user"
 import type { AllUserListType } from "@/types/queries/list_queries_types"
 import type { LikedReview, LikesType } from "@/types/queries/shared_queries_types"
-import { logout } from "@/data/auth/logout"
-
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
 export function obtainLikesPageData(
     user_id: string,
@@ -20,7 +18,7 @@ export function obtainLikesPageData(
     setLists: Dispatch<SetStateAction<AllUserListType[]>>,
     setTotalPages: Dispatch<SetStateAction<number>>,
     setPageUser: Dispatch<SetStateAction<{ id: string, username: string } | null>>,
-    navigate: any,
+    _navigate: any,
     setUser: (user: User | null) => void,
 ) {
     obtainLikesPage({
@@ -40,8 +38,6 @@ export function obtainLikesPageData(
         else if (type === "reviews") setReviews(batch.reviews ?? [])
         else if (type === "lists") setLists(batch.lists ?? [])
     }).catch((err: any) => {
-        if (unauth_messages.includes(err.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(err, setUser)
     })
 }

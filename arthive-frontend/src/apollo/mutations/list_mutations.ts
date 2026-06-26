@@ -4,6 +4,7 @@ import type {
     CreateListInput, CreateListResponse,
     EditListDetailsInput, EditListDetailsResponse,
     LikeListInput, LikeListResponse,
+    SaveListInput, SaveListResponse,
     DeleteAllListMembersMutation, DeleteAllListMembersMutationVariables,
     AcceptListInviteInput, AcceptListInviteResponse,
     InviteUserToListInput, InviteUserToListResponse,
@@ -69,6 +70,12 @@ export const EDIT_LIST_DETAILS_MUTATION: TypedDocumentNode<EditListDetailsRespon
 export const LIKE_LIST_MUTATION: TypedDocumentNode<LikeListResponse, LikeListInput> = gql`
     mutation LikeList($input: LikeListInput!) {
         likeList(input: $input)
+    }
+`
+
+export const SAVE_LIST_MUTATION: TypedDocumentNode<SaveListResponse, SaveListInput> = gql`
+    mutation SaveList($input: SaveListInput!) {
+        saveList(input: $input)
     }
 `
 

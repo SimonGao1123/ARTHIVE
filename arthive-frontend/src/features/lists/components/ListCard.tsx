@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import type { AllUserListType } from "@/types/queries/list_queries_types"
 import { contentTypeColor } from "@/shared/utils/contentTypeColors"
+import { BookmarkIcon } from "@/shared/components/StyledComponents"
 
 export default function ListCard({list}: {list: AllUserListType}) {
     const navigate = useNavigate()
@@ -29,6 +30,11 @@ export default function ListCard({list}: {list: AllUserListType}) {
                         {list.name}
                     </h2>
                     <div className="flex items-center gap-2 flex-shrink-0">
+                        {list.ifSaved && (
+                            <span className="text-violet-400" title="Saved">
+                                <BookmarkIcon filled={true} />
+                            </span>
+                        )}
                         {list.role && (
                             <span className={
                                 "text-xs px-2 py-0.5 rounded-full border " +

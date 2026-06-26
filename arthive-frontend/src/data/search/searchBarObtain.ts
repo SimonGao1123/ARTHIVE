@@ -1,8 +1,7 @@
 import type { Dispatch, SetStateAction } from "react"
 import type { User } from "@/types/domain/user"
-import { logout } from "@/data/auth/logout"
+import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function searchBarObtain(
     query: string,
     searchType: "all" | "media" | "user" | "review" | "list" | "thread",
@@ -19,7 +18,7 @@ export function searchBarObtain(
     setSearchResults: Dispatch<SetStateAction<any[]>>,
     setHasNextPage: Dispatch<SetStateAction<boolean>>,
     setUser: (user: User) => void,
-    navigate: any,
+    _navigate: any,
     obtainSearchBar: any
 ) {
     obtainSearchBar({
@@ -45,7 +44,7 @@ export function searchBarObtain(
             return
         }
         const batch = data.data.searchBar
-        
+
         const newItems = [
             ...batch.medias.edges.map((edge: any) => ({type: "media", ...edge.node})),
             ...batch.users.edges.map((edge: any) => ({type: "user", ...edge.node})),
@@ -62,7 +61,7 @@ export function searchBarObtain(
             })
             return Array.from(existingIds.values())
         })
-        
+
         setCursors(() => {
             return {
                 medias: batch.medias.pageInfo.endCursor,
@@ -75,8 +74,6 @@ export function searchBarObtain(
         setHasNextPage(batch.medias.pageInfo.hasNextPage || batch.users.pageInfo.hasNextPage || batch.reviews.pageInfo.hasNextPage || batch.lists.pageInfo.hasNextPage || batch.threads.pageInfo.hasNextPage)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleReadUnauth(error, setUser)
     })
 }

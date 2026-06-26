@@ -75,6 +75,16 @@ export type LikeListResponse = {
     likeList: boolean
 }
 
+export type SaveListInput = {
+    input: {
+        listId: string
+    }
+}
+
+export type SaveListResponse = {
+    saveList: boolean
+}
+
 export type DeleteAllListMembersMutation = {
     deleteAllListMembers: boolean
 }
