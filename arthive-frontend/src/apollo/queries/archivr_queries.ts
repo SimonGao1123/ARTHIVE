@@ -6,15 +6,17 @@ import type {
 
 export const OBTAIN_ARCHIVR_CONVERSATION: TypedDocumentNode<ObtainArchivrConversationResponse, ObtainArchivrConversationInput> = gql`
     query ObtainArchivrConversation($mediaId: ID!, $after: String, $first: Int) {
-        obtainArchivrConversation(mediaId: $mediaId, after: $after, first: $first) {
-            edges {
-                node {
-                    id
-                    content
-                    role
-                    createdAt
+        obtainArchivrConversation(mediaId: $mediaId) {
+            recommendedPrompts
+            messages(first: $first, after: $after) {
+                edges {
+                    node {
+                        id
+                        content
+                        role
+                        createdAt
 
-                    reviewRefs {
+                        reviewRefs {
                         id
                         content
                         rating
@@ -91,9 +93,10 @@ export const OBTAIN_ARCHIVR_CONVERSATION: TypedDocumentNode<ObtainArchivrConvers
                     }
                 }
             }
-            pageInfo {
-                hasNextPage
-                endCursor
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ export function requestArchivrChatFunction(
     navigate: any,
     setUser: (user: User | null) => void,
     setIfNextPage: Dispatch<SetStateAction<boolean>>,
+    setRecommendedPrompts: Dispatch<SetStateAction<string[]>>,
 ) {
     obtainArchivrConversation({
         variables: {
@@ -24,11 +25,12 @@ export function requestArchivrChatFunction(
         },
     })
         .then((data: any) => {
-            const connection = data.data?.obtainArchivrConversation
-            if (!connection) {
+            const payload = data.data?.obtainArchivrConversation
+            if (!payload) {
                 setIfNextPage(false)
                 return
             }
+            const connection = payload.messages
             const batchDesc: ArchivrMessage[] = connection.edges.map((edge: any) => edge.node)
             const batchAsc = [...batchDesc].reverse()
             setMessages((prev) => {
@@ -38,6 +40,7 @@ export function requestArchivrChatFunction(
             })
             setCursor(connection.pageInfo.endCursor)
             setIfNextPage(connection.pageInfo.hasNextPage)
+            if (cursor === null) setRecommendedPrompts(payload.recommendedPrompts ?? [])
         })
         .catch((error: any) => {
             if (unauth_messages.includes(error.message)) {

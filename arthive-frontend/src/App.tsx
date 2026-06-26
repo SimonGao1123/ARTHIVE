@@ -8,6 +8,7 @@ import { WHOAMI_QUERY } from '@/apollo/queries/user_queries'
 import { whoAmIQuery } from '@/data/auth/whoami'
 
 import AppShell from '@/shared/layout/AppShell'
+import ScrollToTop from '@/shared/layout/ScrollToTop'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ExplorePage from '@/pages/ExplorePage'
 import LoginPage from '@/pages/LoginPage'
@@ -48,8 +49,10 @@ function App() {
   }, [location.pathname])
 
   return (
-    <Routes>
-      <Route element={<AppShell user={user} setUser={setUser}/>}>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<AppShell user={user} setUser={setUser}/>}>
         {user && user.ifAdmin ? (
           <Route path="/admin/*" element={<AdminPage user={user} setUser={setUser}/>}>
             <Route path="upload_media" element={<UploadMedia user={user} setUser={setUser} />} />
@@ -75,9 +78,10 @@ function App() {
         <Route path="/notifications" element={<NotificationsPage setUser={setUser} user={user}/>} />
       </Route>
 
-      <Route path="/login" element={<LoginPage setUser={setUser}/>} />
-      <Route path="/register" element={<RegisterPage/>}/>
-    </Routes>
+        <Route path="/login" element={<LoginPage setUser={setUser}/>} />
+        <Route path="/register" element={<RegisterPage/>}/>
+      </Routes>
+    </>
   )
 }
 

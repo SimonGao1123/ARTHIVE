@@ -17,14 +17,17 @@ export type ArchivrMessage = {
 
 export type ObtainArchivrConversationResponse = {
     obtainArchivrConversation: {
-        edges: {
-            node: ArchivrMessage
-        }[]
-        pageInfo: {
-            hasNextPage: boolean
-            endCursor: string
+        messages: {
+            edges: {
+                node: ArchivrMessage
+            }[]
+            pageInfo: {
+                hasNextPage: boolean
+                endCursor: string
+            }
         }
-    }
+        recommendedPrompts: string[]
+    } | null
 }
 
 export type ObtainArchivrConversationInput = {

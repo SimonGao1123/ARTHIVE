@@ -215,7 +215,7 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
             <SignInPromptModal
                 open={showSignInModal}
                 onClose={() => setShowSignInModal(false)}
-                title="Sign in to like this list"
+                title="Sign in to interact with this list"
                 message="Sign in to like lists and save your favorites."
             />
         </div>

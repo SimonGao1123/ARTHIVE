@@ -3,83 +3,90 @@ class ArchivrService
     MAX_LOOPS = 3
 
     def self.generate_response(query, media_id, user_id)
-        conversation = ArchivrConversation.find_or_create_by(user_id: user_id, media_id: media_id)
-        media = Media.find(media_id)
-        user = User.find(user_id)
+        assistant_msg = nil
+
+        ActiveRecord::Base.transaction do
+            conversation = ArchivrConversation.find_or_create_by(user_id: user_id, media_id: media_id)
+            media = Media.find(media_id)
+            user = User.find(user_id)
 
 
-        # doesn't include current query
-        prev_messages = conversation.archivr_messages.order(created_at: :desc).limit(HISTORY_LIMIT).to_a.reverse
+            # doesn't include current query
+            prev_messages = conversation.archivr_messages.order(created_at: :desc).limit(HISTORY_LIMIT).to_a.reverse
 
-        # put previous messages into content for Gemini
-        content = prev_messages.map { |m|
-            {role: (m.role == "user" ? "user" : "model"), parts: [{text: m.content}]}
-        }
-        
-        system_instructions = build_system_prompt(user, media) # preserved on every query
+            # put previous messages into content for Gemini
+            content = prev_messages.map { |m|
+                {role: (m.role == "user" ? "user" : "model"), parts: [{text: m.content}]}
+            }
 
-        content << {role: "user", parts: [{text: query}]} # slowly build up contents
+            system_instructions = build_system_prompt(user, media) # preserved on every query
 
-        ArchivrMessage.create!(archivr_conversation: conversation, content: query, role: "user")
+            content << {role: "user", parts: [{text: query}]} # slowly build up contents
 
-
-        tools = ArchivrTools::SCHEMAS # loads all schemas from ArchivrTools
-
-        counter = 0
-
-        loop do
-            break if counter >= MAX_LOOPS
-            
-            response = GeminiClient.call_gemini_with_tools(system_instructions: system_instructions, contents: content, tools: tools)
-
-            puts "response: #{response[:raw_model_turn]} \n\n\n\n\n\n\n"
-
-            if response[:error]
-                Rails.logger.error "Archivr error: #{response[:error]}"
-                return nil
-            end
+            user_msg = ArchivrMessage.create!(archivr_conversation: conversation, content: query, role: "user")
 
 
-            if !response[:tool_calls].empty?
-                content << response[:raw_model_turn]
-                tool_calls = response[:tool_calls]
+            tools = ArchivrTools::SCHEMAS # loads all schemas from ArchivrTools
 
-                tool_calls.each do |tool_call|
-                    tool_res = ArchivrTools.execute(tool_call[:name], tool_call[:args], {media_id: media_id, user_id: user_id})
+            counter = 0
 
-                    content << {
-                        role: "function",
-                        parts: [{
-                            functionResponse: {
-                                name: tool_call[:name],
-                                response: {
-                                    result: tool_res
-                                }
-                            }
-                        }]
-                    } 
+            loop do
+                if counter >= MAX_LOOPS
+                    Rails.logger.error "Max loops reached without final response"
+                    raise ActiveRecord::Rollback
                 end
 
-                counter += 1
+                response = GeminiClient.call_gemini_with_tools(system_instructions: system_instructions, contents: content, tools: tools)
+
+                puts "response: #{response[:raw_model_turn]} \n\n\n\n\n\n\n"
+
+                if response[:error]
+                    Rails.logger.error "Archivr error: #{response[:error]}"
+                    raise ActiveRecord::Rollback
+                end
 
 
-                puts "content: #{content} \n\n\n\n\n\n\n"
-                next
+                if !response[:tool_calls].empty?
+                    content << response[:raw_model_turn]
+                    tool_calls = response[:tool_calls]
+
+                    tool_calls.each do |tool_call|
+                        tool_res = ArchivrTools.execute(tool_call[:name], tool_call[:args], {media_id: media_id, user_id: user_id})
+
+                        content << {
+                            role: "function",
+                            parts: [{
+                                functionResponse: {
+                                    name: tool_call[:name],
+                                    response: {
+                                        result: tool_res
+                                    }
+                                }
+                            }]
+                        }
+                    end
+
+                    counter += 1
+
+
+                    puts "content: #{content} \n\n\n\n\n\n\n"
+                    next
+                end
+
+                if response[:text].present?
+                    refs = extract_references(response[:text])
+                    rating = extract_rating(response[:text])
+                    user_msg.update!(prompt_rating: rating)
+                    assistant_msg = ArchivrMessage.create!(archivr_conversation: conversation, content: response[:text], role: "assistant", references: refs)
+                    break
+                else
+                    Rails.logger.error "Archivr error: No text in response"
+                    raise ActiveRecord::Rollback
+                end
             end
-
-            if response[:text].present? # just return text early
-                refs = extract_references(response[:text])
-                return ArchivrMessage.create!(archivr_conversation: conversation, content: response[:text], role: "assistant", references: refs)
-            else
-                Rails.logger.error "Archivr error: No text in response"
-                return nil
-            end
-
         end
 
-        Rails.logger.error "Max loops reached without final response"
-        return nil
-
+        assistant_msg
     end
 
     def self.build_system_prompt(user, media)
@@ -123,6 +130,10 @@ class ArchivrService
             - Use **bold** for titles, names being highlighted, or emphasis. Avoid headings or lists for short responses.
             - For any referenced media, lists, threads, or reviews write it in the format [Media::id], [List::id], [Thread::id], [Review::id]
                 - Always include referenced objects to be right after the sentence that references them, after the punctuation.
+            - Include a rating of the user's initial prompt between 1 and 10, where 1 is the lowest and 10 is the highest.
+                - The rating is based on how well the prompt is related to the media, and if it's appropriate.
+                - Any prompt which is very related to the media should be minimum 8 and will be used as a recommended prompt for the user.
+            - The rating will be after the final response in the format: {Rating: <rating>}
 
             Archivr:
         PROMPT
@@ -163,4 +174,9 @@ class ArchivrService
         }
     end    
 
+    def self.extract_rating(text)
+        rating = text.scan(/\{Rating: (\d+)\}/).flatten.first
+        return rating.to_i if rating.present?
+        return nil if rating.blank?
+    end
 end

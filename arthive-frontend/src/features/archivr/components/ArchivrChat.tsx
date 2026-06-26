@@ -93,6 +93,7 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
     const [loadCount, setLoadCount] = useState(0)
     const [pending, setPending] = useState(false)
     const [hasLoadedFirst, setHasLoadedFirst] = useState(false)
+    const [recommendedPrompts, setRecommendedPrompts] = useState<string[]>([])
 
     const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null)
     const prevScrollHeightRef = useRef<number | null>(null)
@@ -120,6 +121,7 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
             navigate,
             setUser,
             setIfNextPage,
+            setRecommendedPrompts,
         )
         if (!hasLoadedFirst) setHasLoadedFirst(true)
     }, [isOpen, loadCount])
@@ -263,6 +265,25 @@ export default function ArchivrChat({ mediaId, setUser, isOpen, onClose }: Archi
                 )}
                 {sendError && (
                     <p className="text-red-400 text-xs px-4 pb-1">{sendError.message}</p>
+                )}
+
+                {recommendedPrompts.length > 0 && (
+                    <div
+                        aria-label="Suggested prompts"
+                        className="flex flex-wrap gap-2 px-3 py-2 border-t border-white/5 bg-[#171519]"
+                    >
+                        {recommendedPrompts.map((p) => (
+                            <button
+                                key={p}
+                                type="button"
+                                onClick={() => setInput(p)}
+                                title={p}
+                                className="rounded-full bg-violet-500/15 hover:bg-violet-500/25 text-violet-300 text-xs px-3 py-1 transition truncate max-w-[180px]"
+                            >
+                                {p}
+                            </button>
+                        ))}
+                    </div>
                 )}
 
                 {/* Input */}
