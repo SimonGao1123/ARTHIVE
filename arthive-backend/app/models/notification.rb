@@ -96,4 +96,7 @@ class Notification < ApplicationRecord
     end
     public
 
+    def self.cleanup_old_records
+        where("created_at < ? AND read_at IS NULL", 1.month.ago).destroy_all
+    end
 end

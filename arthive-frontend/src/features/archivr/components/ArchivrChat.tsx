@@ -30,9 +30,11 @@ type ArchivrChatProps = {
 // Matches **bold**, *bold*, or [Media::id] / [Review::id] / [Thread::id] / [List::id].
 // Each alternative is its own capture group so .split() preserves the matches as separate parts.
 const TOKEN_REGEX = /(\*\*[^*]+\*\*|\*[^*]+\*|\[(?:Media|Review|Thread|List)::\d+\])/
+const RATING_REGEX = /\{Rating:\s*\d+\}/g
 
 function renderContent(message: ArchivrMessage): React.ReactNode {
-    const parts = message.content.split(TOKEN_REGEX)
+    const cleaned = message.content.replace(RATING_REGEX, "").trim()
+    const parts = cleaned.split(TOKEN_REGEX)
     return parts.map((part, i) => {
         if (!part) return null
 

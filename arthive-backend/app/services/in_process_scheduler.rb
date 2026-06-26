@@ -14,6 +14,7 @@ class InProcessScheduler
 
     scheduler.cron "0 3 * * *" do # daily at 3am
       Activity.cleanup_old_records
+      Notification.cleanup_old_records
     rescue => e
       Rails.logger.error "[Scheduler] activity_cleanup tick failed: #{e.message}"
     end
