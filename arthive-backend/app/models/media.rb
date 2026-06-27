@@ -24,7 +24,7 @@ class Media < ApplicationRecord
 
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
-    has_many :reviews
+    has_many :reviews, dependent: :destroy
     has_many :media_in_lists, dependent: :destroy
 
     has_one :community, dependent: :destroy
@@ -45,9 +45,16 @@ class Media < ApplicationRecord
 
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_title? || saved_change_to_summary? }
 
+    validate :validate_page_actors
+
     
 
     private
+    def validate_page_actors
+        if page_count.present? && actors.present?
+            errors.add(:page_count, "Page count and actors cannot be present together")
+        end
+    end
 
     def enqueue_embedding
         return if SQS_CLIENT.nil?

@@ -6,5 +6,13 @@ module AuthHelper
             raise GraphQL::ExecutionError, auth
         end
     end
+
+    def validate_admin
+
+        validate_user
+        if !context[:current_user].if_admin?
+            raise GraphQL::ExecutionError, "You are not an admin"
+        end
+    end
 end
     

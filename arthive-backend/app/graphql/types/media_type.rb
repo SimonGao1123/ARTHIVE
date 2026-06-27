@@ -36,6 +36,8 @@ module Types
     field :favorite_count, Int, null: false
     field :average_rating, Float, null: false
 
+    
+
     def favorite_count
       if object.reviews.loaded?
         object.reviews.count(&:if_favorite)

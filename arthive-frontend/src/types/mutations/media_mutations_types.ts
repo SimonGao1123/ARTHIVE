@@ -36,3 +36,27 @@ export type UploadMediaResponse = {
         title: string
     }
 }
+
+export type EditMediaInput = {
+    mediaId: string
+    title: string
+    creator: string
+    year: string
+    contentType: string
+    language: string
+    summary: string
+    genre: string[]
+    ongoing: boolean
+    actors?: string[]
+    pageCount?: number
+    seriesTitle?: string
+    organization?: string
+    ifDeleted: boolean
+}
+
+export type EditMediaResponse = {
+    editMedia: {
+        id: string
+        title: string
+    }
+}

@@ -30,6 +30,7 @@ import SearchResultsPage from '@/pages/SearchResultsPage'
 import MyLoggedMediaPage from '@/pages/MyLoggedMediaPage'
 import MyLikesPage from '@/pages/MyLikesPage'
 import NotificationsPage from '@/pages/NotificationsPage'
+import EditMedia from './features/admin/sub-pages/EditMedia'
 
 function App() {
   const location = useLocation()
@@ -56,6 +57,7 @@ function App() {
         {user && user.ifAdmin ? (
           <Route path="/admin/*" element={<AdminPage user={user} setUser={setUser}/>}>
             <Route path="upload_media" element={<UploadMedia user={user} setUser={setUser} />} />
+            <Route path="edit_media" element={<EditMedia user={user} setUser={setUser} />} />
           </Route>
         ) : null}
 

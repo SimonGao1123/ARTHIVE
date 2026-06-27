@@ -1,3 +1,5 @@
+export const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+
 export const ALL_GENRES: string[] = [
     "Drama", "Comedy", "Romance", 
         "Action", "Adventure", "Horror", "Thriller", 

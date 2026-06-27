@@ -209,7 +209,7 @@ const CONTENT_TYPE_OPTIONS = [
     { value: "game",   label: "Game",   color: "#1DD07D" },
 ]
 
-function ContentTypeRadio({content_type, setContentType}: {content_type: string, setContentType: (content_type: string) => void}) {
+export function ContentTypeRadio({content_type, setContentType}: {content_type: string, setContentType: (content_type: string) => void}) {
     return (
         <div>
             <label className="block text-xs text-gray-400 mb-2">Content Type</label>
@@ -235,7 +235,7 @@ function ContentTypeRadio({content_type, setContentType}: {content_type: string,
     )
 }
 
-function GenreInput({genre, setGenre}: {genre: string[], setGenre: (genre: string[]) => void}) {
+export function GenreInput({genre, setGenre}: {genre: string[], setGenre: (genre: string[]) => void}) {
     const [currGenre, setCurrGenre] = useState<string>("")
     const visibleGenres = ALL_GENRES.filter((g) => {
         const q = currGenre.toLowerCase()
@@ -279,7 +279,7 @@ function GenreInput({genre, setGenre}: {genre: string[], setGenre: (genre: strin
     )
 }
 
-function ActorsInput({actors, setActors}: {actors: string[], setActors: (actors: string[]) => void}) {
+export function ActorsInput({actors, setActors}: {actors: string[], setActors: (actors: string[]) => void}) {
     const [currActor, setCurrActor] = useState<string>("")
 
     return (

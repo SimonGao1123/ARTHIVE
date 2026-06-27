@@ -40,5 +40,7 @@ module Types
     field :delete_all_list_members, mutation: Mutations::DeleteAllListMembers
     field :leave_list, mutation: Mutations::LeaveList
     field :save_list, mutation: Mutations::SaveList
+
+    field :edit_media, mutation: Mutations::EditMedia
   end
 end

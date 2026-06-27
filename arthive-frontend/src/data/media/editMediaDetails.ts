@@ -1,10 +1,14 @@
 import { logout } from "@/data/auth/logout"
-import { uploadFileToS3 } from "@/data/media/uploadFileToS3"
+import { uploadFileToS3 } from "./uploadFileToS3"
+import { unauth_messages } from "@/shared/utils/globalConstants"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
-
-
-export async function mediaUpload(mediaData: any, setUser: any, navigate: any, createMedia: any, uploadImageToS3: any) {
+export function editMediaDetails(
+    mediaData: any,
+    setUser: any,
+    navigate: any,
+    editMedia: any,
+    uploadImageToS3: any,
+) {
     if (!mediaData.title) {
         alert("Title is required")
         return
@@ -34,14 +38,8 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         return
     }
 
-    if (!mediaData.cover_image) {
-        alert("Cover Image is required")
-        return
-    }
-
-    
-
-    createMedia({variables: {
+    return editMedia({variables:{
+        mediaId: mediaData.media_id,
         title: mediaData.title,
         creator: mediaData.creator,
         year: mediaData.year,
@@ -50,43 +48,43 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         summary: mediaData.summary,
         genre: mediaData.genre,
         ongoing: mediaData.ongoing,
-        actors: mediaData.content_type === "book"
-            ? null
-            : (mediaData.actors.length > 0 ? mediaData.actors : null),
-        pageCount: mediaData.content_type === "book"
-            ? Number(mediaData.page_count)
-            : null,
+        actors: mediaData.content_type === "book" ? null : mediaData.actors,
+        pageCount: mediaData.content_type === "book" ? mediaData.page_count : null,
         seriesTitle: mediaData.series_title,
         organization: mediaData.organization,
-    }}).then(async(data: any) => {
-        if (data.data.createMedia.id) {
+        ifDeleted: mediaData.if_deleted,
+    }}).then(async (res: any) => {
+        if (!res.data.editMedia) {
+            alert("Deleted media")
+            return
+        }
+        if (mediaData.cover_image) {
             const jwt = localStorage.getItem("authToken")
+
             if (!jwt) {
                 logout(setUser, navigate)
                 return
             }
-            
-            
+
             const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
             if (!signedId) {
                 alert("Error uploading cover image to S3")
                 return
             }
-
-            // ensures that the image is uploaded to database before s3 image attached
-            // avoids orphaned images in s3 bucket
-            const attachResult = await uploadImageToS3({variables: {signedIds: [signedId], resourceId: data.data.createMedia.id, resourceType: "media"}})
+            const attachResult = await uploadImageToS3({variables: {signedIds: [signedId], resourceId: res.data.editMedia.id, resourceType: "media"}})
             if (!attachResult.data?.attachS3Image?.success) {
                 alert("Error attaching cover image")
                 return
             }
-            alert("Media uploaded successfully")
         }
-    }).catch((error: { message?: string }) => {
-        if (error.message && unauth_messages.includes(error.message)) {
+        alert("Media details updated successfully")
+    }).catch((err: any) => {
+        if (err.message && unauth_messages.includes(err.message)) {
             logout(setUser, navigate)
-        } else {
-            alert("Error creating media")
+            return
         }
+        alert("Failed to update media details")
+        return
     })
+    
 }

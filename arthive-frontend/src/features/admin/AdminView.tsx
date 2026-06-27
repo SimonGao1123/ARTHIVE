@@ -34,6 +34,14 @@ export default function AdminPage({user, setUser}: {user: User, setUser: (user: 
                             <span className="text-sm font-medium">Upload Media</span>
                             <span className="text-gray-500 text-xs">→</span>
                         </Link>
+
+                        <Link
+                            to="/admin/edit_media"
+                            className="flex items-center justify-between px-4 py-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/5 transition"
+                        >
+                            <span className="text-sm font-medium">Edit Media</span>
+                            <span className="text-gray-500 text-xs">→</span>
+                        </Link>
                     </div>
                 </div>
             )}

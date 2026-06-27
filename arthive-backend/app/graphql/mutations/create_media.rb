@@ -17,7 +17,7 @@ module Mutations
 
 
         def resolve(**args)
-            validate_user
+            validate_admin
 
             media = Media.new(args)
             media.user = context[:current_user]
