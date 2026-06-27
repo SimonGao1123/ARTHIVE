@@ -104,3 +104,17 @@ export type ObtainFinishedMediaResponse = {
         }
     }
 }
+
+export type SearchMediaForListInput = {
+    query: string
+    listId: string
+    first?: number
+    after?: string | null
+}
+
+export type SearchMediaForListResponse = {
+    searchMediaForList: {
+        edges: { node: Media }[]
+        pageInfo: { hasNextPage: boolean; endCursor: string | null }
+    }
+}

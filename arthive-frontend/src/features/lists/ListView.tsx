@@ -21,7 +21,8 @@ import { saveListFunction } from "@/data/lists/saveListFunction";
 import EditListDetails from "@/features/lists/components/EditListDetails";
 import LeaveListButton from "./components/LeaveListButton";
 import { SignInPromptModal } from "@/shared/components/SignInPrompt";
-const LIMIT = 3
+import SearchMediaForList from "@/features/lists/components/SearchMediaForList";
+const LIMIT = 30
 
 export default function ListPage({ user, setUser }: { user: User | null, setUser: (user: User | null) => void }) {
     const { list_id } = useParams()
@@ -211,6 +212,15 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
             </div>
 
             <NumberedPagination totalPages={totalPages} pageNum={pageNum} setPageNum={setPageNum} />
+
+            {listData?.ifEditable && list_id && (
+                <SearchMediaForList
+                    listId={list_id}
+                    setUser={setUser}
+                    addOrRemoveMediaInListMutation={addOrRemoveMediaInListMutation}
+                    onAdded={refreshList}
+                />
+            )}
 
             <SignInPromptModal
                 open={showSignInModal}

@@ -5,6 +5,7 @@ import type {
     HottestExplorePageMediaInput, HottestExplorePageMediaResponse,
     BecauseOfReviewsExploreMediaInput, BecauseOfReviewsExploreMediaResponse,
     ObtainFinishedMediaInput, ObtainFinishedMediaResponse,
+    SearchMediaForListInput, SearchMediaForListResponse,
 } from "@/types/queries/media_queries_types"
 // returns the media for the explore page, only need cover image for now
 export const NEWEST_EXPLORE_PAGE_MEDIA_QUERY: TypedDocumentNode<NewestExplorePageMediaResponse, NewestExplorePageMediaInput> = gql`
@@ -139,6 +140,30 @@ export const OBTAIN_FINISHED_MEDIA_QUERY: TypedDocumentNode<ObtainFinishedMediaR
             pageInfo {
                 totalPages
                 totalCount
+            }
+        }
+    }
+`
+
+export const SEARCH_MEDIA_FOR_LIST_QUERY: TypedDocumentNode<SearchMediaForListResponse, SearchMediaForListInput> = gql`
+    query SearchMediaForList($query: String!, $listId: ID!, $first: Int, $after: String) {
+        searchMediaForList(query: $query, listId: $listId, first: $first, after: $after) {
+            edges {
+                node {
+                    id
+                    title
+                    creator
+                    year
+                    contentType
+                    coverImage
+                    ifFavorite
+                    ifFinished
+                    averageRating
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
             }
         }
     }

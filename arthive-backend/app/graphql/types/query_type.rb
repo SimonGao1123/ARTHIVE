@@ -46,5 +46,6 @@ module Types
     field :obtain_trending_lists, resolver: Resolvers::ObtainTrendingListsResolver
     field :obtain_notifications, resolver: Resolvers::ObtainNotificationsResolver
     field :list_invitation_user_search, resolver: Resolvers::ListInvitationUserSearchResolver
+    field :search_media_for_list, resolver: Resolvers::SearchMediaForListResolver
   end
 end
