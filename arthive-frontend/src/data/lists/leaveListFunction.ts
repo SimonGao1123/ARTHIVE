@@ -1,5 +1,5 @@
 import type { User } from "@/types/domain/user";
-import { logout } from "../auth/logout";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 
 export function leaveListFunction(
