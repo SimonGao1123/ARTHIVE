@@ -31,15 +31,20 @@ module Types
         end
 
         def if_liked
-            object.review_likes.exists?(user_id: context[:current_user].id)
+            return false unless context[:current_user]
+            if object.review_likes.loaded?
+                object.review_likes.any? { |like| like.user_id == context[:current_user].id }
+            else
+                object.review_likes.exists?(user_id: context[:current_user].id)
+            end
         end
 
         def like_count
-            object.review_likes.count
+            object.review_likes_count
         end
 
         def comment_count
-            object.review_comments.count
+            object.review_comments_count
         end
         
     end

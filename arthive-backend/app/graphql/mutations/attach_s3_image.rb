@@ -11,6 +11,9 @@ module Mutations
             
             case resource_type
             when "media"
+                if !context[:current_user].if_admin?
+                    raise GraphQL::ExecutionError, "You are not an admin"
+                end
                 media = Media.find_by(id: resource_id)
                 if media.nil?
                     raise GraphQL::ExecutionError, "Media not found"

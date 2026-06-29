@@ -24,7 +24,7 @@ class Media < ApplicationRecord
 
     belongs_to :user # user_id is the id of the user who created the media
     has_one_attached :cover_image
-    has_many :reviews
+    has_many :reviews, dependent: :destroy
     has_many :media_in_lists, dependent: :destroy
 
     has_one :community, dependent: :destroy
@@ -45,9 +45,16 @@ class Media < ApplicationRecord
 
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_title? || saved_change_to_summary? }
 
+    validate :validate_page_actors
+
     
 
     private
+    def validate_page_actors
+        if page_count.present? && actors.present?
+            errors.add(:page_count, "Page count and actors cannot be present together")
+        end
+    end
 
     def enqueue_embedding
         return if SQS_CLIENT.nil?
@@ -82,7 +89,30 @@ class Media < ApplicationRecord
         PresignedUrlAttachment.presigned_url(cover_image)
     end
 
-    
+    # takes recent / highly rated review from user and suggests media that are similar to the media reviewed by the user
+    # looks at that media's sorted by most similar media to suggest
+    def self.because_of_reviews(content_type: "all", user_id: nil)
+        user_review = Review.includes(:media)
+        .where(user_id: user_id)
+        .joins(:media).where.not(media: { embedding: nil })
+        .order(Arel.sql("(reviews.created_at > NOW() - INTERVAL '7 days') DESC, rating DESC NULLS LAST"))
+        .first
+
+        return nil if user_review.nil?
+
+        source = user_review.media
+        # can match via title/genre/description/actors via similarity search
+        closest_media = source.nearest_neighbors(:embedding, distance: "cosine")
+            .where.not(id: source.id)
+            .content_type_filter(content_type)
+            .includes(:user, :community)
+            .with_attached_cover_image
+
+        return {
+            media: closest_media,
+            source: source
+        }
+    end
 
     # currently just searches for media that were recently created and not reviewed by user yet
     scope :newest_explore_page, -> (content_type: "all", user_id: nil) {
@@ -97,26 +127,51 @@ class Media < ApplicationRecord
         .recent
     }
 
-    # most reviews/threads on the media within the last week (hottest)        
+    # Hotness combines damped recent volume signals (reviews, favorites, threads,
+    # review likes) with a confidence-weighted quality bump (avg rating - 3, scaled
+    # by sqrt of the rated-review count). LN(1+x) prevents whales from dominating;
+    # the quality term penalizes media trending below 3 stars.
+    # Scoring expression lives inline in ORDER BY (no `SELECT … AS hotness_score`
+    # alias) so eager_loaded chains (e.g. `.includes(...).with_attached_cover_image`)
+    # don't trip on a SELECT-DISTINCT alias-not-found error.
     scope :hottest_explore_page, ->(content_type: "all", user_id: nil) {
-        select(<<~SQL
-          media.*,
+        order(Arel.sql(<<~SQL.squish))
           (
-            (SELECT COUNT(*) FROM reviews
-               WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id) * 2
+            LN(1 + (
+              SELECT COUNT(*) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+            )) * 3
             +
-            (SELECT COUNT(*) FROM community_threads
-               JOIN communities ON community_threads.community_id = communities.id
-               WHERE community_threads.created_at > NOW() - INTERVAL '1 week' AND communities.media_id = media.id) * 3
+            LN(1 + (
+              SELECT COUNT(*) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+                  AND reviews.if_favorite = TRUE
+            )) * 4
             +
-            COALESCE(
-              (SELECT AVG(rating) FROM reviews WHERE reviews.created_at > NOW() - INTERVAL '1 week' AND reviews.media_id = media.id),
-              0
-            ) * 5
-          ) AS hotness_score
+            LN(1 + (
+              SELECT COUNT(*) FROM community_threads
+                JOIN communities ON community_threads.community_id = communities.id
+                WHERE community_threads.created_at > NOW() - INTERVAL '1 week'
+                  AND communities.media_id = media.id
+            )) * 2
+            +
+            LN(1 + (
+              SELECT COUNT(*) FROM review_likes
+                JOIN reviews ON review_likes.review_id = reviews.id
+                WHERE review_likes.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+            )) * 1.5
+            +
+            COALESCE((
+              SELECT (AVG(rating) - 3) * SQRT(COUNT(*)) FROM reviews
+                WHERE reviews.created_at > NOW() - INTERVAL '1 week'
+                  AND reviews.media_id = media.id
+                  AND reviews.rating IS NOT NULL
+            ), 0) * 1.2
+          ) DESC
         SQL
-        )
-        .order("hotness_score DESC")
         .content_type_filter(content_type)
         .recent
     }
@@ -145,7 +200,8 @@ class Media < ApplicationRecord
         .where(media_id: media_id)
         .where.not(content: [nil, ""])
         .where(user_id: User.visible_to(current_user_id).pluck(:id))
-        .includes(:user)
+        .includes(:user, :media, :review_comments, :review_likes)
+        .with_attached_images
         .in_order_of(:user_id, [current_user_id], filter: false)
 
         if sort_by == "newest"
@@ -172,18 +228,30 @@ class Media < ApplicationRecord
             end
         end
 
-        return base_search
+        return base_search.includes(:user, :community).with_attached_cover_image
     end
 
-    def self.liked_or_finished_media(user_id, content_type, query, page_num, limit, type)
+    def self.obtain_media_likes_page(user, content_type, query, page_num, limit)
+        liked_media_ids = Review.where(user_id: user.id, if_favorite: true).select(:media_id)
+        base_search = Media.where(id: liked_media_ids)
+                           .content_type_filter(content_type)
+                           .semantic_search(query, "media", nil)
+                           .recent
+        total_count = base_search.count
+        total_pages = (total_count.to_f / limit).ceil
+        return {
+            user: user,
+            media: base_search.page(page_num, limit).includes(:user, :community).with_attached_cover_image,
+            page_info: {
+                total_pages: total_pages,
+                total_count: total_count
+            }
+        }
+    end
+
+    def self.finished_media(user_id, content_type, query, page_num, limit)
         reviews = Review.includes(:media).where(user_id: user_id)
-        if type == "liked"
-            reviews = reviews.where(if_favorite: true)
-        elsif type == "finished"
-            reviews = reviews.where(if_finished: true)
-        else
-            raise GraphQL::ExecutionError, "Invalid type"
-        end
+        reviews = reviews.where(if_finished: true)
 
         user = User.find_by(id: user_id)
         if !user.present?
@@ -194,7 +262,7 @@ class Media < ApplicationRecord
 
         total_count = base_search.count
         total_pages = (total_count.to_f / limit).ceil
-        base_search = base_search.page(page_num, limit)
+        base_search = base_search.page(page_num, limit).includes(:user, :community).with_attached_cover_image
         return {
             user: user,
             media: base_search,

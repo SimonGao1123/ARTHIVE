@@ -9,14 +9,77 @@ module Types
         field :created_at, GraphQL::Types::ISO8601DateTime, null: false
         field :updated_at, GraphQL::Types::ISO8601DateTime, null: false
         field :user, Types::UserType, null: false
+
+        field :like_count, Integer, null: false
+
+        field :if_liked, Boolean, null: false
+
+        field :if_saved, Boolean, null: false
+
+        field :if_editable, Boolean, null: true
+        field :saved_count, Integer, null: false
+        field :role, String, null: true
         
+        field :public_list_members, [Types::ListMemberType], null: true
+        field :all_list_members, [Types::ListMemberType], null: true
+
+        def public_list_members
+            return nil unless List.if_visible_to_user(context[:current_user]&.id, object)
+            object.list_members.includes(:user).where(status: "accepted")
+        end
+
+        # includes pending members
+        def all_list_members
+            return nil unless context[:current_user]
+            return nil unless List.editable_by_user(context[:current_user].id, object)
+            object.list_members.includes(:user).where.not(status: "rejected")
+        end
+
+        def if_editable
+            return nil unless context[:current_user]
+            List.editable_by_user(context[:current_user].id, object)
+        end
+        def role
+            return nil unless context[:current_user]
+            if object.user_id == context[:current_user].id
+                return "owner"
+            end
+            object.list_members.find_by(user_id: context[:current_user].id, status: "accepted")&.role || nil
+        end
+
+        def if_liked
+            return false unless context[:current_user]
+            if object.list_likes.loaded?
+                object.list_likes.any? { |like| like.user_id == context[:current_user].id }
+            else
+                object.list_likes.exists?(user_id: context[:current_user].id)
+            end
+        end
+
+        def if_saved
+            return false unless context[:current_user]
+            if object.list_saves.loaded?
+                object.list_saves.any? { |save| save.user_id == context[:current_user].id }
+            else
+                object.list_saves.exists?(user_id: context[:current_user].id)
+            end
+        end
+
         field :media_in_lists, [Types::MediaInListType], null: false do
             argument :page_num, Integer, required: false, default_value: 1
             argument :limit, Integer, required: false, default_value: 10
         end
 
-        def media_in_lists (page_num:, limit:)
-            object.media_in_lists.includes(:media).recent.page(page_num, limit)
+        def media_in_lists(page_num:, limit:)
+            object.media_in_lists.includes(:media).merge(Media.with_attached_cover_image).recent.page(page_num, limit)
+        end
+
+        def like_count
+            object.list_likes_count
+        end
+
+        def saved_count
+            object.list_saves_count
         end
 
     end

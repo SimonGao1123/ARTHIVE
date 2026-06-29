@@ -28,6 +28,7 @@ module Types
         field :edit_access, Boolean, null: false
         
         def edit_access
+            return false unless context[:current_user]
             object[:user].id == context[:current_user].id
         end
     end

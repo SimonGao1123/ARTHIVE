@@ -2,11 +2,9 @@
 
 module Resolvers
   class WhoamiResolver < BaseResolver
-    type Types::UserType, null: false
+    type Types::UserType, null: true
 
     def resolve
-      validate_user
-
       context[:current_user]
     end
   end

@@ -1,6 +1,6 @@
 require 'jwt'
 
-DEFAULT_EXPIRATION = 1.day
+DEFAULT_EXPIRATION = 15.minutes
 TEST_EXPIRATION = 10.seconds
 
 class JsonWebToken

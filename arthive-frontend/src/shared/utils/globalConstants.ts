@@ -1,0 +1,16 @@
+export const unauth_messages = ["INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND", 
+     "INVALID_REFRESH", "REFRESH_REUSE", "EXPIRED_REFRESH"
+]
+
+export const ALL_GENRES: string[] = [
+    "Drama", "Comedy", "Romance", 
+        "Action", "Adventure", "Horror", "Thriller", 
+        "Mystery", "Crime", "Science Fiction", "Fantasy", 
+        "Animation", "Musical", "Family", "Western", 
+        "War", "Historical", "Biographical", 
+        "Documentary", "Experimental", "Superhero", 
+        "Disaster", "Survival", "Sports", "Spy", 
+        "Political", "Road Movie", "Coming of Age", 
+        "Slice of Life", "Noir"]
+
+export const ALL_CONTENT_TYPES: string[] = ["film", "series", "book", "game"]

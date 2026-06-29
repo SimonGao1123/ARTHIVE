@@ -1,7 +1,7 @@
 class Activity < ApplicationRecord
     include SharedScopeMethods
 
-    VALID_SUBJECT_TYPES = %w[Review ReviewComment ReviewLike CommunityThread ThreadLike List MediaInList].freeze
+    VALID_SUBJECT_TYPES = %w[Review ReviewComment ReviewLike CommunityThread ThreadLike List MediaInList ListLike ListSave].freeze
     # if destroyed just delete the row
     VALID_STATUSES = %w[created updated].freeze
 
@@ -14,6 +14,13 @@ class Activity < ApplicationRecord
 
     def self.log(user:, subject:, status:, snapshot: nil)
         create!(user: user, subject: subject, status: status, activity_snapshot: snapshot)
+    end
+
+    # Delete activity rows whose created_at is older than `older_than` ago.
+    # Used by the daily scheduler tick; `older_than:` is parameterized so tests
+    # can pass shorter windows without time-travel.
+    def self.cleanup_old_records(older_than: 1.week)
+        where("created_at < ?", older_than.ago).delete_all
     end
 
 end

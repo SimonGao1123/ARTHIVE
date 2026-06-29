@@ -19,6 +19,7 @@ module Types
     field :create_list, mutation: Mutations::CreateList
     field :add_or_remove_media_in_list, mutation: Mutations::AddOrRemoveMediaInList
     field :edit_list_details, mutation: Mutations::EditListDetails
+    field :like_list, mutation: Mutations::LikeList
 
     field :create_thread, mutation: Mutations::CreateThread
     field :like_thread, mutation: Mutations::LikeThread
@@ -32,5 +33,17 @@ module Types
     field :read_notifications, mutation: Mutations::ReadNotifications
 
     field :message_archivr, mutation: Mutations::MessageArchivr
+
+    field :invite_user_to_list, mutation: Mutations::InviteUserToList
+    field :respond_to_list_invite, mutation: Mutations::RespondToListInvite
+    field :alter_list_membership, mutation: Mutations::AlterListMembership
+    field :delete_all_list_members, mutation: Mutations::DeleteAllListMembers
+    field :leave_list, mutation: Mutations::LeaveList
+    field :save_list, mutation: Mutations::SaveList
+
+    field :edit_media, mutation: Mutations::EditMedia
+
+    field :logout, mutation: Mutations::Logout
+    field :refresh_session, mutation: Mutations::RefreshSession
   end
 end

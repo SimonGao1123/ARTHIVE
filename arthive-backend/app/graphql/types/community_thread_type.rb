@@ -17,6 +17,7 @@ module Types
         field :image_details, [Types::ImageDetailsType], null: true
 
         field :review, Types::ReviewType, null: true
+        field :depth, Int, null: false
         field :has_review, Boolean, null: false
 
         def has_review
@@ -27,7 +28,7 @@ module Types
             return nil unless object.review_id.present?
             reviewed = object.review
             return nil unless reviewed
-            return nil unless User.if_visible_to_user(context[:current_user].id, reviewed.user_id)
+            return nil unless dataloader.with(Sources::UserVisibility, context[:current_user]&.id).load(reviewed.user_id)
             reviewed
         rescue GraphQL::ExecutionError
             nil
@@ -65,23 +66,34 @@ module Types
         
         field :child_threads_count, Int, null: false
         def child_threads_count
-            object.child_threads.count
+            object.child_threads_count
         end
 
         def likes_count
-            object.thread_likes.count
+            object.thread_likes_count
         end
 
         field :if_liked, Boolean, null: false
 
         def if_liked
-            object.thread_likes.exists?(user: context[:current_user])
+            return false unless context[:current_user]
+            if object.thread_likes.loaded?
+                object.thread_likes.any? { |like| like.user_id == context[:current_user].id }
+            else
+                object.thread_likes.exists?(user: context[:current_user])
+            end
         end
 
         def child_threads
             object.child_threads
-                .where(user_id: User.visible_to(context[:current_user].id).select(:id))
-                .order_threads(context[:current_user].id)
+                .with_attached_images
+                .includes(
+                    { user: { profile_picture_attachment: :blob } },
+                    { community: :media },
+                    :thread_likes
+                )
+                .where(user_id: User.visible_to(context[:current_user]&.id).select(:id))
+                .order_threads(context[:current_user]&.id)
         end
 
 

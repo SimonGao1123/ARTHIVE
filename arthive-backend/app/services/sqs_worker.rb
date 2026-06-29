@@ -1,9 +1,22 @@
+require "concurrent"
+
 class SqsWorker
+  POOL_SIZE = ENV.fetch("SQS_POOL_SIZE", 5).to_i
+
   def self.start
     return unless SQS_CLIENT && SQS_QUEUE_URL
 
+    # having fixed 5 threads to run SQS messages in parallel, don't need cost 
+    # of spinning up a new thread for each message
+    pool = Concurrent::FixedThreadPool.new(POOL_SIZE)
+
+    at_exit do
+      pool.shutdown
+      pool.wait_for_termination(30)
+    end
+
     Thread.new do
-      Rails.logger.info "[SQS] SQS poller started"
+      Rails.logger.info "[SQS] Poller started (pool size #{POOL_SIZE})"
       loop do
         begin
           response = SQS_CLIENT.receive_message(
@@ -14,21 +27,7 @@ class SqsWorker
 
           response.messages.each do |message|
 
-            payload = JSON.parse(message.body)
-
-            case payload["type"]
-            when "notification"
-              process_notification(message, payload)
-            when "review_summary"
-              process_review_summary(message, payload)
-            when "embedding"
-              process_embedding(message, payload)
-            else
-                SQS_CLIENT.delete_message(
-                    queue_url: SQS_QUEUE_URL,
-                    receipt_handle: message.receipt_handle
-                )
-            end
+            pool.post { handle_message(message) }
           end
         rescue => e
           Rails.logger.error "[SQS] Polling error: #{e.message}"
@@ -36,6 +35,35 @@ class SqsWorker
         end
       end
     end
+  end
+
+  def self.handle_message(message)
+    ActiveRecord::Base.connection_pool.with_connection do
+      payload = begin JSON.parse(message.body)
+      rescue JSON::ParserError => e
+        Rails.logger.error "[SQS] Failed to parse payload: #{e.message}"
+        SQS_CLIENT.delete_message(
+          queue_url: SQS_QUEUE_URL,
+          receipt_handle: message.receipt_handle
+        )
+        return
+      end
+      case payload["type"]
+      when "notification"
+        process_notification(message, payload)
+      when "review_summary"
+        process_review_summary(message, payload)
+      when "embedding"
+        process_embedding(message, payload)
+      else
+        SQS_CLIENT.delete_message(
+          queue_url: SQS_QUEUE_URL,
+          receipt_handle: message.receipt_handle
+        )
+      end
+    end
+  rescue => e
+    Rails.logger.error "[SQS] Worker crashed on #{message.message_id}: #{e.class}: #{e.message}"
   end
 
   def self.process_embedding(message, payload)
@@ -87,6 +115,8 @@ class SqsWorker
       parent_thread_id: payload["parent_thread_id"],
       comment_thread_id: payload["comment_thread_id"],
       follow_id:        payload["follow_id"],
+      list_id:          payload["list_id"],
+      list_member_id:   payload["list_member_id"],
     }.compact
 
     Notification.create!(attrs)

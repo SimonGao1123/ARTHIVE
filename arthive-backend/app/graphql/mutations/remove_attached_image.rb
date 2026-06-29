@@ -43,6 +43,23 @@ module Mutations
                     end
                     image.purge
                 end
+            when "media"
+                media = Media.find_by(id: resource_id)
+                if !media.present?
+                    raise GraphQL::ExecutionError, "Media #{resource_id} not found"
+                end
+
+                if !context[:current_user].if_admin?
+                    raise GraphQL::ExecutionError, "You are not an admin"
+                end
+                signed_ids.each do |signed_id|
+                    blob = ActiveStorage::Blob.find_signed(signed_id)
+                    image = media.cover_image_attachment.find_by(blob: blob)
+                    if !image.present?
+                        raise GraphQL::ExecutionError, "Image #{signed_id} not found"
+                    end
+                    image.purge
+                end
             end
             
             return true

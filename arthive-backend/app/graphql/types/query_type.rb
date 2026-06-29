@@ -24,6 +24,7 @@ module Types
     field :whoami, resolver: Resolvers::WhoamiResolver
     field :newest_explore_media, resolver: Resolvers::NewestExploreMediaResolver
     field :hottest_explore_media, resolver: Resolvers::HottestExploreMediaResolver
+    field :because_of_reviews_explore_media, resolver: Resolvers::BecauseOfReviewsExploreMediaResolver
     field :obtain_media_info, resolver: Resolvers::ObtainMediaInfoResolver
     field :search_bar, resolver: Resolvers::SearchBarResolver
     
@@ -39,8 +40,12 @@ module Types
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
     field :obtain_trending_threads, resolver: Resolvers::ObtainTrendingThreadsResolver
     field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
-    field :obtain_liked_or_finished_media, resolver: Resolvers::ObtainLikedOrFinishedMediaResolver
+    field :obtain_finished_media, resolver: Resolvers::ObtainFinishedMediaResolver
+    field :obtain_likes_page, resolver: Resolvers::ObtainLikesPageResolver
     field :obtain_archivr_conversation, resolver: Resolvers::ObtainArchivrConversationResolver
-
+    field :obtain_trending_lists, resolver: Resolvers::ObtainTrendingListsResolver
+    field :obtain_notifications, resolver: Resolvers::ObtainNotificationsResolver
+    field :list_invitation_user_search, resolver: Resolvers::ListInvitationUserSearchResolver
+    field :search_media_for_list, resolver: Resolvers::SearchMediaForListResolver
   end
 end

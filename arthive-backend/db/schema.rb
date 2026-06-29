@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_28_225824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.bigint "archivr_conversation_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.integer "prompt_rating"
     t.jsonb "references", default: {}
     t.string "role", null: false
     t.datetime "updated_at", null: false
@@ -82,13 +83,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   end
 
   create_table "community_threads", force: :cascade do |t|
+    t.integer "child_threads_count", default: 0, null: false
     t.bigint "community_id", null: false
     t.text "content", null: false
     t.datetime "created_at", null: false
+    t.integer "depth", default: 0
     t.vector "embedding", limit: 1024
     t.bigint "parent_thread_id"
     t.bigint "review_id"
     t.bigint "root_thread_id"
+    t.integer "thread_likes_count", default: 0, null: false
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
@@ -111,12 +115,48 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.index ["sender_id"], name: "index_follows_on_sender_id"
   end
 
+  create_table "list_likes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["list_id"], name: "index_list_likes_on_list_id"
+    t.index ["user_id"], name: "index_list_likes_on_user_id"
+  end
+
+  create_table "list_members", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "joined_at"
+    t.bigint "list_id", null: false
+    t.string "role", default: "member", null: false
+    t.bigint "sent_by_user_id"
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["list_id"], name: "index_list_members_on_list_id"
+    t.index ["sent_by_user_id"], name: "index_list_members_on_sent_by_user_id"
+    t.index ["user_id"], name: "index_list_members_on_user_id"
+  end
+
+  create_table "list_saves", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "list_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["list_id", "user_id"], name: "index_list_saves_on_list_id_and_user_id", unique: true
+    t.index ["list_id"], name: "index_list_saves_on_list_id"
+    t.index ["user_id"], name: "index_list_saves_on_user_id"
+  end
+
   create_table "lists", force: :cascade do |t|
     t.string "content_type", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.string "description"
     t.vector "embedding", limit: 1024
     t.boolean "if_private", default: false, null: false
+    t.integer "list_likes_count", default: 0, null: false
+    t.integer "list_saves_count", default: 0, null: false
+    t.integer "media_in_lists_count", default: 0, null: false
     t.string "name", null: false
     t.string "tags", default: [], null: false, array: true
     t.datetime "updated_at", null: false
@@ -138,6 +178,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.string "organization"
     t.integer "page_count"
     t.text "reviews_ai_summary"
+    t.integer "reviews_count", default: 0, null: false
     t.string "series_title"
     t.string "summary", null: false
     t.string "title", null: false
@@ -163,6 +204,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.bigint "comment_thread_id"
     t.datetime "created_at", null: false
     t.bigint "follow_id"
+    t.bigint "list_id"
+    t.bigint "list_member_id"
     t.string "message_id", null: false
     t.bigint "parent_thread_id"
     t.datetime "read_at"
@@ -173,11 +216,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.datetime "updated_at", null: false
     t.index ["comment_thread_id"], name: "index_notifications_on_comment_thread_id"
     t.index ["follow_id"], name: "index_notifications_on_follow_id"
+    t.index ["list_id"], name: "index_notifications_on_list_id"
+    t.index ["list_member_id"], name: "index_notifications_on_list_member_id"
     t.index ["parent_thread_id"], name: "index_notifications_on_parent_thread_id"
     t.index ["receiver_id"], name: "index_notifications_on_receiver_id"
     t.index ["review_comment_id"], name: "index_notifications_on_review_comment_id"
     t.index ["review_id"], name: "index_notifications_on_review_id"
     t.index ["sender_id"], name: "index_notifications_on_sender_id"
+  end
+
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.bigint "replaced_by_id"
+    t.datetime "revoked_at"
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["replaced_by_id"], name: "index_refresh_tokens_on_replaced_by_id"
+    t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
   end
 
   create_table "review_comments", force: :cascade do |t|
@@ -208,6 +266,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.boolean "if_finished", null: false
     t.bigint "media_id", null: false
     t.float "rating"
+    t.integer "review_comments_count", default: 0, null: false
+    t.integer "review_likes_count", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["embedding"], name: "index_reviews_on_embedding", opclass: :vector_cosine_ops, using: :ivfflat
@@ -232,8 +292,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
     t.datetime "created_at", null: false
     t.string "description"
     t.string "email", null: false
+    t.integer "followers_count", default: 0, null: false
+    t.integer "following_count", default: 0, null: false
     t.boolean "if_admin", default: false, null: false
     t.string "password_digest", null: false
+    t.integer "token_version", default: 0
     t.datetime "updated_at", null: false
     t.string "username", null: false
     t.string "visibility", default: "public", null: false
@@ -255,6 +318,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   add_foreign_key "community_threads", "users"
   add_foreign_key "follows", "users", column: "receiver_id"
   add_foreign_key "follows", "users", column: "sender_id"
+  add_foreign_key "list_likes", "lists"
+  add_foreign_key "list_likes", "users"
+  add_foreign_key "list_members", "lists"
+  add_foreign_key "list_members", "users"
+  add_foreign_key "list_members", "users", column: "sent_by_user_id"
+  add_foreign_key "list_saves", "lists"
+  add_foreign_key "list_saves", "users"
   add_foreign_key "lists", "users"
   add_foreign_key "media", "users"
   add_foreign_key "media_in_lists", "lists"
@@ -262,10 +332,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_034212) do
   add_foreign_key "notifications", "community_threads", column: "comment_thread_id"
   add_foreign_key "notifications", "community_threads", column: "parent_thread_id"
   add_foreign_key "notifications", "follows"
+  add_foreign_key "notifications", "list_members"
+  add_foreign_key "notifications", "lists"
   add_foreign_key "notifications", "review_comments"
   add_foreign_key "notifications", "reviews"
   add_foreign_key "notifications", "users", column: "receiver_id"
   add_foreign_key "notifications", "users", column: "sender_id"
+  add_foreign_key "refresh_tokens", "refresh_tokens", column: "replaced_by_id"
+  add_foreign_key "refresh_tokens", "users"
   add_foreign_key "review_comments", "reviews"
   add_foreign_key "review_comments", "users"
   add_foreign_key "review_likes", "reviews"

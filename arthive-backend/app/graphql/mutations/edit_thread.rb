@@ -16,13 +16,13 @@ module Mutations
                 raise GraphQL::ExecutionError, "Thread #{args[:thread_id]} not found"
             end
 
+            if thread.user.id != context[:current_user].id
+                raise GraphQL::ExecutionError, "You are not the owner of thread #{args[:thread_id]}"
+            end
+
             if args[:delete_thread]
                 thread.destroy!
                 return nil
-            end
-
-            if thread.user.id != context[:current_user].id
-                raise GraphQL::ExecutionError, "You are not the owner of thread #{args[:thread_id]}"
             end
             
             if args[:title].present? && (thread.parent_thread.present? || thread.root_thread.present?)

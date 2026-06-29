@@ -12,6 +12,8 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = false
 
+  # Bullet config + safelist lives in config/initializers/bullet.rb
+  # for bullet log: tail -f log/bullet.log
 
   # Show full error reports.
   config.consider_all_requests_local = true

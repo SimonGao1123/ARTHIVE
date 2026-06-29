@@ -6,14 +6,19 @@ module Resolvers
         argument :limit, Int, required: false, default_value: 10
 
         def resolve(media_id_scope:, limit:)
-            validate_user
-
             if limit < 1 || limit > 100
                 raise GraphQL::ExecutionError, "Limit must be between 1 and 100"
             end
 
             threads = CommunityThread.sort_by_trending
-                .where(user_id: User.visible_to(context[:current_user].id).select(:id))
+                .with_attached_images
+                .preload(
+                    { user: { profile_picture_attachment: :blob } },
+                    { community: :media },
+                    :thread_likes,
+                    :child_threads
+                )
+                .where(user_id: User.visible_to(context[:current_user]&.id).select(:id))
 
             if media_id_scope.present?
                 threads = threads.joins(:community).where(communities: { media_id: media_id_scope })

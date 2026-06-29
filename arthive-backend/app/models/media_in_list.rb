@@ -1,6 +1,6 @@
 class MediaInList < ApplicationRecord
     include SharedScopeMethods
-    belongs_to :list
+    belongs_to :list, counter_cache: true
     belongs_to :media
 
     validates :list_id, uniqueness: { scope: :media_id }

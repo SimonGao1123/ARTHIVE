@@ -6,11 +6,12 @@ class User < ApplicationRecord
     has_many :review_likes
     has_many :lists, dependent: :destroy
     has_many :community_threads, dependent: :destroy
+    has_many :list_members, dependent: :destroy
     has_many :thread_likes, dependent: :destroy
 
     has_many :notifications, foreign_key: "receiver_id"
 
-has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
+    has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
     has_many :received_follows, class_name: "Follow", foreign_key: "receiver_id"
 
     has_secure_password
@@ -36,28 +37,24 @@ has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
     end
     
     def content_type_reviews(content_type)
+        scope = self.reviews.includes(:user, :media, :review_comments, :review_likes).with_attached_images
         if content_type == "all"
-            self.reviews.includes(:review_comments, :review_likes)
+            scope
         else
-            self.reviews.includes(:review_comments, :review_likes).where(media: { content_type: content_type })
+            scope.where(media: { content_type: content_type })
         end
-    end
-    
-    def content_type_lists(content_type)
-        if content_type == "all"
-            self.lists.includes(media_in_lists: :media)
-        else
-            self.lists.where("content_type @> ARRAY[?]::varchar[]", [content_type]).includes(media_in_lists: :media)
-        end
-    end
-    
-    def followers_count
-        self.received_follows.where(status: Follow::STATUSES[:accepted]).count
     end
 
-    def following_count
-        self.sent_follows.where(status: Follow::STATUSES[:accepted]).count
+    def self.searchable_list_users(list)
+        member_ids = list.list_members.where.not(status: "rejected").pluck(:user_id)
+        member_ids << list.user_id
+
+        User.where.not(id: member_ids)
     end
+    
+    # followers_count and following_count are now stored on `users` and maintained
+    # by Follow's status-aware after_* callbacks. No instance method override; the
+    # column attribute reader is used directly.
 
     def pending_sent_follows_count
         self.sent_follows.where(status: Follow::STATUSES[:pending]).count
@@ -129,6 +126,10 @@ has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
             raise GraphQL::ExecutionError, "User not found"
         end
 
+        if user_id.nil?
+            return target_user.visibility == "public"
+        end
+
         follower_status = Follow.find_by(sender_id: user_id, receiver_id: target_user_id)
 
         if user_id.to_i == target_user_id.to_i || (follower_status.present? && follower_status.status == Follow::STATUSES[:accepted]) || target_user.visibility == "public"
@@ -187,12 +188,16 @@ has_many :sent_follows, class_name: "Follow", foreign_key: "sender_id"
         where('username ILIKE ?', "%#{query}%")
     }
     scope :visible_to, ->(current_user_id) {
-        where(
-            "users.visibility = 'public' OR users.id = :uid OR EXISTS (SELECT 1 FROM follows WHERE follows.sender_id = :uid AND follows.receiver_id = users.id AND follows.status = 'accepted')",
-            uid: current_user_id
-        )
+        if current_user_id.nil?
+            where(visibility: "public")
+        else
+            where(
+                "users.visibility = 'public' OR users.id = :uid OR EXISTS (SELECT 1 FROM follows WHERE follows.sender_id = :uid AND follows.receiver_id = users.id AND follows.status = 'accepted')",
+                uid: current_user_id
+            )
+        end
     }
     def self.search(query:, current_user_id:)
-        User.query_filter(query).visible_to(current_user_id)
+        User.query_filter(query).visible_to(current_user_id).with_attached_profile_picture
     end
 end

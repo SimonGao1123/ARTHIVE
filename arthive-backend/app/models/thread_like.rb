@@ -1,6 +1,6 @@
 class ThreadLike < ApplicationRecord
     include SharedScopeMethods
-    belongs_to :community_thread
+    belongs_to :community_thread, counter_cache: true
     belongs_to :user
 
     validates :community_thread_id, presence: true

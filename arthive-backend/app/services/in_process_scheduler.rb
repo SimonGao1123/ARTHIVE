@@ -1,14 +1,23 @@
 class InProcessScheduler
   def self.start
     return if Rails.env.test?
-    return if SQS_CLIENT.nil?
 
     scheduler = Rufus::Scheduler.new
 
-    scheduler.cron "0 * * * *" do # every day at midnight
-      enqueue_review_summaries
+    unless SQS_CLIENT.nil?
+      scheduler.cron "0 * * * *" do
+        enqueue_review_summaries
+      rescue => e
+        Rails.logger.error "[Scheduler] review_summaries tick failed: #{e.message}"
+      end
+    end
+
+    scheduler.cron "0 3 * * *" do # daily at 3am
+      Activity.cleanup_old_records
+      Notification.cleanup_old_records
+      RefreshToken.cleanup_expired
     rescue => e
-      Rails.logger.error "[Scheduler] review_summaries tick failed: #{e.message}"
+      Rails.logger.error "[Scheduler] activity_cleanup tick failed: #{e.message}"
     end
 
     Rails.logger.info "[Scheduler] in-process scheduler started"
@@ -25,4 +34,6 @@ class InProcessScheduler
       )
     end
   end
+
+  
 end
