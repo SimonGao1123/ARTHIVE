@@ -1,8 +1,7 @@
 import type { User } from "@/types/domain/user"
 import type { ListMemberType } from "@/types/mutations/list_mutations_types"
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function inviteUserToListFunction(
     inviteUserToList: any,
@@ -24,9 +23,7 @@ export function inviteUserToListFunction(
         if (member) onSuccess?.(member)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } else {
+        if (!handleMutationUnauth(error, setUser, navigate)) {
             onError?.(error.message ?? "Failed to send invite")
         }
     })

@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { CommunityThread } from "@/types/queries/thread_queries_types";
 import type { User } from "@/types/domain/user";
 import type { NavigateFunction } from "react-router-dom";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function obtainThreadData(
     threadId: string,
@@ -14,7 +14,7 @@ export function obtainThreadData(
     setChildThreads: Dispatch<SetStateAction<CommunityThread[]>>,
     setIfNextPage: (ifNextPage: boolean) => void,
     setUser: (user: User | null) => void,
-    _navigate: NavigateFunction,
+    navigate: NavigateFunction,
 ) {
     obtainThread({
         variables: {
@@ -51,6 +51,6 @@ export function obtainThreadData(
         setCursor(batch.childThreads.pageInfo.endCursor)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

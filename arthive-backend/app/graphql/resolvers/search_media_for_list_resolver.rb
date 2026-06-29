@@ -7,6 +7,8 @@ module Resolvers
         argument :list_id, ID, required: true
 
         def resolve(query:, list_id:)
+            validate_user
+            
             list = List.find(list_id)
             if !list.present?
                 raise GraphQL::ExecutionError, "List #{list_id} not found"

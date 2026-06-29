@@ -1,7 +1,6 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import type { Dispatch, SetStateAction } from "react"
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function saveListFunction(
     setCurrSaved: Dispatch<SetStateAction<boolean>>,
@@ -24,8 +23,6 @@ export function saveListFunction(
     }).catch((err: any) => {
         setCurrSaved(prev => !prev)
         setSaveCount((prev: number) => prev)
-        if (unauth_messages.includes(err.message)) {
-            logout(setUser, navigate)
-        }
+        handleMutationUnauth(err, setUser, navigate)
     })
 }

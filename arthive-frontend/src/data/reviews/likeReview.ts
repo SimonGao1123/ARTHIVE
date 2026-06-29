@@ -1,7 +1,6 @@
 import type { User } from "@/types/domain/user"
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function likeReviewFunction(setCurrLiked: (currLiked: boolean) => void, likeReview: any, reviewId: number, setUser: (user: User | null) => void, navigate: any, setLikeCount: (updater: number | ((prev: number) => number)) => void) {
     likeReview({
@@ -19,9 +18,8 @@ export function likeReviewFunction(setCurrLiked: (currLiked: boolean) => void, l
             setLikeCount((prev: any) => Number(prev) - 1)
         }
     }).catch((err: any) => {
-        if (unauth_messages.includes(err.message)) {
-            logout(setUser, navigate)
-        } else {
+        if (!handleMutationUnauth(err, setUser, navigate)) {
+            console.error(err)
         }
     })
 }

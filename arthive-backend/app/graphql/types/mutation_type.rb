@@ -42,5 +42,8 @@ module Types
     field :save_list, mutation: Mutations::SaveList
 
     field :edit_media, mutation: Mutations::EditMedia
+
+    field :logout, mutation: Mutations::Logout
+    field :refresh_session, mutation: Mutations::RefreshSession
   end
 end

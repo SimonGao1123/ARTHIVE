@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_26_171405) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_28_225824) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -225,6 +225,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_26_171405) do
     t.index ["sender_id"], name: "index_notifications_on_sender_id"
   end
 
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.bigint "replaced_by_id"
+    t.datetime "revoked_at"
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["replaced_by_id"], name: "index_refresh_tokens_on_replaced_by_id"
+    t.index ["token_digest"], name: "index_refresh_tokens_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
+  end
+
   create_table "review_comments", force: :cascade do |t|
     t.text "comment", null: false
     t.datetime "created_at", null: false
@@ -283,6 +296,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_26_171405) do
     t.integer "following_count", default: 0, null: false
     t.boolean "if_admin", default: false, null: false
     t.string "password_digest", null: false
+    t.integer "token_version", default: 0
     t.datetime "updated_at", null: false
     t.string "username", null: false
     t.string "visibility", default: "public", null: false
@@ -324,6 +338,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_26_171405) do
   add_foreign_key "notifications", "reviews"
   add_foreign_key "notifications", "users", column: "receiver_id"
   add_foreign_key "notifications", "users", column: "sender_id"
+  add_foreign_key "refresh_tokens", "refresh_tokens", column: "replaced_by_id"
+  add_foreign_key "refresh_tokens", "users"
   add_foreign_key "review_comments", "reviews"
   add_foreign_key "review_comments", "users"
   add_foreign_key "review_likes", "reviews"

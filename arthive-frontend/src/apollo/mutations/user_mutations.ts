@@ -3,8 +3,19 @@ import type {
     EditUserProfileInput, EditUserProfileResponse,
     LoginInput, LoginUserMutation,
     CreateUserInput, CreateUserMutation,
+    LogoutMutation,
 } from "@/types/mutations/user_mutations_types"
 
+export const REFRESH_SESSION_MUTATION: TypedDocumentNode<{refreshSession: boolean}> = gql`
+    mutation RefreshSession {
+        refreshSession(input: {})
+    }
+`
+export const LOGOUT_MUTATION: TypedDocumentNode<LogoutMutation> = gql`
+    mutation Logout {
+        logout(input: {})
+    }
+`
 export const EDIT_USER_PROFILE_MUTATION: TypedDocumentNode<EditUserProfileResponse, EditUserProfileInput> = gql`
     mutation EditUserProfile($input: EditUserProfileInput!) {
         editUserProfile(input: $input) {
@@ -23,7 +34,6 @@ export const EDIT_USER_PROFILE_MUTATION: TypedDocumentNode<EditUserProfileRespon
 export const LOGIN_USER: TypedDocumentNode<LoginUserMutation, LoginInput> = gql`
     mutation LoginUser($input: LoginInput!) {
         login(input: $input) {
-            token
             user {
                 id
                 username

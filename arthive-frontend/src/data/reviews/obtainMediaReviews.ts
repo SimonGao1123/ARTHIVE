@@ -1,6 +1,6 @@
 import type { ReviewsMediaSortEnum } from "@/types/queries/review_queries_types"
 import type { Review } from "@/types/domain/review"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { Dispatch, SetStateAction } from "react"
 
 export function obtainMediaReviewsFunction(
@@ -11,7 +11,7 @@ export function obtainMediaReviewsFunction(
     query: string,
     obtainMediaReviews: any,
     setReviews: Dispatch<SetStateAction<Review[]>>,
-    _navigate: any,
+    navigate: any,
     setUser: any,
     setIfNextPage: Dispatch<SetStateAction<boolean>>,
     sortBy: ReviewsMediaSortEnum
@@ -33,6 +33,6 @@ export function obtainMediaReviewsFunction(
             setIfNextPage(data.data.obtainMediaReviews.pageInfo.hasNextPage)
         })
         .catch((error: any) => {
-            handleReadUnauth(error, setUser)
+            handleMutationUnauth(error, setUser, navigate)
         })
 }

@@ -1,6 +1,5 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { uploadFileToS3 } from "./uploadFileToS3"
-import { unauth_messages } from "@/shared/utils/globalConstants"
 
 export function editMediaDetails(
     mediaData: any,
@@ -59,14 +58,7 @@ export function editMediaDetails(
             return
         }
         if (mediaData.cover_image) {
-            const jwt = localStorage.getItem("authToken")
-
-            if (!jwt) {
-                logout(setUser, navigate)
-                return
-            }
-
-            const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
+            const signedId = await uploadFileToS3(mediaData.cover_image);
             if (!signedId) {
                 alert("Error uploading cover image to S3")
                 return
@@ -79,12 +71,8 @@ export function editMediaDetails(
         }
         alert("Media details updated successfully")
     }).catch((err: any) => {
-        if (err.message && unauth_messages.includes(err.message)) {
-            logout(setUser, navigate)
-            return
-        }
+        if (handleMutationUnauth(err, setUser, navigate)) return
         alert("Failed to update media details")
-        return
     })
     
 }

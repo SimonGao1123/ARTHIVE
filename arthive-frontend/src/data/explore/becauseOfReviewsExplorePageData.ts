@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import type { MediaCardData, ContentTypeWithAll } from "@/types/common"
 
@@ -10,7 +10,7 @@ export type BecauseOfReviewsSource = {
 }
 
 export function becauseOfReviewsExplorePageData(
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
     currContentType: ContentTypeWithAll,
     limit: number,
@@ -48,6 +48,6 @@ export function becauseOfReviewsExplorePageData(
         setPrevCursor(payload.media.pageInfo.startCursor)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

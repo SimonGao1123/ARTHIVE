@@ -1,9 +1,8 @@
 import type { Dispatch, SetStateAction } from "react"
 import type { ArchivrMessage } from "@/types/queries/archivr_queries_types"
 import type { User } from "@/types/domain/user"
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function sendArchivrMessageFunction(
     messageArchivr: any,
@@ -28,10 +27,7 @@ export function sendArchivrMessageFunction(
             setMessages((prev) => [...prev, assistant])
         })
         .catch((error: any) => {
-            if (unauth_messages.includes(error.message)) {
-                logout(setUser, navigate)
-                return
-            }
+            if (handleMutationUnauth(error, setUser, navigate)) return
             setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
         })
 }

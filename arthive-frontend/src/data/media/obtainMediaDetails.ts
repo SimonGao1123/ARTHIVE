@@ -1,6 +1,6 @@
 import type { Media } from "@/types/domain/media";
 import type { User } from "@/types/domain/user";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function ObtainMediaDetailsFetch(getMediaInfo: any, navigate: any, setUser: (user: User | null) => void, mediaId: number, setMediaInfo: (mediaInfo: Media | null) => void) {
     getMediaInfo({ variables: { mediaId } })
@@ -8,7 +8,7 @@ export function ObtainMediaDetailsFetch(getMediaInfo: any, navigate: any, setUse
         setMediaInfo(data.data.obtainMediaInfo)
     })
     .catch((error: any) => {
-        if (handleReadUnauth(error, setUser)) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
         if (error.message === "Media not found") {
             navigate("/*")
         }

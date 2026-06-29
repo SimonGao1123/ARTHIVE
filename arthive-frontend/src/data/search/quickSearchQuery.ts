@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 // only for a specific type (no all type) and NO FILTERS, just query
 export function quickSearchQuery(
@@ -12,7 +12,7 @@ export function quickSearchQuery(
     setHasNextPage: (hasNextPage: boolean) => void,
     setCursor: (cursor: string | null) => void,
     setSearchResults: Dispatch<SetStateAction<any[]>>,
-    _navigate: any,
+    navigate: any,
     obtainQuickSearch: any
 ) {
     if (searchType != "media" && searchType != "user" && searchType != "review") {
@@ -56,7 +56,7 @@ export function quickSearchQuery(
                 break
         }
     }).catch((error: any) => {
-        if (handleReadUnauth(error, setUser)) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
         alert(error.message)
     })
 }

@@ -1,9 +1,8 @@
 
 import type { UserReview } from "@/types/domain/review";
-import { logout } from "@/data/auth/logout";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user";
 import { uploadMultipleFilesToS3 } from "@/data/media/uploadFileToS3";
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function createReviewFunction(
     uploadImageToS3: any,
@@ -35,12 +34,7 @@ export function createReviewFunction(
                 return
             }
             if (newReviewImages.length > 0) {
-                const jwt = localStorage.getItem("authToken")
-                if (!jwt) {
-                    logout(setUser, navigate)
-                    return
-                }
-                const signedIds = await uploadMultipleFilesToS3(newReviewImages.map((image) => image.file), jwt)
+                const signedIds = await uploadMultipleFilesToS3(newReviewImages.map((image) => image.file))
                 if (!signedIds) {
                     alert("Error uploading images to S3")
                     return
@@ -55,8 +49,6 @@ export function createReviewFunction(
         }
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } 
+        handleMutationUnauth(error, setUser, navigate) 
     })
 }

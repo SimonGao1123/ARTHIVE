@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function hottestExplorePageData(
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
     currContentType: "book" | "film" | "series" | "game" | "all",
     limit: number,
@@ -38,6 +38,6 @@ export function hottestExplorePageData(
         setPrevCursor(data.data.hottestExploreMedia.pageInfo.startCursor)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
     }

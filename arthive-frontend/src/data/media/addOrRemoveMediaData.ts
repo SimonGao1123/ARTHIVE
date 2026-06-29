@@ -1,7 +1,6 @@
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 // only supports adding one media to one list at a time
 export function addOrRemoveMediaData(
@@ -26,8 +25,6 @@ export function addOrRemoveMediaData(
         onSuccess?.()
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

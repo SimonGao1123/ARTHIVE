@@ -1,5 +1,5 @@
 import type { User } from "@/types/domain/user"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function ObtainUserProfileFetch(
     getUserProfile: any,
@@ -13,7 +13,7 @@ export function ObtainUserProfileFetch(
         setUserProfileData(data.data.obtainUserProfile)
     })
     .catch((error: any) => {
-        if (handleReadUnauth(error, setUser)) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
         if (error.message === "User not found") {
             navigate(`/*`)
         }

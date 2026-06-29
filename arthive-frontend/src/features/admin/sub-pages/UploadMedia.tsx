@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react"
-import { logout } from "@/data/auth/logout"
 import { Link, useNavigate } from "react-router-dom"
 import type { User } from "@/types/domain/user"
 import { mediaUpload } from "@/data/media/mediaUpload"
@@ -15,16 +14,10 @@ export default function UploadMedia({user, setUser}: {user: User, setUser: (user
 
     const [uploadImageToS3] = useMutation(UPLOAD_IMAGE_TO_S3_MUTATION);
 
-    // check if the user is logged in and is an admin
+    // not signed in or not admin → send home. App.tsx's whoami flow owns the auth state.
     useEffect(() => {
-        if (!user) {
-            logout(setUser, navigate)
-            return 
-        }
-
-        if (!user.ifAdmin) {
+        if (!user || !user.ifAdmin) {
             navigate("/")
-            return
         }
     }, [user])
 

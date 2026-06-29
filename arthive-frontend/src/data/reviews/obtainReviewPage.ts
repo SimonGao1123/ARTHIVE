@@ -2,7 +2,7 @@ import type React from "react";
 import type { MainReview } from "@/types/domain/review"
 import type { ReviewComment } from "@/types/domain/comment";
 import type { User } from "@/types/domain/user";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function obtainReviewPageFunction(
     reviewId: string,
@@ -11,7 +11,7 @@ export function obtainReviewPageFunction(
     setCursor: React.Dispatch<React.SetStateAction<string | null>>,
     limit: number,
     setUser: (user: User | null) => void,
-    _navigate: any,
+    navigate: any,
     obtainReviewPage: any,
     setMainReview: (mainReview: MainReview | null) => void,
     setReviewComments: React.Dispatch<React.SetStateAction<ReviewComment[]>>,
@@ -36,6 +36,6 @@ export function obtainReviewPageFunction(
         setCursor(data.data.obtainReviewPage.reviewComments.pageInfo.endCursor)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

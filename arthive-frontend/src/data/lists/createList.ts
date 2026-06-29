@@ -1,5 +1,4 @@
-import { logout } from "@/data/auth/logout"
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 export function createList(
     name: string,
     description: string,
@@ -26,8 +25,6 @@ export function createList(
     })
     .then((_data: any) => {
     }).catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

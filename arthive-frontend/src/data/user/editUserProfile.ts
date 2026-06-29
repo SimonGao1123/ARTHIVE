@@ -1,8 +1,7 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import { uploadFileToS3 } from "@/data/media/uploadFileToS3"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export async function EditUserProfileDataFetch(
     setUser: (user: User | null) => void,
@@ -38,14 +37,8 @@ export async function EditUserProfileDataFetch(
     }}})
     .then(async (data: any) => {
         if (data.data?.editUserProfile) {
-            const jwt = localStorage.getItem("authToken")
-            if (!jwt) {
-                logout(setUser, navigate)
-                return
-            }
-            
             if (profilePicture) {
-                const signedId = await uploadFileToS3(profilePicture, jwt);
+                const signedId = await uploadFileToS3(profilePicture);
                 if (!signedId) {
                     alert("Error uploading profile picture to S3")
                     return
@@ -60,9 +53,7 @@ export async function EditUserProfileDataFetch(
             alert("Profile updated successfully")
         }
     }).catch((error: { message?: string }) => {
-        if (error.message && unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } else {
+        if (!handleMutationUnauth(error, setUser, navigate)) {
             alert("Error editing user profile")
         }
     })

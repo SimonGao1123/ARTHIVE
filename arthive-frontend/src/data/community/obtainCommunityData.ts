@@ -1,7 +1,7 @@
 import type { User } from "@/types/domain/user";
 import type { Community } from "@/types/queries/thread_queries_types";
 import type { CommunityThread } from "@/types/queries/thread_queries_types";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 import type { Dispatch, SetStateAction } from "react";
 
 export function obtainCommunityData(
@@ -13,7 +13,7 @@ export function obtainCommunityData(
     setRootThreads: Dispatch<SetStateAction<CommunityThread[]>>,
     setCursor: Dispatch<SetStateAction<string | null>>,
     obtainCommunity: any,
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
     setIfNextPage: Dispatch<SetStateAction<boolean>>
 ) {
@@ -38,6 +38,6 @@ export function obtainCommunityData(
 
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

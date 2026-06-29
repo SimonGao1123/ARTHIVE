@@ -1,8 +1,7 @@
 import type { User } from "@/types/domain/user"
 import type { InvitableUser } from "@/types/queries/user_queries_types"
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function listInvitationUserSearchFunction(
     listInvitationUserSearch: any,
@@ -26,9 +25,7 @@ export function listInvitationUserSearchFunction(
         onResults(results)
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } else {
+        if (!handleMutationUnauth(error, setUser, navigate)) {
             onResults([])
         }
     })

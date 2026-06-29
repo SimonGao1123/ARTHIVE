@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { FollowData } from "@/types/queries/follow_queries_types"
 
 export function obtainFollowsDetailsFunction(
@@ -12,7 +12,7 @@ export function obtainFollowsDetailsFunction(
     setFollowsData: Dispatch<SetStateAction<FollowData[]>>,
     setUserData: Dispatch<SetStateAction<{id: string, username: string, profilePicture: string} | null>>,
     setCount: Dispatch<SetStateAction<number>>,
-    _navigate: any,
+    navigate: any,
     setUser: any,
     pageNum: number,
 ) {
@@ -32,6 +32,6 @@ export function obtainFollowsDetailsFunction(
         setTotalPages(batch.pageInfo.totalPages)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

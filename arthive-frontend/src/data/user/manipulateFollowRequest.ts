@@ -1,6 +1,5 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function manipulateFollowRequest(manipulateFollow: any, followId: string, manipulation: string, navigate: any, setFollowStatus: (followStatus: {id: string, status: string} | null) => void, setUser: (user: User) => void, obtainFollowsDetails?: () => void) {
 
     manipulateFollow({variables: {input: {followId: parseInt(followId), manipulation: manipulation}}})
@@ -14,10 +13,7 @@ export function manipulateFollowRequest(manipulateFollow: any, followId: string,
         obtainFollowsDetails?.()
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(navigate, setUser)
-        }
-        else {
+        if (!handleMutationUnauth(error, setUser, navigate)) {
             alert(error.message)
         }
     })

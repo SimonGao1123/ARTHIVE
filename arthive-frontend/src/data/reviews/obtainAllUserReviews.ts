@@ -1,5 +1,5 @@
 import type { AllReview } from "@/types/domain/review";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
 
@@ -13,7 +13,7 @@ export function obtainAllUserReviewsFunction(
     obtainAllUserReviews: any,
     setReviews: Dispatch<SetStateAction<AllReview[]>>,
     setTargetUser: Dispatch<SetStateAction<User | null>>,
-    _navigate: any,
+    navigate: any,
     setUser: any) {
 
         obtainAllUserReviews({
@@ -31,6 +31,6 @@ export function obtainAllUserReviewsFunction(
             setTargetUser(batch.user)
 
         }).catch((err: any) => {
-            handleReadUnauth(err, setUser)
+            handleMutationUnauth(err, setUser, navigate)
         })
     }

@@ -4,7 +4,6 @@ import type { LoginInput } from "@/types/mutations/user_mutations_types"
 import type { LoginUserMutation } from "@/types/mutations/user_mutations_types"
 import { LOGIN_USER } from "@/apollo/mutations/user_mutations"
 import type { User } from "@/types/domain/user"
-import { client } from "@/apollo/apollo"
 import { useNavigate } from "react-router-dom"
 
 type LoginPageProps = {
@@ -52,12 +51,10 @@ export default function Login({ setUser }: LoginPageProps) {
                     onClick={() => {
                         loginUser({ variables: { input: { email, password } } })
                             .then((loginData: any) => {
-                                if (loginData.data?.login.user && loginData.data.login.token) {
+                                if (loginData.data?.login.user) {
+                                    // auth cookie is set by the backend on this same response
                                     setUser(loginData.data.login.user)
-                                    localStorage.setItem("authToken", loginData.data.login.token)
-                                    client.resetStore()
                                     navigate("/")
-
                                 }
                             })
                             .catch(() => {})

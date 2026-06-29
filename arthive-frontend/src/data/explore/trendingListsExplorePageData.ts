@@ -1,9 +1,9 @@
 import type { ListType } from "@/types/queries/list_queries_types";
 import type { User } from "@/types/domain/user";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function trendingListsExplorePageData(
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
     currContentType: "book" | "film" | "series" | "game" | "all",
     limit: number,
@@ -35,6 +35,6 @@ export function trendingListsExplorePageData(
         setPrevCursor(data.data.obtainTrendingLists.pageInfo.startCursor)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

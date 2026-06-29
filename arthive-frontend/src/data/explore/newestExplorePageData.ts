@@ -1,9 +1,9 @@
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 
 export function NewestExplorePageDataFetch(
 
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
     contentType: "book" | "film" | "series" | "game" | "all",
     limit: number,
@@ -32,6 +32,6 @@ export function NewestExplorePageDataFetch(
         setIfNextPage(data.data.newestExploreMedia.pageInfo.hasNextPage ?? false)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

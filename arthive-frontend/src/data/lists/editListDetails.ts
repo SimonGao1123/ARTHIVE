@@ -1,9 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { ListType } from "@/types/queries/list_queries_types";
 import type { User } from "@/types/domain/user";
-import { logout } from "@/data/auth/logout";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function editListDetails(
     listId: string,
@@ -49,8 +48,6 @@ export function editListDetails(
         alert("List details edited successfully")
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

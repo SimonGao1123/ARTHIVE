@@ -40,7 +40,6 @@ function App() {
   const [whoami] = useLazyQuery<WhoamiResponse>(WHOAMI_QUERY, {
     fetchPolicy: "no-cache",
   })
-  console.log("LOCAL STORAGE TOKEN", localStorage.getItem("authToken"))
   useEffect(() => {
     if (location.pathname === "/login" || location.pathname === "/register") {
       setUser(null)
@@ -48,6 +47,8 @@ function App() {
     }
     whoAmIQuery(whoami, navigate, setUser)
   }, [location.pathname])
+
+  console.log(user)
 
   return (
     <>

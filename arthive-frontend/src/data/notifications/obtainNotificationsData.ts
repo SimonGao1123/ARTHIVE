@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react"
 import type { User } from "@/types/domain/user"
 import type { Notification, ObtainNotificationFilterEnum } from "@/types/queries/shared_queries_types"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function obtainNotificationsData(
     afterUnread: string | null,
@@ -18,7 +18,7 @@ export function obtainNotificationsData(
     setReadCount: (n: number) => void,
     filter: ObtainNotificationFilterEnum,
     obtainNotifications: any,
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
 ) {
     obtainNotifications({
@@ -58,6 +58,6 @@ export function obtainNotificationsData(
         }
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

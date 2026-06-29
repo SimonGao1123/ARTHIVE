@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { User } from "@/types/domain/user";
 import type { AllUserListType, RoleFilter } from "@/types/queries/list_queries_types";
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 
 export function obtainAllUserListsData(
     user_id: string,
@@ -12,7 +12,7 @@ export function obtainAllUserListsData(
     obtainAllUserLists: any,
     setLists: Dispatch<SetStateAction<AllUserListType[]>>,
     setTargetUser: Dispatch<SetStateAction<User | null>>,
-    _navigate: any,
+    navigate: any,
     setUser: any,
     pageNum: number,
     excludeMediaId: string | null,
@@ -35,6 +35,6 @@ export function obtainAllUserListsData(
         setTotalPages(batch.pageInfo.totalPages)
         setTargetUser(batch.user)
     }).catch((err: any) => {
-        handleReadUnauth(err, setUser)
+        handleMutationUnauth(err, setUser, navigate)
     })
 }

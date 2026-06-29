@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react"
 import type { User } from "@/types/domain/user"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function searchBarObtain(
     query: string,
@@ -18,7 +18,7 @@ export function searchBarObtain(
     setSearchResults: Dispatch<SetStateAction<any[]>>,
     setHasNextPage: Dispatch<SetStateAction<boolean>>,
     setUser: (user: User) => void,
-    _navigate: any,
+    navigate: any,
     obtainSearchBar: any
 ) {
     obtainSearchBar({
@@ -74,6 +74,6 @@ export function searchBarObtain(
         setHasNextPage(batch.medias.pageInfo.hasNextPage || batch.users.pageInfo.hasNextPage || batch.reviews.pageInfo.hasNextPage || batch.lists.pageInfo.hasNextPage || batch.threads.pageInfo.hasNextPage)
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

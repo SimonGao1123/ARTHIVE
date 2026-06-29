@@ -1,7 +1,6 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { uploadFileToS3 } from "@/data/media/uploadFileToS3"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 
 export async function mediaUpload(mediaData: any, setUser: any, navigate: any, createMedia: any, uploadImageToS3: any) {
@@ -60,14 +59,7 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
         organization: mediaData.organization,
     }}).then(async(data: any) => {
         if (data.data.createMedia.id) {
-            const jwt = localStorage.getItem("authToken")
-            if (!jwt) {
-                logout(setUser, navigate)
-                return
-            }
-            
-            
-            const signedId = await uploadFileToS3(mediaData.cover_image, jwt);
+            const signedId = await uploadFileToS3(mediaData.cover_image);
             if (!signedId) {
                 alert("Error uploading cover image to S3")
                 return
@@ -83,9 +75,7 @@ export async function mediaUpload(mediaData: any, setUser: any, navigate: any, c
             alert("Media uploaded successfully")
         }
     }).catch((error: { message?: string }) => {
-        if (error.message && unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        } else {
+        if (!handleMutationUnauth(error, setUser, navigate)) {
             alert("Error creating media")
         }
     })

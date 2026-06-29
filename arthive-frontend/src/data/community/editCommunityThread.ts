@@ -1,7 +1,6 @@
 import type { User } from "@/types/domain/user"
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { uploadMultipleFilesToS3 } from "@/data/media/uploadFileToS3"
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 export function editCommunityThread (
     threadId: string,
     content: string,
@@ -27,12 +26,7 @@ export function editCommunityThread (
         deleteThread}}})
     .then(async (data: any) => {
         if (newImages.length > 0 && deleteThread === false && content) {
-            const jwt = localStorage.getItem("authToken")
-            if (!jwt) {
-                logout(setUser, navigate)
-                return
-            }
-            const signedIds = await uploadMultipleFilesToS3(newImages.map((image) => image.file), jwt)
+            const signedIds = await uploadMultipleFilesToS3(newImages.map((image) => image.file))
             if (!signedIds) {
                 alert("Error uploading images to S3")
                 return
@@ -47,10 +41,7 @@ export function editCommunityThread (
 
     })
     .catch((error: any) => {
-        if (error.message && unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-            return
-        }
+        if (handleMutationUnauth(error, setUser, navigate)) return
         alert(error.message)
     })
 }

@@ -32,6 +32,12 @@ export type LoginUserMutation = {
     }
 }
 
+// ────────────── LOGOUT ──────────────
+
+export type LogoutMutation = {
+    logout: boolean
+}
+
 // ────────────── CREATE_USER ──────────────
 
 export type CreateUserInput = {

@@ -1,22 +1,15 @@
 import type { User } from "@/types/domain/user"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect } from "react"
-import { logout } from "@/data/auth/logout"
 
-export default function AdminPage({user, setUser}: {user: User, setUser: (user: User | null) => void}) {
+export default function AdminPage({user, setUser: _setUser}: {user: User, setUser: (user: User | null) => void}) {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // check if the user is logged in and is an admin
+    // not signed in or not admin → send home. App.tsx's whoami flow owns the auth state.
     useEffect(() => {
-        if (!user) {
-            logout(setUser, navigate)
-            return 
-        }
-
-        if (!user.ifAdmin) {
+        if (!user || !user.ifAdmin) {
             navigate("/")
-            return
         }
     }, [user])
 

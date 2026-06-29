@@ -1,7 +1,6 @@
-import { logout } from "@/data/auth/logout"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 
-const unauth_messages = ["EXPIRED_TOKEN", "INVALID_TOKEN", "NO_TOKEN", "USER_NOT_FOUND"]
 
 export function deleteAllListMembersData(
     listId: string,
@@ -16,8 +15,6 @@ export function deleteAllListMembersData(
         }
     })
     .catch((error: any) => {
-        if (unauth_messages.includes(error.message)) {
-            logout(setUser, navigate)
-        }
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

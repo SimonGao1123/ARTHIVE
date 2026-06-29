@@ -1,13 +1,13 @@
 import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import type { Dispatch, SetStateAction } from "react"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function obtainTrendingThreadsFunction(
     obtainTrendingThreads: any,
     limit: number,
     mediaIdScope: string | null,
     setThreads: Dispatch<SetStateAction<CommunityThread[]>>,
-    _navigate: any,
+    navigate: any,
     setUser: any
 ) {
     obtainTrendingThreads({ variables: { limit, mediaIdScope } })
@@ -15,6 +15,6 @@ export function obtainTrendingThreadsFunction(
             setThreads(data.data.obtainTrendingThreads)
         })
         .catch((error: any) => {
-            handleReadUnauth(error, setUser)
+            handleMutationUnauth(error, setUser, navigate)
         })
 }

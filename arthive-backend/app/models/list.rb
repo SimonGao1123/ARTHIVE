@@ -252,7 +252,7 @@ class List < ApplicationRecord
         end
     end
 
-    def normalize_likes_saves_for_owner(owner_id)
+    def self.normalize_likes_saves_for_owner(owner_id)
         List.where(user_id: owner_id).find_each { |list| list.normalize_likes_saves_for_list }
     end
 

@@ -1,11 +1,11 @@
 import type { Dispatch, SetStateAction } from "react"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function obtainRecentUserActivityFunction(
     userId: string,
     setRecentUserActivity: any,
     setUser: any,
-    _navigate: any,
+    navigate: any,
     obtainRecentUserActivity: any,
     cursor: string | null,
     setCursor: Dispatch<SetStateAction<string | null>>,
@@ -29,6 +29,6 @@ export function obtainRecentUserActivityFunction(
         })
     })
     .catch((error: any) => {
-        handleReadUnauth(error, setUser)
+        handleMutationUnauth(error, setUser, navigate)
     })
 }

@@ -8,6 +8,9 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
+// No dev proxy: the browser talks to the backend directly (VITE_API_URL).
+// Cookies flow because frontend + backend stay same-site (CORS allows the
+// origin with credentials). Keep them on one registrable domain in prod too.
 export default defineConfig({
   plugins: [
     react(),

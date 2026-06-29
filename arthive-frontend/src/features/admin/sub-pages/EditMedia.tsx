@@ -1,4 +1,3 @@
-import { logout } from "@/data/auth/logout"
 import type { User } from "@/types/domain/user"
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, type NavigateFunction } from "react-router-dom"
@@ -18,16 +17,10 @@ type Props = {
 export default function EditMedia({user, setUser}: Props) {
     const navigate = useNavigate()
 
-    // check if the user is logged in and is an admin
+    // not signed in or not admin → send home. App.tsx's whoami flow owns the auth state.
     useEffect(() => {
-        if (!user) {
-            logout(setUser, navigate)
-            return
-        }
-
-        if (!user.ifAdmin) {
+        if (!user || !user.ifAdmin) {
             navigate("/")
-            return
         }
     }, [user])
 

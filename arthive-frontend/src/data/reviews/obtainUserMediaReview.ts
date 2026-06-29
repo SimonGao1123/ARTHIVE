@@ -1,4 +1,4 @@
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import type { UserReview } from "@/types/domain/review"
 
@@ -8,7 +8,7 @@ export function obtainUserMediaReview(setUserReview: (userReview: UserReview | n
         setUserReview(data.data.obtainUserReview)
     })
     .catch((error: any) => {
-        if (handleReadUnauth(error, setUser)) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
         if (error.message === "Review not found") {
             navigate("/*")
         }

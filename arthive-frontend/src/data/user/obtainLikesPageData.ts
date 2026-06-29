@@ -3,7 +3,7 @@ import type { Media } from "@/types/domain/media"
 import type { User } from "@/types/domain/user"
 import type { AllUserListType } from "@/types/queries/list_queries_types"
 import type { LikedReview, LikesType } from "@/types/queries/shared_queries_types"
-import { handleReadUnauth } from "@/data/auth/handleReadUnauth"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function obtainLikesPageData(
     user_id: string,
@@ -18,7 +18,7 @@ export function obtainLikesPageData(
     setLists: Dispatch<SetStateAction<AllUserListType[]>>,
     setTotalPages: Dispatch<SetStateAction<number>>,
     setPageUser: Dispatch<SetStateAction<{ id: string, username: string } | null>>,
-    _navigate: any,
+    navigate: any,
     setUser: (user: User | null) => void,
 ) {
     obtainLikesPage({
@@ -38,6 +38,6 @@ export function obtainLikesPageData(
         else if (type === "reviews") setReviews(batch.reviews ?? [])
         else if (type === "lists") setLists(batch.lists ?? [])
     }).catch((err: any) => {
-        handleReadUnauth(err, setUser)
+        handleMutationUnauth(err, setUser, navigate)
     })
 }
