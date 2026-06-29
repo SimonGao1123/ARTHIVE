@@ -6,7 +6,7 @@ TEST_EXPIRATION = 10.seconds
 class JsonWebToken
   SECRET_KEY = Rails.application.secret_key_base
 
-  def self.encode(payload, exp: TEST_EXPIRATION.from_now)
+  def self.encode(payload, exp: DEFAULT_EXPIRATION.from_now)
     payload[:exp] = exp.to_i
     JWT.encode(payload, SECRET_KEY, 'HS256')
   end
