@@ -167,9 +167,16 @@ export function InputField({title, type, value, setter, can_be_empty}: {title: s
     const handleChange = (val: string) => {
         if (can_be_empty && val === "") {
             setter(null)
-        } else {
-            setter(val)
+            return
         }
+        if (type === "number") {
+            // HTML inputs always return strings; the GraphQL Int scalar
+            // rejects "300". Parse first; ignore non-numeric typing.
+            const n = parseInt(val, 10)
+            setter(Number.isNaN(n) ? null : n)
+            return
+        }
+        setter(val)
     }
     return (
         <div>
@@ -230,42 +237,62 @@ export function ContentTypeRadio({content_type, setContentType}: {content_type: 
 
 export function GenreInput({genre, setGenre}: {genre: string[], setGenre: (genre: string[]) => void}) {
     const [currGenre, setCurrGenre] = useState<string>("")
-    const visibleGenres = ALL_GENRES.filter((g) => {
-        const q = currGenre.toLowerCase()
-        const gl = g.toLowerCase()
-        return genre.includes(gl) || (currGenre !== "" && gl.startsWith(q))
-    })
+    const lcInput = currGenre.toLowerCase().trim()
+    // Original casing lookup so base genres render "Drama" not "drama".
+    const baseDisplay = new Map(ALL_GENRES.map(g => [g.toLowerCase(), g]))
+    const baseSuggestions = ALL_GENRES
+        .map(g => g.toLowerCase())
+        .filter(gl => !genre.includes(gl) && (lcInput === "" || gl.startsWith(lcInput)))
+
+    const addCustomGenre = () => {
+        if (!lcInput) return
+        if (!genre.includes(lcInput)) setGenre([...genre, lcInput])
+        setCurrGenre("")
+    }
+
     return (
         <div>
             <label htmlFor="genre" className="block text-xs text-gray-400 mb-1.5">Genres</label>
-            <input
-                type="text"
-                value={currGenre}
-                onChange={(e) => setCurrGenre(e.target.value)}
-                id="genre"
-                placeholder="Search genres…"
-                className="w-full bg-[#0a090c] border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 transition mb-2"
-            />
-            {visibleGenres.length > 0 && (
+            <div className="flex gap-2 mb-2">
+                <input
+                    type="text"
+                    value={currGenre}
+                    onChange={(e) => setCurrGenre(e.target.value)}
+                    id="genre"
+                    placeholder="Search or add custom…"
+                    className="flex-1 bg-[#0a090c] border border-white/10 rounded-full px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 transition"
+                />
+                <button
+                    type="button"
+                    onClick={addCustomGenre}
+                    disabled={lcInput === ""}
+                    className="px-4 py-2.5 rounded-full text-xs border border-violet-500/40 text-violet-300 hover:bg-violet-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                    Add custom genre
+                </button>
+            </div>
+            {(genre.length > 0 || baseSuggestions.length > 0) && (
                 <div className="flex flex-wrap gap-2">
-                    {visibleGenres.map((g) => {
-                        const gl = g.toLowerCase()
-                        const selected = genre.includes(gl)
-                        return (
-                            <button
-                                key={g}
-                                type="button"
-                                onClick={() => setGenre(selected ? genre.filter((g2) => g2 !== gl) : [...genre, gl])}
-                                className={`px-3 py-1 rounded-full text-xs border transition-all ${
-                                    selected
-                                        ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
-                                        : "border-white/10 text-gray-400 hover:text-white hover:border-white/20"
-                                }`}
-                            >
-                                {g}
-                            </button>
-                        )
-                    })}
+                    {genre.map((gl) => (
+                        <button
+                            key={`sel-${gl}`}
+                            type="button"
+                            onClick={() => setGenre(genre.filter((g2) => g2 !== gl))}
+                            className="px-3 py-1 rounded-full text-xs border bg-violet-500/20 border-violet-500/40 text-violet-300"
+                        >
+                            {baseDisplay.get(gl) ?? gl}
+                        </button>
+                    ))}
+                    {baseSuggestions.map((gl) => (
+                        <button
+                            key={`sug-${gl}`}
+                            type="button"
+                            onClick={() => setGenre([...genre, gl])}
+                            className="px-3 py-1 rounded-full text-xs border border-white/10 text-gray-400 hover:text-white hover:border-white/20 transition-all"
+                        >
+                            {baseDisplay.get(gl) ?? gl}
+                        </button>
+                    ))}
                 </div>
             )}
         </div>

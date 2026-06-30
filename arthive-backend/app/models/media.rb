@@ -9,17 +9,19 @@ class Media < ApplicationRecord
         game: "game"
     }.freeze
 
-    GENRES = [
-        "drama", "comedy", "romance", 
-        "action", "adventure", "horror", "thriller", 
-        "mystery", "crime", "science fiction", "fantasy", 
-        "animation", "musical", "family", "western", 
-        "war", "historical", "biographical", 
-        "documentary", "experimental", "superhero", 
-        "disaster", "survival", "sports", "spy", 
-        "political", "road movie", "coming of age", 
-        "slice of life", "noir"
-    ].freeze
+    # GENRES = [
+    #     "drama", "comedy", "romance", 
+    #     "action", "adventure", "horror", "thriller", 
+    #     "mystery", "crime", "science fiction", "fantasy", 
+    #     "animation", "musical", "family", "western", 
+    #     "war", "historical", "biographical", 
+    #     "documentary", "experimental", "superhero", 
+    #     "disaster", "survival", "sports", "spy", 
+    #     "political", "road movie", "coming of age", 
+    #     "slice of life", "noir"
+    # ].freeze
+
+    # only filter by those base genres but allow other genres for display purposes
 
 
     belongs_to :user # user_id is the id of the user who created the media
@@ -41,7 +43,7 @@ class Media < ApplicationRecord
 
     has_neighbors :embedding
 
-    validate :validate_genres
+    # validate :validate_genres
 
     after_commit :enqueue_embedding, on: [:create, :update], if: -> { saved_change_to_title? || saved_change_to_summary? }
 
@@ -68,14 +70,14 @@ class Media < ApplicationRecord
         )
     end
     
-    def validate_genres
-        return if genre.blank?
+    # def validate_genres
+    #     return if genre.blank?
 
-        invalid = genre.select { |g| !GENRES.include?(g.downcase) }
-        if !invalid.blank?
-            errors.add(:genre, "Invalid genres: #{invalid.join(", ")}")
-        end
-    end
+    #     invalid = genre.select { |g| !GENRES.include?(g.downcase) }
+    #     if !invalid.blank?
+    #         errors.add(:genre, "Invalid genres: #{invalid.join(", ")}")
+    #     end
+    # end
 
     public
 
