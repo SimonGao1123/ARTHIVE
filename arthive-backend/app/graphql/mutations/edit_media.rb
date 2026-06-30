@@ -33,13 +33,6 @@ module Mutations
             
             updates = args.except(:media_id, :if_deleted)
 
-            if updates[:genre].present?
-                updates[:genre] = updates[:genre].map(&:downcase)
-                invalid = updates[:genre].select { |g| !Media::GENRES.include?(g) }
-                if !invalid.blank?
-                    raise GraphQL::ExecutionError, "Invalid genres: #{invalid.join(", ")}"
-                end
-            end
 
             media.update!(updates)
             return media
