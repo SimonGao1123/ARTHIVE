@@ -61,4 +61,5 @@ test:
 production:
   <<: *default
   url: <%= ENV["PROD_DATABASE_URL"] %>
+  sslmode: require
 # LATER utilize caching, already using sqs for queueing
