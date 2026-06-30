@@ -1,4 +1,4 @@
-import { useLazyQuery } from "@apollo/client/react"
+import { useQuery } from "@apollo/client/react"
 import { OBTAIN_MEDIA_INFO_QUERY } from "@/apollo/queries/media_queries"
 import type { ObtainMediaInfoInput, ObtainMediaInfoResponse } from "@/types/queries/media_queries_types"
 import type { User } from "@/types/domain/user"
@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import type { Media } from "@/types/domain/media"
 import type { Review, UserReview } from "@/types/domain/review"
 import { useEffect, useState } from "react"
-import { ObtainMediaDetailsFetch } from "@/data/media/obtainMediaDetails"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { MediaInfoArticle } from "@/features/media/components/MediaInfoArticle"
 import UserMediaReview from "@/features/reviews/components/UserMediaReview"
 import { contentTypeColor } from "@/shared/utils/contentTypeColors"
@@ -21,34 +21,32 @@ type MediaInfoPageProps = {
 
 export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
     const { id } = useParams()
-
     const navigate = useNavigate()
-    const [getMediaInfo, { error, loading }] = useLazyQuery<
-        ObtainMediaInfoResponse,
-        ObtainMediaInfoInput
-    >(OBTAIN_MEDIA_INFO_QUERY)
-    const [mediaInfo, setMediaInfo] = useState<Media | null>(null)
+
+    const mediaId = id != null && id !== "" ? Number(id) : NaN
+    const isValidId = Number.isFinite(mediaId)
 
     useEffect(() => {
-        const mediaId = id != null && id !== "" ? Number(id) : NaN
-        if (!Number.isFinite(mediaId)) {
-            navigate("/", { replace: true })
-            return
-        }
-        try {
-            ObtainMediaDetailsFetch(
-                getMediaInfo,
-                navigate,
-                setUser,
-                mediaId,
-                setMediaInfo
-            )
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : String(err)
-            void message
-            navigate("/", { replace: true })
-        }
-    }, [id])
+        if (!isValidId) navigate("/", { replace: true })
+    }, [isValidId])
+
+    const { data, loading, error } = useQuery<ObtainMediaInfoResponse, ObtainMediaInfoInput>(
+        OBTAIN_MEDIA_INFO_QUERY,
+        { variables: { mediaId }, skip: !isValidId }
+    )
+
+    // Local mirror of the fetched media so children (e.g. MediaInfoArticle)
+    // can optimistically mutate it without round-tripping the query.
+    const [mediaInfo, setMediaInfo] = useState<Media | null>(null)
+    useEffect(() => {
+        if (data?.obtainMediaInfo) setMediaInfo(data.obtainMediaInfo)
+    }, [data])
+
+    useEffect(() => {
+        if (!error) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
+        if (error.message === "Media not found") navigate("/*")
+    }, [error])
 
     const showContent = Boolean(mediaInfo) && !loading
 

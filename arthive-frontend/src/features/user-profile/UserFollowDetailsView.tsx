@@ -14,7 +14,7 @@ type UserFollowDetailsProps = {
     user: User | null
 }
 
-const LIMIT = 2
+const LIMIT = 10
 const VALID_FOLLOW_TYPES = ["followers", "following", "pending_sent_follows", "pending_received_follows"]
 
 const FOLLOW_TYPE_LABEL: Record<string, string> = {

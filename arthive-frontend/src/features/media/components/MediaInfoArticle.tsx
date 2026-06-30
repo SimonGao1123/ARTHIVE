@@ -2,7 +2,6 @@ import { useMutation } from "@apollo/client/react"
 import type { Media } from "@/types/domain/media"
 import type { AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput } from "@/types/mutations/media_mutations_types"
 import { ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION } from "@/apollo/mutations/media_mutations"
-import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { addOrRemoveMediaData } from "@/data/media/addOrRemoveMediaData"
 import type { User } from "@/types/domain/user"
@@ -10,14 +9,7 @@ import DisplayRating from "@/features/reviews/components/DisplayRating"
 
 export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Media, setUser: (user: User | null) => void, setMediaInfo: (mediaInfo: Media | null) => void}) {
     const [addOrRemoveMediaInListMutation, {loading, error}] = useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
-    const [removeListId, setRemoveListId] = useState<string>("")
     const navigate = useNavigate()
-
-    useEffect(() => {
-        if (removeListId !== "") {
-            addOrRemoveMediaData(addOrRemoveMediaInListMutation, removeListId, [media.id.toString()], setUser, navigate, false)
-        }
-    }, [removeListId])
 
     return (
         <article
@@ -126,7 +118,7 @@ export function MediaInfoArticle({ media, setUser, setMediaInfo }: { media: Medi
                                 <span>{list.name}</span>
                                 <button
                                     onClick={() => {
-                                        setRemoveListId(list.id)
+                                        addOrRemoveMediaData(addOrRemoveMediaInListMutation, list.id, [media.id.toString()], setUser, navigate, false)
                                         setMediaInfo({...media, inLists: media.inLists.filter((l) => l.id !== list.id)})
                                     }}
                                     className="text-gray-400 hover:text-white transition"

@@ -44,7 +44,7 @@ export default function SearchPageResults({ setUser }: { setUser: (user: User) =
     })
 
     const isValidSearchType = searchType === "all" || searchType === "media" || searchType === "user" || searchType === "review" || searchType === "list" || searchType === "thread"
-    const LIMIT = searchType === "all" ? 2 : 10
+    const LIMIT = searchType === "all" ? 3 : 15
 
     useEffect(() => {
         if (!searchParams.get("query") || !isValidSearchType) navigate("/")

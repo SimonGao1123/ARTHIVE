@@ -12,7 +12,7 @@ import { ArchivrLogo } from "@/shared/components/StyledComponents"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
 import SignInPrompt from "@/shared/components/SignInPrompt"
 
-const LIMIT = 2
+const LIMIT = 10
 
 
 type MediaReviewsProps = {
