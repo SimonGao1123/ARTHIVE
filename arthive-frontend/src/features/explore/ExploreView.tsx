@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 import { useState } from "react"
 import ContentFilter from "@/shared/components/ContentFilter"
 import TrendingLists from "@/features/explore/components/TrendingLists"
+import TrendingReviewsCarousel from "@/features/explore/components/TrendingReviewsCarousel"
 
 type ExplorePageProps = {
     setUser: (user: User | null) => void
@@ -65,6 +66,13 @@ export default function ExplorePage({ setUser, user }: ExplorePageProps) {
                 {<TrendingLists setUser={setUser} currContentType={currContentType} limit={LIMIT} />}
             </section>
             
+            <section className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold text-white">Trending Reviews</span>
+                    <span className="text-xs text-gray-500">Most discussed this week</span>
+                </div>
+                <TrendingReviewsCarousel setUser={setUser} currContentType={currContentType} limit={LIMIT} />
+            </section>
         </div>
     )
 }

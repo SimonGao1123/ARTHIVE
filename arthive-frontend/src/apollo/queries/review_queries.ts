@@ -4,7 +4,57 @@ import type {
     ObtainAllUserReviewsInput, ObtainAllUserReviewsResponse,
     ObtainUserReviewInput, ObtainUserReviewResponse,
     ObtainReviewPageInput, ObtainReviewPageResponse,
+    ObtainTrendingReviewsInput, ObtainTrendingReviewsResponse,
 } from "@/types/queries/review_queries_types"
+
+export const OBTAIN_TRENDING_REVIEWS_QUERY: TypedDocumentNode<ObtainTrendingReviewsResponse, ObtainTrendingReviewsInput> = gql`
+    query ObtainTrendingReviews(
+        $contentType: ContentTypeEnum,
+        $first: Int, $after: String,
+        $last: Int, $before: String
+    ) {
+        obtainTrendingReviews(
+            contentType: $contentType,
+            first: $first, after: $after,
+            last: $last, before: $before
+        ) {
+            edges {
+                node {
+                    id
+                    content
+                    rating
+                    ifFavorite
+                    ifFinished
+                    updatedAt
+                    user {
+                        id
+                        username
+                        profilePicture
+                    }
+                    media {
+                        id
+                        title
+                        coverImage
+                    }
+                    likeCount
+                    commentCount
+                    ifLiked
+                    imageDetails {
+                        signedId
+                        url
+                    }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+                startCursor
+                hasPreviousPage
+            }
+        }
+    }
+`;
+
 export const OBTAIN_MEDIA_REVIEWS_QUERY: TypedDocumentNode<ObtainMediaReviewsResponse, ObtainMediaReviewsInput> = gql`
     query ObtainMediaReviews($mediaId: Int!, $query: String, $first: Int, $after: String, $sortBy: ReviewsMediaSortEnum) {
         obtainMediaReviews(mediaId: $mediaId, query: $query, first: $first, after: $after, sortBy: $sortBy) {

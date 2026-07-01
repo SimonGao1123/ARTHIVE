@@ -89,13 +89,14 @@ class Review < ApplicationRecord
     # alias) so eager_loaded chains (e.g. `.includes(...).with_attached_images`)
     # don't trip on a SELECT-DISTINCT alias-not-found error.
     scope :sort_by_trending, -> {
-        order(Arel.sql(<<~SQL.squish))
+        order(Arel.sql(<<~SQL.squish
             (
-              (SELECT COUNT(*) FROM review_likes WHERE review_likes.review_id = reviews.id)
+              (SELECT COUNT(*) FROM review_likes WHERE created_at > NOW() - INTERVAL '7 days' AND review_likes.review_id = reviews.id)
               +
-              (SELECT COUNT(*) FROM review_comments WHERE review_comments.review_id = reviews.id) * 2
+              (SELECT COUNT(*) FROM review_comments WHERE created_at > NOW() - INTERVAL '7 days' AND review_comments.review_id = reviews.id) * 2
             ) DESC
         SQL
+        ))
         .includes(:user, :media)
     }
 
@@ -154,7 +155,9 @@ class Review < ApplicationRecord
         end
     }
     scope :content_type_filter, ->(content_type) {
-        where(media_id: Media.where(content_type: content_type).select(:id))
+        if content_type != "all"
+            where(media_id: Media.where(content_type: content_type).select(:id))
+        end
     }
     scope :genre_filter, ->(genre) {
         where(media_id: Media.genre_filter(genre).select(:id))

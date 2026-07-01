@@ -1,6 +1,27 @@
 import type { AllReview, ReviewPage, UserReview, Review } from "@/types/domain/review"
 import type { User } from "@/types/domain/user"
 
+// -------------- Trending Reviews Query --------------
+
+export type ObtainTrendingReviewsResponse = {
+    obtainTrendingReviews: {
+        edges: { node: Review }[]
+        pageInfo: {
+            startCursor: string | null
+            endCursor: string | null
+            hasNextPage: boolean
+            hasPreviousPage: boolean
+        }
+    }
+}
+
+export type ObtainTrendingReviewsInput = {
+    contentType: "book" | "film" | "series" | "game" | "all"
+    first?: number | null
+    after?: string | null
+    last?: number | null
+    before?: string | null
+}
 // ────────────── OBTAIN_ALL_USER_REVIEWS_QUERY ──────────────
 
 export type ObtainAllUserReviewsResponse = {
