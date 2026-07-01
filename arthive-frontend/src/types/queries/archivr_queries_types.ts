@@ -3,7 +3,6 @@ import type { ListType } from "@/types/queries/list_queries_types"
 import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import type { Media } from "@/types/domain/media"
 
-
 export type ArchivrMessage = {
     id: string
     content: string
@@ -18,12 +17,10 @@ export type ArchivrMessage = {
 export type ObtainArchivrConversationResponse = {
     obtainArchivrConversation: {
         messages: {
-            edges: {
-                node: ArchivrMessage
-            }[]
+            edges: { node: ArchivrMessage }[]
             pageInfo: {
                 hasNextPage: boolean
-                endCursor: string
+                endCursor: string | null
             }
         }
         recommendedPrompts: string[]
@@ -32,6 +29,6 @@ export type ObtainArchivrConversationResponse = {
 
 export type ObtainArchivrConversationInput = {
     mediaId: string
-    after: string | null
-    first: number
+    after?: string | null
+    first?: number
 }

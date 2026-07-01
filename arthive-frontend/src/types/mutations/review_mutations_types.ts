@@ -1,5 +1,11 @@
-import type { UserReview } from "@/types/domain/review"
-import type { ReviewComment } from "@/types/domain/comment"
+// Inline the exact selection sets from apollo/mutations/review_mutations.ts.
+// Don't reuse domain types — the mutations pick strict subsets.
+
+type UserSummary = {
+    id: string
+    username: string
+    profilePicture: string | null
+}
 
 export type CreateReviewInput = {
     input: {
@@ -13,7 +19,13 @@ export type CreateReviewInput = {
 
 export type CreateReviewResponse = {
     createReview: {
-        review: UserReview | null
+        review: {
+            id: string
+            content: string | null
+            rating: number | null
+            ifFavorite: boolean
+            ifFinished: boolean
+        } | null
         deleted: boolean
     }
 }
@@ -36,5 +48,10 @@ export type WriteCommentInput = {
 }
 
 export type WriteCommentResponse = {
-    commentOnReview: ReviewComment
+    commentOnReview: {
+        id: string
+        comment: string
+        createdAt: string
+        user: UserSummary
+    }
 }

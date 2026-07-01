@@ -1,9 +1,9 @@
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import type { User } from "@/types/domain/user"
 import { OBTAIN_TRENDING_LISTS_QUERY } from "@/apollo/queries/list_queries"
 import type { ObtainTrendingListsResponse, ObtainTrendingListsInput, ListType } from "@/types/queries/list_queries_types"
 import { useEffect, useState } from "react"
-import { trendingListsExplorePageData } from "@/data/explore/trendingListsExplorePageData"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { useNavigate } from "react-router-dom"
 import { HeartIcon } from "@/shared/components/StyledComponents"
 
@@ -13,30 +13,42 @@ type TrendingListsProps = {
     limit: number
 }
 export default function TrendingLists({ setUser, currContentType, limit }: TrendingListsProps) {
-    const [getTrendingLists, { loading, error }] = useLazyQuery<ObtainTrendingListsResponse, ObtainTrendingListsInput>(OBTAIN_TRENDING_LISTS_QUERY, {
-        fetchPolicy: "no-cache",
-    })
     const navigate = useNavigate()
-
-    const [allLists, setAllLists] = useState<ListType[]>([])
-    const [nextCursor, setNextCursor] = useState<string | null>(null)
-    const [prevCursor, setPrevCursor] = useState<string | null>(null)
-    const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
-    const [ifNextPage, setIfNextPage] = useState<boolean>(false)
+    const [page, setPage] = useState<{ 
+        direction: "next" | "prev",
+        cursor: string | null,
+        contentType: typeof currContentType}>({ direction: "next", cursor: null, contentType: currContentType })
     const [slideDir, setSlideDir] = useState<"next" | "prev">("next")
     const [pageKey, setPageKey] = useState(0)
 
-    useEffect(() => {
-        fetchPage(true, null)
-    }, [currContentType])
-
-    function fetchPage(goNext: boolean, cursor: string | null) {
-        trendingListsExplorePageData(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllLists, getTrendingLists)
+    if (currContentType !== page.contentType) { // changed content type
+        setPage({ direction: "next", cursor: null, contentType: currContentType })
     }
+
+    const { data, loading, error } = useDataQuery<ObtainTrendingListsResponse, ObtainTrendingListsInput>(
+        OBTAIN_TRENDING_LISTS_QUERY,
+        {
+            variables: page.direction === "next"
+                ? { contentType: page.contentType, after: page.cursor ?? undefined, first: limit }
+                : { contentType: page.contentType, before: page.cursor ?? undefined, last: limit },
+        }
+    )
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
+
+    const allLists: ListType[] = data?.obtainTrendingLists.edges.map((e) => e.node) ?? []
+    const ifNextPage = data?.obtainTrendingLists.pageInfo.hasNextPage ?? false
+    const ifPrevPage = data?.obtainTrendingLists.pageInfo.hasPreviousPage ?? false
+    const nextCursor = data?.obtainTrendingLists.pageInfo.endCursor ?? null
+    const prevCursor = data?.obtainTrendingLists.pageInfo.startCursor ?? null
+
     function handleNav(goNext: boolean, cursor: string | null) {
         setSlideDir(goNext ? "next" : "prev")
         setPageKey(k => k + 1)
-        fetchPage(goNext, cursor)
+        setPage({ direction: goNext ? "next" : "prev", cursor, contentType: page.contentType })
     }
 
     return (

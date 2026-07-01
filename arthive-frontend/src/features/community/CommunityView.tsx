@@ -1,16 +1,16 @@
-import { useLazyQuery } from "@apollo/client/react"
-import type { Community, ObtainCommunityInput, ObtainCommunityResponse } from "@/types/queries/thread_queries_types"
+import { useDataQuery } from "@/apollo/useDataQuery"
+import type { ObtainCommunityInput, ObtainCommunityResponse } from "@/types/queries/thread_queries_types"
 import { OBTAIN_COMMUNITY_QUERY } from "@/apollo/queries/thread_queries"
 import type { User } from "@/types/domain/user"
 import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
 import type { CommunityThread } from "@/types/queries/thread_queries_types"
-import { obtainCommunityData } from "@/data/community/obtainCommunityData"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { CommunityThreads } from "@/features/community/components/CommunityThread"
 import { AddThreadComponent } from "@/features/community/components/AddThreadComponent"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
 import SignInPrompt from "@/shared/components/SignInPrompt"
-
+import type { Community } from "@/types/queries/thread_queries_types"
 const LIMIT = 10
 export default function CommunityPage({setUser, user}: {setUser: (user: User | null) => void, user: User | null}) {
     const navigate = useNavigate()
@@ -18,34 +18,45 @@ export default function CommunityPage({setUser, user}: {setUser: (user: User | n
     if (!media_id) {
         navigate("/")
     }
-    const [obtainCommunity, {loading, error}] = useLazyQuery<ObtainCommunityResponse, ObtainCommunityInput>(OBTAIN_COMMUNITY_QUERY, {
-        fetchPolicy: "no-cache",
-    })
-    const [community, setCommunity] = useState<Community | null>(null)
-    const [rootThreads, setRootThreads] = useState<CommunityThread[]>([])
-
-    const [cursor, setCursor] = useState<string | null>(null)
     const [query, setQuery] = useState<string | null>(null)
     const [currQuery, setCurrQuery] = useState<string | null>(null)
-    const [loadCount, setLoadCount] = useState(0)
-    const [ifNextPage, setIfNextPage] = useState(true)
 
-    useEffect(() => {
-        obtainCommunityData(media_id!, LIMIT, cursor, query, setCommunity, setRootThreads, setCursor, obtainCommunity, navigate, setUser, setIfNextPage)
-    }, [loadCount])
-
-    useEffect(() => {
-        if (query) {
-            setCursor(null)
-            setRootThreads([])
-            setLoadCount(prev => prev + 1)
+    const { data, loading, error, fetchMore } = useDataQuery<ObtainCommunityResponse, ObtainCommunityInput>(
+        OBTAIN_COMMUNITY_QUERY,
+        {
+            variables: { mediaId: media_id ?? "", first: LIMIT, after: null, query: query ?? null },
+            skip: !media_id,
+            notifyOnNetworkStatusChange: true,
         }
-    }, [query])
+    )
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
+    const obtainCommunity = data?.obtainCommunity
+    const community = obtainCommunity ? { id: obtainCommunity.id, media: obtainCommunity.media } : null
+    const fetchedThreads = obtainCommunity?.rootThreads.edges.map((e) => e.node) ?? []
+    const ifNextPage = obtainCommunity?.rootThreads.pageInfo.hasNextPage ?? false
+    const endCursor = obtainCommunity?.rootThreads.pageInfo.endCursor ?? null
+
+    // Optimistic overlay for threads added via AddThreadComponent (it calls
+    // setThreads([new, ...prev]) to splice new threads to the top).
+    const [optimisticThreads, setOptimisticThreads] = useState<CommunityThread[]>([])
+    const setRootThreads = (updater: React.SetStateAction<CommunityThread[]>) => {
+        setOptimisticThreads((prev) => {
+            const fullPrev = [...prev, ...fetchedThreads]
+            const next = typeof updater === "function" ? (updater as (p: CommunityThread[]) => CommunityThread[])(fullPrev) : updater
+            const fetchedIds = new Set(fetchedThreads.map((t) => t.id))
+            return next.filter((t) => !fetchedIds.has(t.id))
+        })
+    }
+    const rootThreads: CommunityThread[] = [...optimisticThreads, ...fetchedThreads]
 
     const sentinelRef = useInfiniteScroll({
         hasNextPage: ifNextPage && !!user,
         loading,
-        onLoadMore: () => setLoadCount(prev => prev + 1),
+        onLoadMore: () => fetchMore({ variables: { after: endCursor ?? undefined } }),
     })
 
     const threadsTopRef = useRef<HTMLDivElement | null>(null)
@@ -96,7 +107,7 @@ export function CommunityDetails({community}: {community: Community}) {
         <div className="bg-[#171519] rounded-2xl border border-white/5 p-6 flex gap-4 items-start">
             <img
                 onClick={() => navigate(`/media/${community.media.id}`)}
-                src={community.media.coverImage}
+                src={community.media.coverImage ?? undefined}
                 alt={community.media.title}
                 className="w-20 h-auto rounded-lg object-cover flex-shrink-0 cursor-pointer hover:opacity-80 transition"
             />

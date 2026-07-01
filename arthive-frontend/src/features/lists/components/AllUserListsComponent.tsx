@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom"
 import type { User } from "@/types/domain/user"
 import type { AllUserListType, ObtainAllUserListsResponse, ObtainAllUserListsInput, RoleFilter } from "@/types/queries/list_queries_types"
 import { OBTAIN_ALL_USER_LISTS_QUERY } from "@/apollo/queries/list_queries"
-import { useLazyQuery } from "@apollo/client/react"
-import { obtainAllUserListsData } from "@/data/lists/obtainAllUserListsData"
+import { useDataQuery } from "@/apollo/useDataQuery"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ContentFilter from "@/shared/components/ContentFilter"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import RoleFilterPanel from "@/features/lists/components/RoleFilter"
@@ -51,16 +51,36 @@ export function AllUserListsComponent({setUser, user_id, if_adding_media, exclud
         setRoleFilter(nextRole)
     }
 
-    const [obtainAllUserLists, { loading, error }] = useLazyQuery<ObtainAllUserListsResponse, ObtainAllUserListsInput>(OBTAIN_ALL_USER_LISTS_QUERY, {
-        fetchPolicy: "no-cache",
-    })
     useEffect(() => {
-        if (!user_id) {
-            navigate("/")
-            return
+        if (!user_id) navigate("/")
+    }, [user_id])
+
+    const { data, loading, error } = useDataQuery<ObtainAllUserListsResponse, ObtainAllUserListsInput>(
+        OBTAIN_ALL_USER_LISTS_QUERY,
+        {
+            variables: {
+                userId: user_id,
+                contentType,
+                pageNum,
+                limit: LIMIT,
+                query: query === "" ? null : query,
+                excludeMediaId,
+                roleFilter,
+            },
+            skip: !user_id,
         }
-        obtainAllUserListsData(user_id, contentType, query, setTotalPages, LIMIT, obtainAllUserLists, setLists, setTargetUser, navigate, setUser, pageNum, excludeMediaId, roleFilter)
-    }, [contentType, pageNum, query, roleFilter])
+    )
+
+    useEffect(() => {
+        if (!data?.obtainAllUserLists) return
+        setLists(data.obtainAllUserLists.lists)
+        setTotalPages(data.obtainAllUserLists.pageInfo.totalPages)
+        setTargetUser(data.obtainAllUserLists.user)
+    }, [data])
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
 
     return (
         <div className="flex flex-col gap-4">

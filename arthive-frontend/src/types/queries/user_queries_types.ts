@@ -18,6 +18,8 @@ export type ListInvitationUserSearchResponse = {
 
 // ────────────── RECENT_USER_ACTIVITY_REQUEST ──────────────
 
+// `activitySnapshot` fields are all nullable — different activityTypes populate
+// different subsets.
 export type ActivitySnapshot = {
     content: string | null
     rating: number | null
@@ -33,29 +35,46 @@ export type ActivitySnapshot = {
     label: string | null
 }
 
+// The query declares 9 inline fragments on `subject` — model each variant
+// with the exact fields it selects. Consumers can discriminate on __typename.
+type MediaRef = {
+    id: string
+    coverImage: string | null
+    title: string
+}
+
+export type ActivitySubject =
+    | { __typename: "Review"; id: string; media: MediaRef }
+    | { __typename: "ReviewComment"; id: string; review: { id: string; media: MediaRef } }
+    | { __typename: "ReviewLike"; id: string; review: { id: string; media: MediaRef } }
+    | { __typename: "CommunityThread"; id: string; community: { media: MediaRef } }
+    | { __typename: "ThreadLike"; id: string; communityThread: { id: string; community: { media: MediaRef } } }
+    | { __typename: "List"; id: string }
+    | { __typename: "ListLike"; id: string; list: { id: string } }
+    | { __typename: "ListSave"; id: string; list: { id: string } }
+    | { __typename: "MediaInList"; id: string; media: MediaRef; list: { id: string } }
+
 export type Activity = {
     id: string
     status: string
     createdAt: string
-    subject: { __typename: string } & Record<string, unknown>
+    subject: ActivitySubject
     activityType: string
     activitySnapshot: ActivitySnapshot | null
 }
 
 export type RecentUserActivityInput = {
     userId: string
-    after: string | null
-    first: number
+    after?: string
+    first?: number
 }
 
 export type RecentUserActivityResponse = {
     recentUserActivity: {
-        edges: {
-            node: Activity
-        }[]
+        edges: { node: Activity }[]
         pageInfo: {
             hasNextPage: boolean
-            endCursor: string
+            endCursor: string | null
         }
     }
 }

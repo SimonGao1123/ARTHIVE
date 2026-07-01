@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
 import type { User } from "@/types/domain/user"
 import type { AllReview } from "@/types/domain/review"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import type { ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput } from "@/types/queries/review_queries_types"
 import { OBTAIN_ALL_USER_REVIEWS_QUERY } from "@/apollo/queries/review_queries"
 import { useNavigate, useParams } from "react-router-dom"
 import ContentFilter from "@/shared/components/ContentFilter"
-import { obtainAllUserReviewsFunction } from "@/data/reviews/obtainAllUserReviews"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ReviewCard from "@/features/reviews/components/ReviewCard"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import SignInPrompt from "@/shared/components/SignInPrompt"
@@ -24,13 +24,35 @@ export default function AllUserReviewsPage({setUser, user}: {setUser: (user: Use
     const [totalPages, setTotalPages] = useState<number>(0)
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
 
-    const [getAllReviews] = useLazyQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(OBTAIN_ALL_USER_REVIEWS_QUERY, {
-        fetchPolicy: "no-cache",
-    })
+    const { data: allReviewsData, error: allReviewsError } = useDataQuery<ObtainAllUserReviewsResponse, ObtainAllUserReviewsInput>(
+        OBTAIN_ALL_USER_REVIEWS_QUERY,
+        {
+            variables: {
+                userId: user_id ?? "",
+                contentType,
+                pageNum,
+                limit: LIMIT,
+                query: query === "" ? null : query,
+            },
+            skip: !user_id || !user,
+        }
+    )
 
     useEffect(() => {
         if (!user_id) navigate("/")
     }, [user_id])
+
+    useEffect(() => {
+        if (!allReviewsData?.obtainAllUserReviews) return
+        const batch = allReviewsData.obtainAllUserReviews
+        setReviews(batch.reviews)
+        setTotalPages(batch.pageInfo.totalPages)
+        setTargetUser(batch.user)
+    }, [allReviewsData])
+
+    useEffect(() => {
+        if (allReviewsError) handleMutationUnauth(allReviewsError, setUser, navigate)
+    }, [allReviewsError])
 
     const handleContentTypeChange = (next: "book" | "film" | "series" | "game" | "all") => {
         if (next === contentType) return
@@ -38,11 +60,6 @@ export default function AllUserReviewsPage({setUser, user}: {setUser: (user: Use
         setPageNum(1)
         setContentType(next)
     }
-
-    useEffect(() => {
-        if (!user_id || !user) return
-        obtainAllUserReviewsFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getAllReviews, setReviews, setTargetUser, navigate, setUser)
-    }, [contentType, pageNum, query, user])
 
     if (!user) return <SignInPrompt title="Sign in to view reviews" message="Sign in to browse user reviews." />
 

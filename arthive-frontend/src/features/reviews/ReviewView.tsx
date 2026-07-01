@@ -5,8 +5,9 @@ import type { MainReview } from "@/types/domain/review"
 import type { ReviewComment } from "@/types/domain/comment"
 import { OBTAIN_REVIEW_PAGE_QUERY } from "@/apollo/queries/review_queries"
 import type { ObtainReviewPageResponse, ObtainReviewPageInput } from "@/types/queries/review_queries_types"
-import { useLazyQuery, useMutation } from "@apollo/client/react"
-import { obtainReviewPageFunction } from "@/data/reviews/obtainReviewPage"
+import { useMutation } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import DisplayRating from "@/features/reviews/components/DisplayRating"
 import { LIKE_REVIEW_MUTATION } from "@/apollo/mutations/review_mutations"
 import type { LikeReviewInput, LikeReviewResponse } from "@/types/mutations/review_mutations_types"
@@ -22,15 +23,40 @@ export default function ReviewPage({setUser, user}: {setUser: (user: User | null
     const {review_id} = useParams()
     const navigate = useNavigate()
 
-    const [mainReview, setMainReview] = useState<MainReview | null>(null)
-    const [reviewComments, setReviewComments] = useState<ReviewComment[]>([])
-    const [cursor, setCursor] = useState<string | null>(null)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
-    const [loadCount, setLoadCount] = useState(0)
-    const [ifNextPage, setIfNextPage] = useState(true)
     const [commentCount, setCommentCount] = useState<number>(0)
     const [showCommentModal, setShowCommentModal] = useState(false)
+
+    const { data, loading, error, fetchMore } = useDataQuery<ObtainReviewPageResponse, ObtainReviewPageInput>(
+        OBTAIN_REVIEW_PAGE_QUERY,
+        {
+            variables: { reviewId: review_id ?? "", first: LIMIT, after: undefined, query },
+            skip: !review_id,
+            notifyOnNetworkStatusChange: true,
+        }
+    )
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
+    const mainReview: MainReview | null = data?.obtainReviewPage.review ?? null
+    const fetchedComments: ReviewComment[] = data?.obtainReviewPage.reviewComments.edges.map((e) => e.node) ?? []
+    const ifNextPage = data?.obtainReviewPage.reviewComments.pageInfo.hasNextPage ?? false
+    const endCursor = data?.obtainReviewPage.reviewComments.pageInfo.endCursor ?? null
+
+    // Optimistic overlay for new comments via WriteReviewComment (calls setReviewComments).
+    const [optimisticComments, setOptimisticComments] = useState<ReviewComment[]>([])
+    const setReviewComments = (updater: React.SetStateAction<ReviewComment[]>) => {
+        setOptimisticComments((prev) => {
+            const fullPrev = [...prev, ...fetchedComments]
+            const next = typeof updater === "function" ? (updater as (p: ReviewComment[]) => ReviewComment[])(fullPrev) : updater
+            const fetchedIds = new Set(fetchedComments.map((c) => c.id))
+            return next.filter((c) => !fetchedIds.has(c.id))
+        })
+    }
+    const reviewComments: ReviewComment[] = [...optimisticComments, ...fetchedComments]
 
     useEffect(() => {
         setCommentCount(mainReview?.commentCount ?? 0)
@@ -39,23 +65,10 @@ export default function ReviewPage({setUser, user}: {setUser: (user: User | null
         }
     }, [mainReview])
 
-    useEffect(() => {
-        setCursor(null)
-        setReviewComments([])
-        setLoadCount(prev => prev + 1)
-    }, [query])
-
-    const [obtainReviewPage, {loading, error}] = useLazyQuery<ObtainReviewPageResponse, ObtainReviewPageInput>(OBTAIN_REVIEW_PAGE_QUERY)
-    useEffect(() => {
-        if (review_id) {
-            obtainReviewPageFunction(review_id, query, cursor, setCursor, LIMIT, setUser, navigate, obtainReviewPage, setMainReview, setReviewComments, setIfNextPage)
-        }
-    }, [review_id, loadCount, query])
-
     const sentinelRef = useInfiniteScroll({
         hasNextPage: ifNextPage,
         loading,
-        onLoadMore: () => setLoadCount(prev => prev + 1),
+        onLoadMore: () => fetchMore({ variables: { after: endCursor ?? undefined } }),
     })
 
     const commentsTopRef = useRef<HTMLDivElement | null>(null)

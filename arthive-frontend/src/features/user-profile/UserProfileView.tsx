@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { USER_PROFILE_QUERY } from "@/apollo/queries/user_queries"
-import type { UserProfileQueryInput, UserProfileType, UserProfileQueryResponse } from "@/types/queries/user_queries_types"
+import type { UserProfileQueryInput, UserProfileQueryResponse } from "@/types/queries/user_queries_types"
 import type { User } from "@/types/domain/user"
-import { useLazyQuery } from "@apollo/client/react"
-import { ObtainUserProfileFetch } from "@/data/user/obtainUserProfile"
+import { useDataQuery } from "@/apollo/useDataQuery"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { useNavigate, useParams } from "react-router-dom"
 import SendFollowButton from "@/features/follows/components/SendFollowButton"
 import ManipulateFollowButton from "@/features/follows/components/ManipulateFollowButton"
@@ -17,14 +17,13 @@ type UserProfilePageProps = {
 export default function UserProfilePage({ setUser, user }: UserProfilePageProps) {
     const navigate = useNavigate()
     const { id } = useParams()
-    const [userProfileData, setUserProfileData] = useState<UserProfileType | null>(null)
-    const [getUserProfile, { loading, error }] = useLazyQuery<UserProfileQueryResponse, UserProfileQueryInput>(USER_PROFILE_QUERY, { fetchPolicy: "no-cache" })
+    const { data, loading, error } = useDataQuery<UserProfileQueryResponse, UserProfileQueryInput>(
+        USER_PROFILE_QUERY,
+        { variables: { userId: id ?? "" }, skip: !id }
+    )
+    const userProfileData = data?.obtainUserProfile ?? null
     const [currIncomingFollowStatus, setCurrIncomingFollowStatus] = useState<{id: string, status: string} | null>(null)
     const [currOutgoingFollowStatus, setCurrOutgoingFollowStatus] = useState<{id: string, status: string} | null>(null)
-
-    useEffect(() => {
-        ObtainUserProfileFetch(getUserProfile, setUserProfileData, id!, setUser, navigate)
-    }, [user?.id, id])
 
     useEffect(() => {
         if (userProfileData) {
@@ -32,6 +31,12 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
             setCurrOutgoingFollowStatus(userProfileData.currentOutgoingFollow ?? null)
         }
     }, [userProfileData])
+
+    useEffect(() => {
+        if (!error) return
+        if (handleMutationUnauth(error, setUser, navigate)) return
+        if (error.message === "User not found") navigate("/*")
+    }, [error])
 
     const isOwnProfile = id === user?.id
 

@@ -1,5 +1,6 @@
-import type { ListType } from "@/types/queries/list_queries_types"
-import type { User } from "@/types/domain/user"
+// List mutation types. Response types now inline the exact selection sets
+// from apollo/mutations/list_mutations.ts. Input wrappers align with each
+// mutation document ($input wrapping for those that declare it).
 
 export type LeaveListInput = {
     input: {
@@ -10,13 +11,17 @@ export type LeaveListInput = {
 export type LeaveListResponse = {
     leaveList: boolean
 }
+
+// Thin membership shape actually returned by AlterListMembership,
+// AcceptListInvite, and InviteUserToList (all three mutations select the
+// same set: id, list{id}, user{id}, role, status, sentByUser{id}, joinedAt).
 export type ListMemberType = {
     id: string
-    list: ListType
-    user: User
+    list: { id: string }
+    user: { id: string }
     role: string
     status: string
-    sentByUser: User
+    sentByUser: { id: string } | null
     joinedAt: string | null
 }
 
@@ -34,11 +39,13 @@ export type AlterListMembershipResponse = {
 }
 
 export type CreateListInput = {
-    name: string
-    ifPrivate: boolean
-    tags: string[] | null
-    description: string | null
-    addedMediaIds: string[] | null
+    input: {
+        name: string
+        ifPrivate: boolean
+        tags: string[] | null
+        description: string | null
+        addedMediaIds: string[] | null
+    }
 }
 
 export type CreateListResponse = {
@@ -53,16 +60,27 @@ export type CreateListResponse = {
 }
 
 export type EditListDetailsInput = {
-    listId: string
-    name: string | null
-    ifPrivate: boolean | null
-    tags: string[] | null
-    description: string | null
-    deleteList: boolean
+    input: {
+        listId: string
+        name: string | null
+        ifPrivate: boolean | null
+        tags: string[] | null
+        description: string | null
+        deleteList: boolean
+    }
 }
 
 export type EditListDetailsResponse = {
-    editListDetails: ListType
+    editListDetails: {
+        id: string
+        name: string
+        description: string | null
+        contentType: string[]
+        ifPrivate: boolean
+        tags: string[] | null
+        createdAt: string
+        updatedAt: string
+    }
 }
 
 export type LikeListInput = {

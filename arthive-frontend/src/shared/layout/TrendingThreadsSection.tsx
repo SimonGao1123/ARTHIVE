@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
+import { useEffect } from "react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { CommunityThreadPaginated } from "@/features/community/components/CommunityThread"
-import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import { OBTAIN_TRENDING_THREADS_QUERY } from "@/apollo/queries/thread_queries"
 import type { ObtainTrendingThreadsInput, ObtainTrendingThreadsResponse } from "@/types/queries/thread_queries_types"
-import { obtainTrendingThreadsFunction } from "@/data/community/obtainTrendingThreads"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import type { NavigateFunction } from "react-router-dom"
 
@@ -18,12 +17,15 @@ type TrendingThreadsSectionProps = {
 }
 
 export function TrendingThreadsSection({ mediaIdScope, setUser, navigate, user }: TrendingThreadsSectionProps) {
-    const [threads, setThreads] = useState<CommunityThread[]>([])
-    const [getTrendingThreads, {loading, error}] = useLazyQuery<ObtainTrendingThreadsResponse, ObtainTrendingThreadsInput>(OBTAIN_TRENDING_THREADS_QUERY)
+    const { data, loading, error } = useDataQuery<ObtainTrendingThreadsResponse, ObtainTrendingThreadsInput>(
+        OBTAIN_TRENDING_THREADS_QUERY,
+        { variables: { limit: LIMIT, mediaIdScope: mediaIdScope ?? null }, fetchPolicy: "cache-first" },
+    )
+    const threads = data?.obtainTrendingThreads ?? []
 
     useEffect(() => {
-        obtainTrendingThreadsFunction(getTrendingThreads, LIMIT, mediaIdScope ?? null, setThreads, navigate, setUser)
-    }, [mediaIdScope])
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
 
     return (
         <div className="flex flex-col gap-3">

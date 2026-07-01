@@ -22,7 +22,7 @@ export type MediaSummary = {
 }
 
 export type MediaCardData = {
-    id: number
+    id: number | string
     coverImage: string
     contentType: string
     ifFavorite: boolean

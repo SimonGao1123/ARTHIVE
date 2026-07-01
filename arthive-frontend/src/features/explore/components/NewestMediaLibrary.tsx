@@ -1,37 +1,49 @@
 import { useEffect, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { NEWEST_EXPLORE_PAGE_MEDIA_QUERY } from "@/apollo/queries/media_queries"
 import type { NewestExplorePageMediaResponse, NewestExplorePageMediaInput } from "@/types/queries/media_queries_types"
-import { NewestExplorePageDataFetch } from "@/data/explore/newestExplorePageData.ts"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import type { User } from "@/types/domain/user"
 import { useNavigate } from "react-router-dom"
 import { MediaCard } from "@/features/media/components/MediaCard"
 
 export default function NewestMediaLibrary({setUser, currContentType, limit}: {setUser: (user: User | null) => void, currContentType: "book" | "film" | "series" | "game" | "all", limit: number}) {
     const navigate = useNavigate()
-    const [allMedia, setAllMedia] = useState<{id: number, coverImage: string, contentType: string, ifFavorite: boolean, ifFinished: boolean, averageRating: number}[]>([])
-    const [nextCursor, setNextCursor] = useState<string | null>(null)
-    const [prevCursor, setPrevCursor] = useState<string | null>(null)
-    const [ifPrevPage, setIfPrevPage] = useState<boolean>(false)
-    const [ifNextPage, setIfNextPage] = useState<boolean>(false)
+    const [page, setPage] = useState<{ 
+        direction: "next" | "prev",
+        cursor: string | null,
+        contentType: typeof currContentType}>({ direction: "next", cursor: null, contentType: currContentType })
     const [slideDir, setSlideDir] = useState<"next" | "prev">("next")
     const [pageKey, setPageKey] = useState(0)
 
-    const [getNewestExplorePageMedia, {loading}] = useLazyQuery<NewestExplorePageMediaResponse, NewestExplorePageMediaInput>(NEWEST_EXPLORE_PAGE_MEDIA_QUERY, {
-        fetchPolicy: "no-cache",
-    })
-
-    const fetchPage = (goNext: boolean, cursor: string | null) => {
-        NewestExplorePageDataFetch(navigate, setUser, currContentType, limit, setNextCursor, setPrevCursor, cursor, goNext, setIfPrevPage, setIfNextPage, setAllMedia, getNewestExplorePageMedia)
+    if (currContentType !== page.contentType) { // changed content type
+        setPage({ direction: "next", cursor: null, contentType: currContentType })
     }
+
+    const { data, loading, error } = useDataQuery<NewestExplorePageMediaResponse, NewestExplorePageMediaInput>(
+        NEWEST_EXPLORE_PAGE_MEDIA_QUERY,
+        {
+            variables: page.direction === "next"
+                ? { contentType: page.contentType, after: page.cursor ?? undefined, first: limit }
+                : { contentType: page.contentType, before: page.cursor ?? undefined, last: limit },
+        }
+    )
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
+    const allMedia = data?.newestExploreMedia.edges.map((e) => e.node) ?? []
+    const ifNextPage = data?.newestExploreMedia.pageInfo.hasNextPage ?? false
+    const ifPrevPage = data?.newestExploreMedia.pageInfo.hasPreviousPage ?? false
+    const nextCursor = data?.newestExploreMedia.pageInfo.endCursor ?? null
+    const prevCursor = data?.newestExploreMedia.pageInfo.startCursor ?? null
 
     const handleNav = (goNext: boolean, cursor: string | null) => {
         setSlideDir(goNext ? "next" : "prev")
         setPageKey(k => k + 1)
-        fetchPage(goNext, cursor)
+        setPage({ direction: goNext ? "next" : "prev", cursor, contentType: page.contentType })
     }
-
-    useEffect(() => { fetchPage(true, null) }, [currContentType])
 
     return (
         <div className="relative group/carousel">

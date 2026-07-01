@@ -1,14 +1,22 @@
+// Thread response types. `CommunityThread` is the fat superset — all fields
+// that any thread query might return. Nullable fields use `T | null`;
+// nothing is `?` optional in a response body.
+//
+// Some queries don't select every field on this type (e.g. rootThreads inside
+// a Community don't re-select community). Those absent fields come back as
+// undefined at runtime; consumers should use `??` or `?.` when reading them.
+
 import type { User } from "@/types/domain/user"
 import type { Review } from "@/types/domain/review"
 
 export type Community = {
-    id: number
+    id: string | number
     media: {
         id: string
         title: string
-        year: number
+        year: number | string
         creator: string
-        coverImage: string
+        coverImage: string | null
     }
 }
 
@@ -26,10 +34,7 @@ export type CommunityThread = {
     depth: number
     ifLiked: boolean
     community: Community | null
-    imageDetails: {
-        signedId: string
-        url: string
-    }[]
+    imageDetails: { signedId: string; url: string }[]
     review: Review | null
     hasReview: boolean
 }
@@ -38,27 +43,25 @@ export type CommunityThread = {
 
 export type ObtainCommunityInput = {
     mediaId: string
-    first: number
-    after: string
-    query: string | null
+    first?: number
+    after?: string | null
+    query?: string | null
 }
 
 export type ObtainCommunityResponse = {
     obtainCommunity: {
-        id: number
+        id: string | number
         media: {
             id: string
             title: string
-            year: number
+            year: number | string
             creator: string
-            coverImage: string
+            coverImage: string | null
         }
         rootThreads: {
-            edges: {
-                node: CommunityThread
-            }[]
+            edges: { node: CommunityThread }[]
             pageInfo: {
-                endCursor: string
+                endCursor: string | null
                 hasNextPage: boolean
             }
         }
@@ -69,34 +72,18 @@ export type ObtainCommunityResponse = {
 
 export type ObtainThreadInput = {
     threadId: string
-    after: string | null
-    first: number
+    after?: string | null
+    first?: number
 }
 
 export type ObtainThreadResponse = {
-    obtainThread: {
-        id: string
-        content: string
-        title: string
-        createdAt: string
-        user: User
-        community: Community
-        parentThreadId: string | null
-        rootThreadId: string | null
-        depth: number
-        likesCount: number
-        ifLiked: boolean
-        childThreadsCount: number
-        imageDetails: {
-            signedId: string
-            url: string
-        }[]
-        hasReview: boolean
-        review: Review | null
+    obtainThread: CommunityThread & {
         childThreads: {
-            edges: {
-                node: CommunityThread
-            }[]
+            edges: { node: CommunityThread }[]
+            pageInfo: {
+                endCursor: string | null
+                hasNextPage: boolean
+            }
         }
     }
 }

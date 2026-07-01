@@ -1,4 +1,4 @@
-import { useQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { OBTAIN_MEDIA_INFO_QUERY } from "@/apollo/queries/media_queries"
 import type { ObtainMediaInfoInput, ObtainMediaInfoResponse } from "@/types/queries/media_queries_types"
 import type { User } from "@/types/domain/user"
@@ -30,7 +30,7 @@ export default function MediaInfoPage({ user, setUser }: MediaInfoPageProps) {
         if (!isValidId) navigate("/", { replace: true })
     }, [isValidId])
 
-    const { data, loading, error } = useQuery<ObtainMediaInfoResponse, ObtainMediaInfoInput>(
+    const { data, loading, error } = useDataQuery<ObtainMediaInfoResponse, ObtainMediaInfoInput>(
         OBTAIN_MEDIA_INFO_QUERY,
         { variables: { mediaId }, skip: !isValidId }
     )

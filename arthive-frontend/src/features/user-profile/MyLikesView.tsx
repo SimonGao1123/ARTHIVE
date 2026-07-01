@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { useNavigate, useParams } from "react-router-dom"
 import type { User } from "@/types/domain/user"
 import type { ContentTypeWithAll } from "@/types/common"
@@ -7,7 +7,7 @@ import type { Media } from "@/types/domain/media"
 import type { AllUserListType } from "@/types/queries/list_queries_types"
 import { OBTAIN_LIKES_PAGE_QUERY } from "@/apollo/queries/shared_queries"
 import type { LikedReview, LikesType, ObtainLikesPageInput, ObtainLikesPageResponse } from "@/types/queries/shared_queries_types"
-import { obtainLikesPageData } from "@/data/user/obtainLikesPageData"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ContentFilter from "@/shared/components/ContentFilter"
 import TypeFilter from "@/features/user-profile/components/TypeFilter"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
@@ -36,13 +36,38 @@ export default function MyLikesPage({ setUser, user }: { setUser: (user: User | 
     const [reviews, setReviews] = useState<LikedReview[]>([])
     const [lists, setLists] = useState<AllUserListType[]>([])
 
-    const [getLikes] = useLazyQuery<ObtainLikesPageResponse, ObtainLikesPageInput>(OBTAIN_LIKES_PAGE_QUERY, {
-        fetchPolicy: "no-cache",
-    })
+    const { data: likesData, error: likesError } = useDataQuery<ObtainLikesPageResponse, ObtainLikesPageInput>(
+        OBTAIN_LIKES_PAGE_QUERY,
+        {
+            variables: {
+                userId: user_id ?? "",
+                type,
+                contentType,
+                pageNum,
+                limit: LIMIT,
+                query: query === "" ? null : query,
+            },
+            skip: !user_id || !user,
+        }
+    )
 
     useEffect(() => {
         if (!user_id) navigate("/")
     }, [user_id])
+
+    useEffect(() => {
+        if (!likesData?.obtainLikesPage) return
+        const batch = likesData.obtainLikesPage
+        setPageUser(batch.user)
+        setTotalPages(batch.pageInfo.totalPages)
+        if (type === "media") setMedia(batch.media ?? [])
+        else if (type === "reviews") setReviews(batch.reviews ?? [])
+        else if (type === "lists") setLists(batch.lists ?? [])
+    }, [likesData, type])
+
+    useEffect(() => {
+        if (likesError) handleMutationUnauth(likesError, setUser, navigate)
+    }, [likesError])
 
     const handleTypeChange = (next: LikesType) => {
         if (next === type) return
@@ -72,11 +97,6 @@ export default function MyLikesPage({ setUser, user }: { setUser: (user: User | 
         setContentType("all")
         setType("media")
     }, [user_id])
-
-    useEffect(() => {
-        if (!user_id || !user) return
-        obtainLikesPageData(user_id, type, contentType, pageNum, LIMIT, query, getLikes, setMedia, setReviews, setLists, setTotalPages, setPageUser, navigate, setUser)
-    }, [user_id, type, contentType, pageNum, query, user])
 
     if (!user) return <SignInPrompt title="Sign in to view likes" message="Sign in to browse user likes." />
 

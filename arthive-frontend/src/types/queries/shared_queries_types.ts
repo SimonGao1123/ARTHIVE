@@ -1,23 +1,29 @@
-import type { Media } from "@/types/domain/media"
-import type { User } from "@/types/domain/user"
-import type { UserReview } from "@/types/domain/review"
-import type { ReviewComment } from "@/types/domain/comment"
 import type { LikesType, ContentTypeWithAll } from "@/types/common"
 import type { AllUserListType } from "@/types/queries/list_queries_types"
-import type { FollowData } from "@/types/queries/follow_queries_types"
-import type { CommunityThread } from "@/types/queries/thread_queries_types"
+import type { Media } from "@/types/domain/media"
 
 // ────────────── OBTAIN_LIKES_PAGE_QUERY ──────────────
 
 export type { LikesType }
 
+type UserSummary = {
+    id: string
+    username: string
+    profilePicture: string | null
+}
+
+type ImageDetail = {
+    signedId: string
+    url: string
+}
+
 export type ObtainLikesPageInput = {
     userId: string
     type: LikesType
     contentType: ContentTypeWithAll
-    pageNum: number
-    limit: number
-    query: string | null
+    pageNum?: number
+    limit?: number
+    query?: string
 }
 
 export type LikedReview = {
@@ -30,14 +36,21 @@ export type LikedReview = {
     commentCount: number
     likeCount: number
     ifLiked: boolean
-    imageDetails: { signedId: string, url: string }[]
-    user: { id: string, username: string, profilePicture: string | null }
-    media: { id: string, title: string, coverImage: string | null }
+    imageDetails: ImageDetail[]
+    user: UserSummary
+    media: {
+        id: string
+        title: string
+        coverImage: string | null
+    }
 }
 
 export type ObtainLikesPageResponse = {
     obtainLikesPage: {
-        user: { id: string, username: string }
+        user: {
+            id: string
+            username: string
+        }
         media: Media[] | null
         reviews: LikedReview[] | null
         lists: AllUserListType[] | null
@@ -53,31 +66,74 @@ export type ObtainLikesPageResponse = {
 export type ObtainNotificationFilterEnum =
     | "all" | "follows" | "reviews" | "threads" | "quote_reviews" | "lists" | "list_members"
 
+// Each connection inside the response takes its own cursor pair — variable
+// names use snake_case in the .ts document; keep that verbatim so the input
+// shape matches what Apollo actually sends.
 export type ObtainNotificationsInput = {
-    after_read: string | null
-    first_read: number
-    after_unread: string | null
-    first_unread: number
+    after_read?: string
+    first_read?: number
+    after_unread?: string
+    first_unread?: number
     filter: ObtainNotificationFilterEnum
+}
+
+// Fan-out of every possible ref a notification can carry. All refs are
+// nullable — only the ones relevant to the notification's `action` are set.
+type NotificationSender = UserSummary & {
+    followFromCurrentUser: { id: string; status: string } | null
 }
 
 export type Notification = {
     id: string
-    sender: User & { followFromCurrentUser: { id: string, status: string } | null }
+    sender: NotificationSender
     action: string
     createdAt: string
-    follow: FollowData
-    review: UserReview
-    reviewComment: ReviewComment
-    parentThread: CommunityThread
-    commentThread: CommunityThread
-    list: { id: string, name: string } | null
+    follow: {
+        id: string
+        status: string
+        receiver?: { id: string }
+    } | null
+    review: {
+        id: string
+        content: string | null
+        imageDetails: { url: string }[]
+    } | null
+    reviewComment: {
+        id: string
+        comment: string
+    } | null
+    parentThread: {
+        id: string
+        content: string
+        title: string | null
+        imageDetails: { url: string }[]
+        community: {
+            id: string
+            media: {
+                id: string
+                title: string
+                coverImage: string | null
+            }
+        }
+    } | null
+    commentThread: {
+        id: string
+        content: string
+        imageDetails: { url: string }[]
+    } | null
+    list: {
+        id: string
+        name: string
+    } | null
     listMember: {
         id: string
-        status: "pending" | "accepted" | "rejected"
+        list: {
+            id: string
+            name: string
+        }
         role: string
-        list: { id: string, name: string }
-        sentByUser: { id: string, username: string, profilePicture: string | null } | null
+        status: string
+        sentByUser: UserSummary | null
     } | null
 }
 
@@ -86,18 +142,14 @@ export type ObtainNotificationsResponse = {
         unreadNotificationsCount: number
         readNotificationsCount: number
         unreadNotifications: {
-            edges: {
-                node: Notification
-            }[]
+            edges: { node: Notification }[]
             pageInfo: {
                 hasNextPage: boolean
                 endCursor: string | null
             }
         }
         readNotifications: {
-            edges: {
-                node: Notification
-            }[]
+            edges: { node: Notification }[]
             pageInfo: {
                 hasNextPage: boolean
                 endCursor: string | null
@@ -108,29 +160,50 @@ export type ObtainNotificationsResponse = {
 
 // ────────────── SEARCH_BAR_QUERY ──────────────
 
+// The search bar issues one big query with a separate cursor pair per
+// result type. All are optional because the caller usually only sends the
+// cursors for the tab currently in view.
+export type SearchFilter = {
+    filter: "content_type" | "genre"
+    values: string[]
+}
+
+export type SearchBarInput = {
+    query: string
+    searchType: string
+    searchFilter: SearchFilter[]
+    after_medias?: string
+    first_medias?: number
+    after_users?: string
+    first_users?: number
+    after_reviews?: string
+    first_reviews?: number
+    after_lists?: string
+    first_lists?: number
+    after_threads?: string
+    first_threads?: number
+}
+
+// Node shapes for each result type — matched exactly against SEARCH_BAR_QUERY.
+// pageInfo lives ONLY on the connection wrappers, never on individual nodes.
 export type MediaSearchType = {
     id: string
     title: string
-    coverImage: string
-    pageInfo: {
-        endCursor: string
-        hasNextPage: boolean
-    }
+    coverImage: string | null
 }
 
 export type UserSearchType = {
     id: string
     username: string
-    profilePicture: string
-    pageInfo: {
-        endCursor: string
-        hasNextPage: boolean
-    }
+    profilePicture: string | null
 }
 
-export type CommunitySearchType = {
+export type ReviewSearchType = {
     id: string
+    content: string | null
+    rating: number | null
     media: MediaSearchType
+    user: UserSearchType
 }
 
 export type ListSearchType = {
@@ -142,12 +215,8 @@ export type ListSearchType = {
     tags: string[]
     user: UserSearchType
     mediaInLists: {
-        media: MediaSearchType
+        media: { coverImage: string | null }
     }[]
-    pageInfo: {
-        endCursor: string
-        hasNextPage: boolean
-    }
 }
 
 export type ThreadSearchType = {
@@ -155,55 +224,32 @@ export type ThreadSearchType = {
     title: string | null
     content: string
     user: UserSearchType
-    community: CommunitySearchType
+    community: {
+        id: string
+        media: MediaSearchType
+    }
+}
+
+// Kept for API compatibility if any component imported it.
+export type CommunitySearchType = {
+    id: string
+    media: MediaSearchType
+}
+
+type Connection<T> = {
+    edges: { node: T }[]
     pageInfo: {
-        endCursor: string
+        endCursor: string | null
         hasNextPage: boolean
     }
 }
 
-export type ReviewSearchType = {
-    id: string
-    content: string
-    rating: number
-    media: MediaSearchType
-    user: UserSearchType
-}
-
-export type SearchFilter = {
-    filter: "content_type" | "genre"
-    values: string[]
-}
-
-export type SearchBarInput = {
-    query: string
-    searchType: string
-    searchFilter: SearchFilter[]
-    after: string | null
-    first: number | null
-}
-
 export type SearchBarResponse = {
     searchBar: {
-        medias: {
-            edges: { node: MediaSearchType }[]
-            pageInfo: { endCursor: string, hasNextPage: boolean }
-        }
-        users: {
-            edges: { node: UserSearchType }[]
-            pageInfo: { endCursor: string, hasNextPage: boolean }
-        }
-        reviews: {
-            edges: { node: ReviewSearchType }[]
-            pageInfo: { endCursor: string, hasNextPage: boolean }
-        }
-        lists: {
-            edges: { node: ListSearchType }[]
-            pageInfo: { endCursor: string, hasNextPage: boolean }
-        }
-        threads: {
-            edges: { node: ThreadSearchType }[]
-            pageInfo: { endCursor: string, hasNextPage: boolean }
-        }
+        medias: Connection<MediaSearchType>
+        users: Connection<UserSearchType>
+        reviews: Connection<ReviewSearchType>
+        lists: Connection<ListSearchType>
+        threads: Connection<ThreadSearchType>
     }
 }

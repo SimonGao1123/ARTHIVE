@@ -1,6 +1,6 @@
 // for retreiving media from the backend
 export type Media = {
-    id: string;
+    id: string | number;
     title: string;
     creator: string;
     year: string;
@@ -13,7 +13,7 @@ export type Media = {
     pageCount: number | null;
     seriesTitle: string | null;
     organization: string | null;
-    coverImage: string | null; // url of the cover image
+    coverImage: string; // url of the cover image
     inLists: {
         id: string;
         name: string;

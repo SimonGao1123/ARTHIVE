@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { useNavigate, useParams } from "react-router-dom"
 import type { User } from "@/types/domain/user"
 import { OBTAIN_FINISHED_MEDIA_QUERY } from "@/apollo/queries/media_queries"
 import type { ObtainFinishedMediaInput, ObtainFinishedMediaResponse } from "@/types/queries/media_queries_types"
-import { obtainFinishedMediaFunction } from "@/data/media/obtainFinishedMedia"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ContentFilter from "@/shared/components/ContentFilter"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import { DetailedMediaCard } from "@/features/media/components/DetailedMediaCard"
@@ -25,13 +25,35 @@ export default function MyLoggedMediaPage({ setUser, user }: { setUser: (user: U
     const [contentType, setContentType] = useState<"book" | "film" | "series" | "game" | "all">("all")
     const [pageUser, setPageUser] = useState<{ id: string; username: string } | null>(null)
 
-    const [getMedia] = useLazyQuery<ObtainFinishedMediaResponse, ObtainFinishedMediaInput>(OBTAIN_FINISHED_MEDIA_QUERY, {
-        fetchPolicy: "no-cache",
-    })
+    const { data: finishedData, error: finishedError } = useDataQuery<ObtainFinishedMediaResponse, ObtainFinishedMediaInput>(
+        OBTAIN_FINISHED_MEDIA_QUERY,
+        {
+            variables: {
+                userId: user_id ?? "",
+                contentType,
+                pageNum,
+                limit: LIMIT,
+                query: query === "" ? null : query,
+            },
+            skip: !user_id || !user,
+        }
+    )
 
     useEffect(() => {
         if (!user_id) navigate("/")
     }, [user_id])
+
+    useEffect(() => {
+        if (!finishedData?.obtainFinishedMedia) return
+        const batch = finishedData.obtainFinishedMedia
+        setMedia(batch.media)
+        setTotalPages(batch.pageInfo.totalPages)
+        setPageUser(batch.user)
+    }, [finishedData])
+
+    useEffect(() => {
+        if (finishedError) handleMutationUnauth(finishedError, setUser, navigate)
+    }, [finishedError])
 
     const handleContentTypeChange = (nextContentType: "book" | "film" | "series" | "game" | "all") => {
         if (nextContentType === contentType) return
@@ -47,11 +69,6 @@ export default function MyLoggedMediaPage({ setUser, user }: { setUser: (user: U
         setCurrQuery("")
         setContentType("all")
     }, [user_id])
-
-    useEffect(() => {
-        if (!user_id || !user) return
-        obtainFinishedMediaFunction(user_id, contentType, pageNum, LIMIT, query, setTotalPages, getMedia, setMedia, navigate, setUser, setPageUser)
-    }, [user_id, contentType, pageNum, query, user])
 
     if (!user) return <SignInPrompt title="Sign in to view logged media" message="Sign in to browse logged media." />
 

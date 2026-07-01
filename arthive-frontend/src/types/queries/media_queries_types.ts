@@ -1,29 +1,29 @@
 import type { Media } from "@/types/domain/media"
 
 type ExploreMediaInputBase<T> =
-    | { contentType: T; first: number; after?: string; last?: never; before?: never }
-    | { contentType: T; last: number; before?: string; first?: never; after?: never }
+    | { contentType: T; first: number; after?: string | null; last?: never; before?: never }
+    | { contentType: T; last: number; before?: string | null; first?: never; after?: never }
 
 type ExploreContentType = "book" | "film" | "series" | "game" | "all"
 
+type ExploreMediaNode = {
+    id: number
+    coverImage: string
+    contentType: string
+    ifFavorite: boolean
+    ifFinished: boolean
+    favoriteCount: number
+    averageRating: number
+}
+
 export type NewestExplorePageMediaResponse = {
     newestExploreMedia: {
-        edges: {
-            node: {
-                id: number
-                coverImage: string
-                contentType: string
-                ifFavorite: boolean
-                ifFinished: boolean
-                favoriteCount: number
-                averageRating: number
-            }
-        }[]
+        edges: { node: ExploreMediaNode }[]
         pageInfo: {
             hasNextPage: boolean
-            endCursor: string
+            endCursor: string | null
             hasPreviousPage: boolean
-            startCursor: string
+            startCursor: string | null
         }
     }
 }
@@ -40,20 +40,12 @@ export type ObtainMediaInfoInput = {
 
 export type HottestExplorePageMediaResponse = {
     hottestExploreMedia: {
-        edges: {
-            node: {
-                id: number
-                coverImage: string
-                contentType: string
-                ifFavorite: boolean
-                ifFinished: boolean
-            }
-        }[]
+        edges: { node: ExploreMediaNode }[]
         pageInfo: {
             hasNextPage: boolean
-            endCursor: string
+            endCursor: string | null
             hasPreviousPage: boolean
-            startCursor: string
+            startCursor: string | null
         }
     }
 }
@@ -63,14 +55,12 @@ export type HottestExplorePageMediaInput = ExploreMediaInputBase<ExploreContentT
 export type BecauseOfReviewsExploreMediaResponse = {
     becauseOfReviewsExploreMedia: {
         media: {
-            edges: {
-                node: Media
-            }[]
+            edges: { node: ExploreMediaNode }[]
             pageInfo: {
                 hasNextPage: boolean
-                endCursor: string
+                endCursor: string | null
                 hasPreviousPage: boolean
-                startCursor: string
+                startCursor: string | null
             }
         }
         source: {
@@ -78,17 +68,17 @@ export type BecauseOfReviewsExploreMediaResponse = {
             title: string
             contentType: string
         }
-    }
+    } | null
 }
 
 export type BecauseOfReviewsExploreMediaInput = ExploreMediaInputBase<ExploreContentType>
 
 export type ObtainFinishedMediaInput = {
     userId: string
-    contentType: "book" | "film" | "series" | "game" | "all"
-    pageNum: number
-    limit: number
-    query: string | null
+    contentType?: "book" | "film" | "series" | "game" | "all"
+    pageNum?: number
+    limit?: number
+    query?: string | null
 }
 
 export type ObtainFinishedMediaResponse = {

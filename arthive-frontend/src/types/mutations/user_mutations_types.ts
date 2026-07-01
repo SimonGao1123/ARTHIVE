@@ -1,5 +1,3 @@
-import type { User } from "@/types/domain/user"
-
 // ────────────── EDIT_USER_PROFILE_MUTATION ──────────────
 
 export type EditUserProfileInput = {
@@ -13,7 +11,15 @@ export type EditUserProfileInput = {
 }
 
 export type EditUserProfileResponse = {
-    editUserProfile: User
+    editUserProfile: {
+        id: string
+        username: string
+        email: string
+        profilePicture: string | null
+        description: string | null
+        visibility: string
+        ifAdmin: boolean
+    }
 }
 
 // ────────────── LOGIN_USER ──────────────
@@ -25,10 +31,20 @@ export type LoginInput = {
     }
 }
 
+// The mutation selection set is `{ user { id, username, email, profilePicture,
+// ifAdmin, description, visibility } }` — no `token` field. Auth token lives
+// in the httpOnly cookie set by the backend.
 export type LoginUserMutation = {
     login: {
-        token: string
-        user: User
+        user: {
+            id: string
+            username: string
+            email: string
+            profilePicture: string | null
+            ifAdmin: boolean
+            description: string | null
+            visibility: string
+        }
     }
 }
 

@@ -1,10 +1,10 @@
 import type { UserReview } from "@/types/domain/review";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLazyQuery } from "@apollo/client/react";
+import { useDataQuery } from "@/apollo/useDataQuery";
 import { OBTAIN_USER_REVIEW_QUERY } from "@/apollo/queries/review_queries"
 import type { ObtainUserReviewResponse, ObtainUserReviewInput } from "@/types/queries/review_queries_types"
-import { obtainUserMediaReview } from "@/data/reviews/obtainUserMediaReview";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 import StarRatingMedia from "./StarRatingMedia";
 import { useMutation } from "@apollo/client/react";
 import { CREATE_REVIEW_MUTATION } from "@/apollo/mutations/review_mutations"
@@ -31,9 +31,10 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
 
     const {title, coverImage, creator, year} = mediaInfo
     const navigate = useNavigate()
-    const [getUserMediaReview] = useLazyQuery<ObtainUserReviewResponse, ObtainUserReviewInput>(OBTAIN_USER_REVIEW_QUERY, {
-        fetchPolicy: "no-cache",
-    })
+    const { data: userReviewData, error: userReviewError } = useDataQuery<ObtainUserReviewResponse, ObtainUserReviewInput>(
+        OBTAIN_USER_REVIEW_QUERY,
+        { variables: { mediaId }, skip: !mediaId }
+    )
     const [userReview, setUserReview] = useState<UserReview | null>(null)
 
     const [reviewContent, setReviewContent] = useState<string>("")
@@ -51,9 +52,16 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
     const [newReviewImages, setNewReviewImages] = useState<{file: File, url: string, uuid: string}[]>([])
 
     const [existingReviewImages, setExistingReviewImages] = useState<{signedId: string, url: string}[]>([])
+
     useEffect(() => {
-        obtainUserMediaReview(setUserReview, getUserMediaReview, mediaId, navigate, setUser)
-    }, [mediaId])
+        if (userReviewData !== undefined) setUserReview(userReviewData.obtainUserReview ?? null)
+    }, [userReviewData])
+
+    useEffect(() => {
+        if (!userReviewError) return
+        if (handleMutationUnauth(userReviewError, setUser, navigate)) return
+        if (userReviewError.message === "Review not found") navigate("/*")
+    }, [userReviewError])
 
     useEffect(() => {
         if (userReview) {

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react"
 import type { User } from "@/types/domain/user"
 import { useParams, useNavigate } from "react-router-dom"
 import type { FollowData, ObtainFollowersInput, ObtainFollowersResponse } from "@/types/queries/follow_queries_types"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { OBTAIN_INCOMING_FOLLOWS_QUERY, OBTAIN_OUTGOING_FOLLOWS_QUERY } from "@/apollo/queries/follow_queries"
-import { obtainFollowsDetailsFunction } from "@/data/user/obtainFollowsDetails"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ManipulateFollowButton from "@/features/follows/components/ManipulateFollowButton"
 import { NumberedPagination } from "@/shared/components/NumberedPagination"
 import SignInPrompt from "@/shared/components/SignInPrompt"
@@ -30,28 +30,53 @@ export default function UserFollowDetails({ setUser, user }: UserFollowDetailsPr
     const [pageNum, setPageNum] = useState(1)
 
     const [followsData, setFollowsData] = useState<FollowData[]>([])
-    const [targetUserData, setTargetUserData] = useState<{id: string, username: string, profilePicture: string} | null>(null)
+    const [targetUserData, setTargetUserData] = useState<{id: string, username: string, profilePicture: string | null} | null>(null)
     const [count, setCount] = useState<number>(0)
     const [totalPages, setTotalPages] = useState<number>(0)
 
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
 
-    const [obtainFollowersQuery, {loading, error}] = useLazyQuery<ObtainFollowersResponse, ObtainFollowersInput>(
-    (follow_type === "followers" || follow_type === "pending_received_follows" ? OBTAIN_INCOMING_FOLLOWS_QUERY : OBTAIN_OUTGOING_FOLLOWS_QUERY), { fetchPolicy: "no-cache" })
-
     const navigate = useNavigate()
 
-    function obtainFollowsDetails() {
-        obtainFollowsDetailsFunction(id as string, setTotalPages, query, LIMIT, follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows", obtainFollowersQuery, setFollowsData, setTargetUserData, setCount, navigate, setUser, pageNum)
-    }
-    useEffect(() => {
-        if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) {
-            navigate("/*")
+    const followsQuery = (follow_type === "followers" || follow_type === "pending_received_follows")
+        ? OBTAIN_INCOMING_FOLLOWS_QUERY
+        : OBTAIN_OUTGOING_FOLLOWS_QUERY
+
+    const { data: followsResponseData, loading, error, refetch: refetchFollows } = useDataQuery<ObtainFollowersResponse, ObtainFollowersInput>(
+        followsQuery,
+        {
+            variables: {
+                userId: id ?? "",
+                pageNum,
+                limit: LIMIT,
+                type: follow_type as "followers" | "following" | "pending_sent_follows" | "pending_received_follows",
+                query,
+            },
+            skip: !user || !id || !VALID_FOLLOW_TYPES.includes(follow_type as string),
         }
-        if (!user) return
-        obtainFollowsDetails()
-    }, [pageNum, query, user])
+    )
+
+    function obtainFollowsDetails() {
+        refetchFollows()
+    }
+
+    useEffect(() => {
+        if (!VALID_FOLLOW_TYPES.includes(follow_type as string)) navigate("/*")
+    }, [follow_type])
+
+    useEffect(() => {
+        if (!followsResponseData?.obtainFollowerInfo) return
+        const batch = followsResponseData.obtainFollowerInfo
+        setFollowsData(batch.follows)
+        setTargetUserData(batch.user)
+        setCount(batch.count)
+        setTotalPages(batch.pageInfo.totalPages)
+    }, [followsResponseData])
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
 
     if (!user) return <SignInPrompt title="Sign in to view follows" message="Sign in to see follower and following details." />
 

@@ -47,7 +47,7 @@ function QuickSearchMediaCard({media, setAddedMediaIds, addedMediaIds}: {media: 
             <img
                 width={48}
                 height={64}
-                src={media.coverImage}
+                src={media.coverImage ?? undefined}
                 alt={media.title}
                 className="w-12 h-16 object-cover rounded-lg flex-shrink-0"
             />

@@ -3,9 +3,10 @@ import type { User } from "@/types/domain/user";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Media } from "@/types/domain/media";
 import type { ListType, ObtainListPageInput, ObtainListPageResponse } from "@/types/queries/list_queries_types";
-import { useLazyQuery, useMutation } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery";
 import { OBTAIN_LIST_PAGE_QUERY } from "@/apollo/queries/list_queries"
-import { obtainListDetails } from "@/data/lists/obtainListDetails";
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth";
 import { NumberedPagination } from "@/shared/components/NumberedPagination";
 import type { AddOrRemoveMediaInListInput, AddOrRemoveMediaInListResponse } from "@/types/mutations/media_mutations_types";
 import { ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION } from "@/apollo/mutations/media_mutations"
@@ -39,9 +40,13 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
     const [ifEditListDetails, setIfEditListDetails] = useState<boolean>(false)
     const [showSignInModal, setShowSignInModal] = useState(false)
 
-    const [obtainListPage, { loading, error }] = useLazyQuery<ObtainListPageResponse, ObtainListPageInput>(OBTAIN_LIST_PAGE_QUERY, {
-        fetchPolicy: "no-cache",
-    })
+    const { data: listPageData, loading, error, refetch: refetchListPage } = useDataQuery<ObtainListPageResponse, ObtainListPageInput>(
+        OBTAIN_LIST_PAGE_QUERY,
+        {
+            variables: { listId: list_id ?? "", pageNum, limit: LIMIT, query: query || null },
+            skip: !list_id,
+        }
+    )
     const [addOrRemoveMediaInListMutation, { loading: removeLoading, error: removeError }] =
         useMutation<AddOrRemoveMediaInListResponse, AddOrRemoveMediaInListInput>(ADD_OR_REMOVE_MEDIA_IN_LIST_MUTATION)
     const [likeList] = useMutation<LikeListResponse, LikeListInput>(LIKE_LIST_MUTATION)
@@ -79,9 +84,22 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
         if (!list_id) navigate("/")
     }, [list_id])
 
+    useEffect(() => {
+        if (!listPageData?.obtainListPage) return
+        const batch = listPageData.obtainListPage
+        setMediaInLists(batch.mediaInLists.map((mediaInList) => mediaInList.media))
+        setListData(batch.list as ListType)
+        setTotalPages(batch.pageInfo.totalPages)
+        setTargetUser(batch.user)
+    }, [listPageData])
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
     function refreshList() {
         if (!list_id) return
-        obtainListDetails(list_id, pageNum, LIMIT, query, setUser, setTotalPages, navigate, obtainListPage, setTargetUser, setListData, setMediaInLists)
+        refetchListPage()
     }
 
     useEffect(() => {
@@ -89,10 +107,6 @@ export default function ListPage({ user, setUser }: { user: User | null, setUser
         addOrRemoveMediaData(addOrRemoveMediaInListMutation, list_id, [removeMediaId], setUser, navigate, false, refreshList)
         setRemoveMediaId("")
     }, [removeMediaId])
-
-    useEffect(() => {
-        refreshList()
-    }, [list_id, pageNum, query])
 
     if (!list_id) return null
 

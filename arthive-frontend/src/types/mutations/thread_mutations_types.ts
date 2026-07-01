@@ -1,4 +1,28 @@
-import type { CommunityThread } from "@/types/queries/thread_queries_types"
+// Thread mutation types. CreateThread and EditThread select strict subsets
+// of the full CommunityThread — inline the exact shapes here rather than
+// reusing CommunityThread (which allows more fields than these mutations
+// actually return).
+
+type UserSummary = {
+    id: string
+    username: string
+    profilePicture: string | null
+}
+
+type ThreadReviewSummary = {
+    id: string
+    content: string | null
+    rating: number | null
+    ifFavorite: boolean
+    ifFinished: boolean
+    updatedAt: string
+    user: UserSummary
+    media: {
+        id: string
+        title: string
+        coverImage: string | null
+    }
+}
 
 export type LikeThreadInput = {
     input: {
@@ -22,7 +46,20 @@ export type CreateThreadInput = {
 }
 
 export type CreateThreadResponse = {
-    createThread: CommunityThread
+    createThread: {
+        id: string
+        title: string | null
+        content: string
+        createdAt: string
+        user: UserSummary
+        likesCount: number
+        childThreadsCount: number
+        ifLiked: boolean
+        parentThreadId: string | null
+        rootThreadId: string | null
+        depth: number
+        review: ThreadReviewSummary | null
+    }
 }
 
 export type EditThreadInput = {
@@ -35,6 +72,28 @@ export type EditThreadInput = {
     }
 }
 
+// EditThread selects everything CreateThread does PLUS a `community.media`
+// summary at the end.
 export type EditThreadResponse = {
-    editThread: CommunityThread
+    editThread: {
+        id: string
+        title: string | null
+        content: string
+        createdAt: string
+        user: UserSummary
+        likesCount: number
+        childThreadsCount: number
+        ifLiked: boolean
+        parentThreadId: string | null
+        rootThreadId: string | null
+        depth: number
+        review: ThreadReviewSummary | null
+        community: {
+            media: {
+                id: string
+                title: string
+                coverImage: string | null
+            }
+        }
+    }
 }

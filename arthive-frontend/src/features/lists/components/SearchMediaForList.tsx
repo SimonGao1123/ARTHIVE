@@ -131,7 +131,7 @@ export default function SearchMediaForList({listId, setUser, addOrRemoveMediaInL
                 {results.length > 0 && (
                     <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(8rem, 1fr))" }}>
                         {results.map((media) => {
-                            const isAdded = addedMediaIds.includes(media.id)
+                            const isAdded = addedMediaIds.includes(String(media.id))
                             return (
                                 <div key={media.id} className="flex flex-col gap-2">
                                     <DetailedMediaCard media={media} />
@@ -142,7 +142,7 @@ export default function SearchMediaForList({listId, setUser, addOrRemoveMediaInL
                                             </span>
                                             <button
                                                 type="button"
-                                                onClick={() => toggleMedia(media.id, false)}
+                                                onClick={() => toggleMedia(String(media.id), false)}
                                                 className="ml-auto bg-red-500/15 text-red-300 border border-red-500/40 hover:bg-red-500/25 px-2 py-0.5 rounded-full text-xs transition"
                                             >
                                                 Remove
@@ -151,7 +151,7 @@ export default function SearchMediaForList({listId, setUser, addOrRemoveMediaInL
                                     ) : (
                                         <button
                                             type="button"
-                                            onClick={() => toggleMedia(media.id, true)}
+                                            onClick={() => toggleMedia(String(media.id), true)}
                                             className="bg-violet-500 hover:bg-violet-400 text-white px-3 py-1 rounded-full text-xs transition"
                                         >
                                             + Add

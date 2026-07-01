@@ -1,7 +1,13 @@
+// UploadMedia and EditMedia declare their args as flat variables (see the
+// mutation documents) so the Input types are flat, not wrapped. AddOrRemove
+// wraps in an input object.
+
 export type AddOrRemoveMediaInListInput = {
-    listId: string
-    ifAdd: boolean
-    mediaIds: string[]
+    input: {
+        listId: string
+        ifAdd: boolean
+        mediaIds: string[]
+    }
 }
 
 export type AddOrRemoveMediaInListResponse = {

@@ -1,11 +1,12 @@
 import { useLocation, useNavigate, useParams } from "react-router-dom"
 import type { User } from "@/types/domain/user"
 import type { ObtainThreadInput, ObtainThreadResponse } from "@/types/queries/thread_queries_types"
-import { useLazyQuery, useMutation } from "@apollo/client/react"
+import { useMutation } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { useEffect, useRef, useState } from "react"
 import type { CommunityThread } from "@/types/queries/thread_queries_types"
 import { OBTAIN_THREAD_QUERY } from "@/apollo/queries/thread_queries"
-import { obtainThreadData } from "@/data/community/obtainThreadData"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import { NestedThreadList } from "@/features/community/components/CommunityThread"
 import { LIKE_THREAD_MUTATION } from "@/apollo/mutations/thread_mutations"
 import type { LikeThreadInput, LikeThreadResponse } from "@/types/mutations/thread_mutations_types"
@@ -25,33 +26,36 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
     const {media_id} = useParams()
     const focusThreadId = (location.state as {focusThreadId?: string} | null)?.focusThreadId ?? null
 
-    const [obtainThread, {loading, error}] = useLazyQuery<ObtainThreadResponse, ObtainThreadInput>(OBTAIN_THREAD_QUERY, {
-        fetchPolicy: "no-cache",
-    })
-
-    const [mainThread, setMainThread] = useState<CommunityThread | null>(null)
-    const [childThreads, setChildThreads] = useState<CommunityThread[]>([])
-
-    const [cursor, setCursor] = useState<string | null>(null)
-    const [loadCount, setLoadCount] = useState(0)
-    const [ifNextPage, setIfNextPage] = useState(true)
-
-    const prevThreadIdRef = useRef<string | undefined>(undefined)
+    const { data, loading, error, fetchMore } = useDataQuery<ObtainThreadResponse, ObtainThreadInput>(
+        OBTAIN_THREAD_QUERY,
+        {
+            variables: { threadId: thread_id ?? "", first: LIMIT, after: null },
+            skip: !thread_id,
+            notifyOnNetworkStatusChange: true,
+        }
+    )
 
     useEffect(() => {
-        const threadChanged = prevThreadIdRef.current !== thread_id
-        prevThreadIdRef.current = thread_id
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
 
-        if (threadChanged) {
-            setMainThread(null)
-            setChildThreads([])
-            setCursor(null)
-            setIfNextPage(true)
-            obtainThreadData(thread_id!, null, setCursor, LIMIT, obtainThread, setMainThread, setChildThreads, setIfNextPage, setUser, navigate)
-        } else {
-            obtainThreadData(thread_id!, cursor, setCursor, LIMIT, obtainThread, setMainThread, setChildThreads, setIfNextPage, setUser, navigate)
-        }
-    }, [thread_id, loadCount])
+    const mainThread = data?.obtainThread ?? null
+    const fetchedChildren = data?.obtainThread.childThreads.edges.map((e) => e.node) ?? []
+    const ifNextPage = data?.obtainThread.childThreads.pageInfo.hasNextPage ?? false
+    const endCursor = data?.obtainThread.childThreads.pageInfo.endCursor ?? null
+
+    // Optimistic overlay for replies added via AddThreadComponent (calls
+    // setThreads([new, ...prev])).
+    const [optimisticChildren, setOptimisticChildren] = useState<CommunityThread[]>([])
+    const setChildThreads = (updater: React.SetStateAction<CommunityThread[]>) => {
+        setOptimisticChildren((prev) => {
+            const fullPrev = [...prev, ...fetchedChildren]
+            const next = typeof updater === "function" ? (updater as (p: CommunityThread[]) => CommunityThread[])(fullPrev) : updater
+            const fetchedIds = new Set(fetchedChildren.map((t) => t.id))
+            return next.filter((t) => !fetchedIds.has(t.id))
+        })
+    }
+    const childThreads: CommunityThread[] = [...optimisticChildren, ...fetchedChildren]
 
     useEffect(() => {
         if (!mainThread || !media_id) return
@@ -66,7 +70,7 @@ export default function ThreadPage({setUser, user}: {setUser: (user: User | null
     const sentinelRef = useInfiniteScroll({
         hasNextPage: ifNextPage && !!user,
         loading,
-        onLoadMore: () => setLoadCount(prev => prev + 1),
+        onLoadMore: () => fetchMore({ variables: { after: endCursor ?? null } }),
     })
 
     const repliesTopRef = useRef<HTMLDivElement | null>(null)

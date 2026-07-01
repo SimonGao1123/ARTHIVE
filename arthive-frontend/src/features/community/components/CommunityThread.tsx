@@ -141,7 +141,7 @@ export function NestedThreadCard({thread, media_id, setUser, user, focusThreadId
     const [likeThread] = useMutation<LikeThreadResponse, LikeThreadInput>(LIKE_THREAD_MUTATION)
     const [currLiked, setCurrLiked] = useState(thread.ifLiked)
     const [likeCount, setLikeCount] = useState(thread.likesCount)
-    const [obtainThread] = useLazyQuery<ObtainThreadResponse, ObtainThreadInput>(OBTAIN_THREAD_QUERY, {fetchPolicy: "no-cache"})
+    const [obtainThread] = useLazyQuery<ObtainThreadResponse, ObtainThreadInput>(OBTAIN_THREAD_QUERY)
 
     const [childThreads, setChildThreads] = useState<CommunityThread[]>([])
     const [cursor, setCursor] = useState<string | null>(null)

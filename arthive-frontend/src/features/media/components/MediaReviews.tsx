@@ -1,11 +1,11 @@
 import type { User } from "@/types/domain/user"
 import { useNavigate } from "react-router-dom"
 import { useEffect, useRef, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
+import { useDataQuery } from "@/apollo/useDataQuery"
 import { OBTAIN_MEDIA_REVIEWS_QUERY } from "@/apollo/queries/review_queries"
 import type { ObtainMediaReviewsResponse, ObtainMediaReviewsInput, ReviewsMediaSortEnum } from "@/types/queries/review_queries_types"
 import type { Review } from "@/types/domain/review"
-import { obtainMediaReviewsFunction } from "@/data/reviews/obtainMediaReviews"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 import ReviewCard from "@/features/reviews/components/ReviewCard"
 import ArchivrChat from "@/features/archivr/components/ArchivrChat"
 import { ArchivrLogo } from "@/shared/components/StyledComponents"
@@ -26,55 +26,63 @@ type MediaReviewsProps = {
 export default function MediaReviews({ setUser, user, id, reviewCount, reviewChange }: MediaReviewsProps) {
     const navigate = useNavigate()
 
-    const [cursor, setCursor] = useState<string | null>(null)
     const [query, setQuery] = useState<string>("")
     const [currQuery, setCurrQuery] = useState<string>("")
     const [showArchivr, setShowArchivr] = useState(false)
     const [showArchivrSignIn, setShowArchivrSignIn] = useState(false)
+    const [sortBy, setSortBy] = useState<ReviewsMediaSortEnum>("newest")
 
-    const [loadCount, setLoadCount] = useState(0)
-    const [obtainMediaReviews, {error, loading}] = useLazyQuery<ObtainMediaReviewsResponse, ObtainMediaReviewsInput>(OBTAIN_MEDIA_REVIEWS_QUERY, {
-        fetchPolicy: "no-cache",
-    })
-    const [ifNextPage, setIfNextPage] = useState(true)
-    const [reviews, setReviews] = useState<Review[]>([])
+    const { data, loading, error, fetchMore } = useDataQuery<ObtainMediaReviewsResponse, ObtainMediaReviewsInput>(
+        OBTAIN_MEDIA_REVIEWS_QUERY,
+        {
+            variables: { mediaId: Number(id), query, first: LIMIT, after: null, sortBy },
+            skip: !id,
+            notifyOnNetworkStatusChange: true,
+        }
+    )
+
+    useEffect(() => {
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+
+    const fetchedReviews = data?.obtainMediaReviews.edges.map((e) => e.node) ?? []
+    const ifNextPage = data?.obtainMediaReviews.pageInfo.hasNextPage ?? false
+    const endCursor = data?.obtainMediaReviews.pageInfo.endCursor ?? null
+
+    // Local optimistic overlay for the user's just-edited review (passed via
+    // reviewChange prop). Apollo's cache merge gives us the server-truth list;
+    // this map lets us splice in the freshly-saved review before the next
+    // refetch lands.
+    const [reviewOverlay, setReviewOverlay] = useState<Review | null>(null)
+    const reviews: Review[] = reviewOverlay
+        ? [reviewOverlay, ...fetchedReviews.filter((r) => r.id !== reviewOverlay.id)]
+        : fetchedReviews
 
     const sentinelRef = useInfiniteScroll({
         hasNextPage: ifNextPage && !!user,
         loading,
-        onLoadMore: () => setLoadCount(c => c + 1),
+        onLoadMore: () => fetchMore({ variables: { after: endCursor ?? undefined } }),
     })
-    useEffect(() => {
-        obtainMediaReviewsFunction(Number(id), cursor, setCursor, LIMIT, query, obtainMediaReviews, setReviews, navigate, setUser, setIfNextPage, sortBy)
-    }, [loadCount])
-
-    const [sortBy, setSortBy] = useState<ReviewsMediaSortEnum>("newest")
-
-    useEffect(() => {
-        setCursor(null)
-        setReviews([])
-        setLoadCount(prev => prev + 1)
-    }, [query, sortBy])
 
     const reviewsTopRef = useRef<HTMLDivElement | null>(null)
     useEffect(() => {
         if (!reviewChange) return
         const target = reviewChange.review
-        setReviews(prev => {
-            if (target == null) return prev
-            const existing = prev.find(r => r.id === target.id)
-            const filtered = prev.filter(r => r.id !== target.id)
-            const merged: Review = existing
-                ? {
-                      ...target,
-                      likeCount: existing.likeCount,
-                      commentCount: existing.commentCount,
-                      ifLiked: existing.ifLiked,
-                      imageDetails: target.imageDetails.length > 0 ? target.imageDetails : existing.imageDetails,
-                  }
-                : target
-            return [merged, ...filtered]
-        })
+        if (target == null) {
+            setReviewOverlay(null)
+            return
+        }
+        const existing = fetchedReviews.find((r) => r.id === target.id)
+        const merged: Review = existing
+            ? {
+                  ...target,
+                  likeCount: existing.likeCount,
+                  commentCount: existing.commentCount,
+                  ifLiked: existing.ifLiked,
+                  imageDetails: target.imageDetails.length > 0 ? target.imageDetails : existing.imageDetails,
+              }
+            : target
+        setReviewOverlay(merged)
         reviewsTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }, [reviewChange?.nonce])
 
