@@ -33,7 +33,7 @@ export default function UserMediaReview({mediaId, setUser, mediaInfo, onOpenAddT
     const navigate = useNavigate()
     const { data: userReviewData, error: userReviewError } = useDataQuery<ObtainUserReviewResponse, ObtainUserReviewInput>(
         OBTAIN_USER_REVIEW_QUERY,
-        { variables: { mediaId }, skip: !mediaId }
+        { variables: { mediaId }, skip: !mediaId, fetchPolicy: "no-cache" }
     )
     const [userReview, setUserReview] = useState<UserReview | null>(null)
 

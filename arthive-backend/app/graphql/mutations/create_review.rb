@@ -29,13 +29,24 @@ module Mutations
                 )
                 if review_result[:review]&.persisted? && review_result[:deleted] == false
                     review = review_result[:review]
-                    Activity.log(user: context[:current_user], subject: review, status: review_id.nil? ? "created" : "updated", snapshot: {
-                        content: review.content,
-                        rating: review.rating,
-                        if_favorite: review.if_favorite,
-                        if_finished: review.if_finished,
-                        label: review_activity_label(existing, if_favorite, if_finished, content, rating, review_id.nil?)
-                    })
+                    if review_id.nil?
+                        Activity.log(user: context[:current_user], subject: review, status: "created", snapshot: {
+                            content: review.content,
+                            rating: review.rating,
+                            if_favorite: review.if_favorite,
+                            
+                            if_finished: review.if_finished,
+                            label: review_activity_label(existing, if_favorite, if_finished, content, rating, review_id.nil?)
+                        })
+                    else
+                        Activity.update_activity(user: context[:current_user], subject: review, status: "updated", snapshot: {
+                            content: review.content,
+                            rating: review.rating,
+                            if_favorite: review.if_favorite,
+                            if_finished: review.if_finished,
+                            label: review_activity_label(existing, if_favorite, if_finished, content, rating, review_id.nil?)
+                        })
+                    end
                 end
 
                 review_result

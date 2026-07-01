@@ -40,6 +40,7 @@ module Types
     field :obtain_thread, resolver: Resolvers::ObtainThreadResolver
     field :obtain_trending_threads, resolver: Resolvers::ObtainTrendingThreadsResolver
     field :recent_user_activity, resolver: Resolvers::RecentUserActivityResolver
+    field :recent_following_activity, resolver: Resolvers::RecentFollowingActivityResolver
     field :obtain_finished_media, resolver: Resolvers::ObtainFinishedMediaResolver
     field :obtain_likes_page, resolver: Resolvers::ObtainLikesPageResolver
     field :obtain_archivr_conversation, resolver: Resolvers::ObtainArchivrConversationResolver

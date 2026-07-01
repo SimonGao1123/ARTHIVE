@@ -3,6 +3,7 @@ import type {
     WhoamiResponse,
     ListInvitationUserSearchInput, ListInvitationUserSearchResponse,
     RecentUserActivityInput, RecentUserActivityResponse,
+    RecentFollowingActivityInput, RecentFollowingActivityResponse,
     UserProfileQueryInput, UserProfileQueryResponse,
 } from "@/types/queries/user_queries_types"
 export const WHOAMI_QUERY: TypedDocumentNode<WhoamiResponse, Record<string, never>> = gql`
@@ -30,8 +31,8 @@ export const LIST_INVITATION_USER_SEARCH_QUERY: TypedDocumentNode<ListInvitation
 `
 
 export const RECENT_USER_ACTIVITY_REQUEST: TypedDocumentNode<RecentUserActivityResponse, RecentUserActivityInput> = gql`
-    query RecentUserActivity($userId: ID!, $after: String, $first: Int) {
-        recentUserActivity(userId: $userId, after: $after, first: $first) {
+    query RecentUserActivity($userId: ID!, $after: String, $first: Int, $filter: ActivityFilterEnum) {
+        recentUserActivity(userId: $userId, after: $after, first: $first, filter: $filter) {
             edges {
                 node {
                     id
@@ -105,7 +106,87 @@ export const RECENT_USER_ACTIVITY_REQUEST: TypedDocumentNode<RecentUserActivityR
         }
     }
 `
+export const RECENT_FOLLOWING_ACTIVITY_REQUEST: TypedDocumentNode<RecentFollowingActivityResponse, RecentFollowingActivityInput> = gql`
+    query RecentFollowingActivity($after: String, $first: Int, $filter: ActivityFilterEnum) {
+        recentFollowingActivity(after: $after, first: $first, filter: $filter) {
+            edges {
+                node {
+                    id
+                    status
+                    createdAt
+                    activityType
+                    user {
+                        id
+                        username
+                        profilePicture
+                    }
 
+                    activitySnapshot {
+                        content
+                        rating
+                        ifFavorite
+                        ifFinished
+                        comment
+                        reviewerUsername
+                        title
+                        threadContent
+                        threadTitle
+                        threadAuthorUsername
+                        listName
+                        label
+                    }
+
+                    subject {
+                        __typename
+                        ... on Review {
+                            id
+                            media { id coverImage title }
+                        }
+                        ... on ReviewComment {
+                            id
+                            review { id media { id coverImage title } }
+                        }
+                        ... on ReviewLike {
+                            id
+                            review { id media { id coverImage title } }
+                        }
+                        ... on CommunityThread {
+                            id
+                            community { media { id coverImage title } }
+                        }
+                        ... on ThreadLike {
+                            id
+                            communityThread {
+                                id
+                                community { media { id coverImage title } }
+                            }
+                        }
+                        ... on List {
+                            id
+                        }
+                        ... on ListLike {
+                            id
+                            list { id }
+                        }
+                        ... on ListSave {
+                            id
+                            list { id }
+                        }
+                        ... on MediaInList {
+                            id
+                            media { id coverImage title }
+                            list { id }
+                        }
+                    }
+                }
+            }
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+        }
+    }
+`
 export const USER_PROFILE_QUERY: TypedDocumentNode<UserProfileQueryResponse, UserProfileQueryInput> = gql`
     query UserProfile($userId: ID!) {
         obtainUserProfile(userId: $userId) {

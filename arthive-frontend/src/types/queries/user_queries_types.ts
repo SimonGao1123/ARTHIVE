@@ -61,16 +61,41 @@ export type Activity = {
     subject: ActivitySubject
     activityType: string
     activitySnapshot: ActivitySnapshot | null
+    user: {
+        id: string
+        username: string
+        profilePicture: string | null
+    }
 }
+
+export type ActivityFilterEnum =
+    | "all" | "reviews" | "likes" | "comments" | "threads" | "lists"
 
 export type RecentUserActivityInput = {
     userId: string
-    after?: string
+    after?: string | null
     first?: number
+    filter?: ActivityFilterEnum
 }
 
 export type RecentUserActivityResponse = {
     recentUserActivity: {
+        edges: { node: Activity }[]
+        pageInfo: {
+            hasNextPage: boolean
+            endCursor: string | null
+        }
+    }
+}
+
+export type RecentFollowingActivityInput = {
+    after?: string | null
+    first?: number
+    filter?: ActivityFilterEnum
+}
+
+export type RecentFollowingActivityResponse = {
+    recentFollowingActivity: {
         edges: { node: Activity }[]
         pageInfo: {
             hasNextPage: boolean

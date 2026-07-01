@@ -11,6 +11,10 @@ class GraphqlController < ApplicationController
   before_action :verify_request_origin
 
   def execute
+    if cookies[:authToken].present? && cookies[:refreshToken].blank?
+      cookies.delete(:authToken, path: "/")
+      return render json: { errors: [{ message: "INVALID_TOKEN" }], data: nil }
+    end
     variables = prepare_variables(params[:variables])
     query = params[:query]
     operation_name = params[:operationName]

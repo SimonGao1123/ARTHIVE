@@ -200,4 +200,8 @@ class User < ApplicationRecord
     def self.search(query:, current_user_id:)
         User.query_filter(query).visible_to(current_user_id).with_attached_profile_picture
     end
+
+    scope :currently_following, ->(current_user_id) {
+        where(id: Follow.where(sender_id: current_user_id, status: Follow::STATUSES[:accepted]).pluck(:receiver_id))
+    }
 end

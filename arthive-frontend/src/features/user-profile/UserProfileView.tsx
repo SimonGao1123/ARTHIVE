@@ -8,11 +8,20 @@ import { useNavigate, useParams } from "react-router-dom"
 import SendFollowButton from "@/features/follows/components/SendFollowButton"
 import ManipulateFollowButton from "@/features/follows/components/ManipulateFollowButton"
 import RecentUserActivity from "@/features/user-profile/components/RecentUserActivity"
-
+import RecentFollowingActivity from "@/features/user-profile/components/RecentFollowingActivity"
+import type { ActivityFilterEnum } from "@/types/queries/user_queries_types"
 type UserProfilePageProps = {
     setUser: (user: User | null) => void
     user: User | null
 }
+export const FILTERS: [ActivityFilterEnum, string][] = [
+    ["all", "All"],
+    ["reviews", "Reviews"],
+    ["likes", "Likes"],
+    ["comments", "Comments"],
+    ["threads", "Threads"],
+    ["lists", "Lists"],
+]
 
 export default function UserProfilePage({ setUser, user }: UserProfilePageProps) {
     const navigate = useNavigate()
@@ -38,6 +47,8 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
         if (error.message === "User not found") navigate("/*")
     }, [error])
 
+    const [filter, setFilter] = useState<ActivityFilterEnum>("all")
+    const [activityTab, setActivityTab] = useState<"yours" | "following">("yours")
     const isOwnProfile = id === user?.id
 
     return (
@@ -158,11 +169,34 @@ export default function UserProfilePage({ setUser, user }: UserProfilePageProps)
                         </div>
                     )}
 
+                    
                     {/* Activity */}
                     {userProfileData.isVisibleToUser && user && (
                         <div className="flex flex-col gap-3">
+
                             <p className="text-xs text-gray-500 uppercase tracking-wider">Recent Activity</p>
-                            <RecentUserActivity targetUserId={id!} setUser={setUser} navigate={navigate} />
+                            {isOwnProfile && (
+                                <div className="flex items-center gap-1 bg-[#171519] border border-white/5 rounded-full p-1 self-start">
+                                    {([
+                                        ["yours", "Your Activity"],
+                                        ["following", "Following"],
+                                    ] as ["yours" | "following", string][]).map(([value, label]) => (
+                                        <button
+                                            key={value}
+                                            onClick={() => setActivityTab(value)}
+                                            className={`text-sm px-4 py-1.5 rounded-full transition ${activityTab === value ? "bg-violet-500 text-white" : "text-gray-400 hover:text-white"}`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            <ActivityFilter setFilter={setFilter} filter={filter} />
+                            {isOwnProfile && activityTab === "following" ? (
+                                <RecentFollowingActivity setUser={setUser} navigate={navigate} filter={filter} />
+                            ) : (
+                                <RecentUserActivity targetUserId={id!} setUser={setUser} navigate={navigate} filter={filter} />
+                            )}
                         </div>
                     )}
 
@@ -231,4 +265,23 @@ function OutgoingFollowButton({profileId, currOutgoingFollowStatus, setCurrOutgo
         )
     }
     return null
+}
+function ActivityFilter({setFilter, filter}: {setFilter: (filter: ActivityFilterEnum) => void, filter: ActivityFilterEnum}) {
+    return (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+                {FILTERS.map(([value, label]) => (
+                    <label key={value} className="flex items-center gap-1.5 text-sm text-gray-300 cursor-pointer hover:text-white transition">
+                        <input
+                            type="radio"
+                            name="activity-filter"
+                            value={value}
+                            checked={filter === value}
+                            onChange={() => setFilter(value)}
+                            className="accent-violet-500"
+                        />
+                        {label}
+                    </label>
+                ))}
+        </div>
+    )
 }

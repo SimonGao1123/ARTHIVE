@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react"
+import type { ActivityFilterEnum } from "@/types/queries/user_queries_types"
 import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 export function obtainRecentUserActivityFunction(
@@ -11,12 +12,14 @@ export function obtainRecentUserActivityFunction(
     setCursor: Dispatch<SetStateAction<string | null>>,
     limit: number,
     setHasNextPage: Dispatch<SetStateAction<boolean>>,
+    filter: ActivityFilterEnum,
 ) {
     obtainRecentUserActivity({
         variables: {
             userId: userId,
             after: cursor,
-            first: limit
+            first: limit,
+            filter: filter,
         }
     })
     .then((data: any) => {

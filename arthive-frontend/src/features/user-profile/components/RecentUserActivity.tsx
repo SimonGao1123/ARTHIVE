@@ -1,22 +1,25 @@
 import type { User } from "@/types/domain/user"
 import { RECENT_USER_ACTIVITY_REQUEST } from "@/apollo/queries/user_queries"
-import type { Activity, ActivitySnapshot, RecentUserActivityInput, RecentUserActivityResponse } from "@/types/queries/user_queries_types"
+import type { Activity, ActivitySnapshot, ActivityFilterEnum, RecentUserActivityInput, RecentUserActivityResponse } from "@/types/queries/user_queries_types"
 import { useEffect, useState } from "react"
-import { useLazyQuery } from "@apollo/client/react"
-import { obtainRecentUserActivityFunction } from "@/data/user/obtainRecentUserActivity"
 import { useNavigate } from "react-router-dom"
 import DisplayRating from "@/features/reviews/components/DisplayRating"
 import { useInfiniteScroll } from "@/shared/hooks/useInfiniteScroll"
+import { useDataQuery } from "@/apollo/useDataQuery"
+import { handleMutationUnauth } from "@/data/auth/handleMutationUnauth"
 
 type RecentUserActivityProps = {
     targetUserId: string,
     setUser: (user: User | null) => void,
     navigate: any
+    filter: ActivityFilterEnum
 }
 
 const LIMIT = 10
 
-function timeAgo(iso: string): string {
+
+
+export function timeAgo(iso: string): string {
     const diff = Date.now() - new Date(iso).getTime()
     const mins = Math.floor(diff / 60000)
     if (mins < 1) return "just now"
@@ -28,28 +31,56 @@ function timeAgo(iso: string): string {
     return new Date(iso).toLocaleDateString()
 }
 
-export default function RecentUserActivity({ targetUserId, setUser, navigate }: RecentUserActivityProps) {
-    const [recentUserActivity, setRecentUserActivity] = useState<Activity[]>([])
-    const [cursor, setCursor] = useState<string | null>(null)
-    const [hasNextPage, setHasNextPage] = useState<boolean>(false)
-    const [loadCount, setLoadCount] = useState<number>(0)
+export default function RecentUserActivity({ targetUserId, setUser, navigate, filter }: RecentUserActivityProps) {
 
-    const [obtainRecentUserActivity, { error, loading }] = useLazyQuery<RecentUserActivityResponse, RecentUserActivityInput>(RECENT_USER_ACTIVITY_REQUEST, {
+    const [page, setPage] = useState<{cursor: string | null, filter: ActivityFilterEnum}>({cursor: null, filter: "all"})
+
+    const [recentUserActivity, setRecentUserActivity] = useState<Activity[]>([])
+    const { data, error, loading } = useDataQuery<RecentUserActivityResponse, RecentUserActivityInput>(RECENT_USER_ACTIVITY_REQUEST, {
         fetchPolicy: "no-cache",
+        variables: {
+            userId: targetUserId,
+            filter: page.filter,
+            after: page.cursor,
+            first: LIMIT,
+        },
     })
 
     useEffect(() => {
-        obtainRecentUserActivityFunction(targetUserId, setRecentUserActivity, setUser, navigate, obtainRecentUserActivity, cursor, setCursor, LIMIT, setHasNextPage)
-    }, [loadCount])
+        if (error) handleMutationUnauth(error, setUser, navigate)
+    }, [error])
+    const hasNextPage = data?.recentUserActivity.pageInfo.hasNextPage ?? false
+    const cursor = data?.recentUserActivity.pageInfo.endCursor ?? null
+
+    // Dedup on append. In React StrictMode this effect runs twice with the
+    // same `data` reference on the first render, and both invocations would
+    // otherwise push the first page in — deduping by (id, __typename) makes
+    // the second call a no-op. Same guard protects against any future page
+    // overlap.
+    useEffect(() => {
+        if (!data) return
+        const incoming = data.recentUserActivity.edges.map((edge) => edge.node)
+        setRecentUserActivity((prev) => {
+            const seen = new Set(prev.map((a) => `${a.id}-${a.subject?.__typename}`))
+            return [...prev, ...incoming.filter((a) => !seen.has(`${a.id}-${a.subject?.__typename}`))]
+        })
+    }, [data])
+
+    // Reset the feed and refetch when the filter changes.
+    useEffect(() => {
+        setRecentUserActivity([])
+        setPage({cursor: null, filter: filter})
+    }, [filter])
 
     const sentinelRef = useInfiniteScroll({
         hasNextPage,
         loading,
-        onLoadMore: () => setLoadCount(c => c + 1),
+        onLoadMore: () => setPage({cursor: cursor, filter: page.filter}),
     })
 
     return (
-        <div className="bg-[#171519] rounded-2xl border border-white/5 overflow-hidden">
+        <div className="flex flex-col gap-3">
+            <div className="bg-[#171519] rounded-2xl border border-white/5 overflow-hidden">
             {loading && (
                 <div className="flex flex-col divide-y divide-white/5">
                     {Array.from({ length: 4 }).map((_, i) => (
@@ -73,41 +104,48 @@ export default function RecentUserActivity({ targetUserId, setUser, navigate }: 
                 ))}
             </div>
             {hasNextPage && <div ref={sentinelRef} className="h-1" />}
+            </div>
         </div>
     )
 }
 
-function ActivityCard({ activity }: { activity: Activity }) {
+export type ActivityActor = {
+    id: string
+    username: string
+    profilePicture: string | null
+}
+
+export function ActivityCard({ activity, actor }: { activity: Activity; actor?: ActivityActor }) {
     const navigate = useNavigate()
     const snap = activity.activitySnapshot
     if (!activity.subject) return null
     switch (activity.subject.__typename) {
         case "Review":
-            return <ReviewActivityRow status={activity.status} review={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ReviewActivityRow status={activity.status} review={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "ReviewComment":
-            return <ReviewCommentRow status={activity.status} reviewComment={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ReviewCommentRow status={activity.status} reviewComment={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "ReviewLike":
-            return <ReviewLikeRow reviewLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ReviewLikeRow reviewLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "ThreadLike":
-            return <ThreadLikeRow threadLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ThreadLikeRow threadLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "ListLike":
-            return <ListLikeRow listLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ListLikeRow listLike={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "ListSave":
-            return <ListSaveRow listSave={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ListSaveRow listSave={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "List":
-            return <ListRow status={activity.status} list={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ListRow status={activity.status} list={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "CommunityThread":
-            return <ThreadRow status={activity.status} thread={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <ThreadRow status={activity.status} thread={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         case "MediaInList":
-            return <MediaInListRow mediaInList={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} />
+            return <MediaInListRow mediaInList={activity.subject as any} snap={snap} createdAt={activity.createdAt} navigate={navigate} actor={actor} />
         default:
             return null
     }
 }
 
-type RowProps = { createdAt: string; navigate: any; snap: ActivitySnapshot | null }
+type RowProps = { createdAt: string; navigate: any; snap: ActivitySnapshot | null; actor?: ActivityActor }
 
-function ActivityRow({
+export function ActivityRow({
     coverImage,
     mediaId,
     label,
@@ -117,6 +155,7 @@ function ActivityRow({
     onRowClick,
     createdAt,
     navigate,
+    actor,
 }: Omit<RowProps, "snap"> & {
     coverImage?: string | null
     mediaId?: string | null
@@ -139,24 +178,41 @@ function ActivityRow({
             ) : (
                 <div className="w-9 flex-shrink-0 rounded bg-white/5" style={{ aspectRatio: "2/3" }} />
             )}
-            <div className="flex-1 min-w-0 flex flex-col gap-0.5 cursor-pointer" onClick={onRowClick}>
-                <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-violet-400 font-medium">{label}</span>
-                    <span className="text-xs text-gray-600 flex-shrink-0">{timeAgo(createdAt)}</span>
-                </div>
-                <p className="text-sm text-white leading-snug truncate group-hover:text-violet-100 transition">
-                    {title}
-                </p>
-                {subtitle && (
-                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{subtitle}</p>
+            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                {actor && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/profile/${actor.id}`) }}
+                        className="flex items-center gap-1.5 mb-0.5 self-start group/actor"
+                    >
+                        <img
+                            src={actor.profilePicture ?? "/default-ARTHIVE-pfp.png"}
+                            alt={actor.username}
+                            className="w-4 h-4 rounded-full object-cover flex-shrink-0 ring-1 ring-white/10"
+                        />
+                        <span className="text-xs text-gray-500 group-hover/actor:text-gray-300 transition truncate">
+                            {actor.username}
+                        </span>
+                    </button>
                 )}
-                {extra}
+                <div className="cursor-pointer" onClick={onRowClick}>
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-violet-400 font-medium">{label}</span>
+                        <span className="text-xs text-gray-600 flex-shrink-0">{timeAgo(createdAt)}</span>
+                    </div>
+                    <p className="text-sm text-white leading-snug truncate group-hover:text-violet-100 transition">
+                        {title}
+                    </p>
+                    {subtitle && (
+                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{subtitle}</p>
+                    )}
+                    {extra}
+                </div>
             </div>
         </div>
     )
 }
 
-function ReviewActivityRow({ status, review, snap, createdAt, navigate }: RowProps & { status: string; review: any }) {
+function ReviewActivityRow({ status, review, snap, createdAt, navigate, actor }: RowProps & { status: string; review: any }) {
     const badges = (
         <div className="flex items-center gap-1.5 mt-0.5">
             {snap?.rating ? <DisplayRating rating={snap.rating} /> : null}
@@ -187,11 +243,12 @@ function ReviewActivityRow({ status, review, snap, createdAt, navigate }: RowPro
             onRowClick={() => snap?.content ? navigate(`/review_info/${review.id}`) : navigate(`/media/${review.media?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ReviewCommentRow({ status, reviewComment, snap, createdAt, navigate }: RowProps & { status: string; reviewComment: any }) {
+function ReviewCommentRow({ status, reviewComment, snap, createdAt, navigate, actor }: RowProps & { status: string; reviewComment: any }) {
     const review = reviewComment.review
     return (
         <ActivityRow
@@ -203,11 +260,12 @@ function ReviewCommentRow({ status, reviewComment, snap, createdAt, navigate }: 
             onRowClick={() => navigate(`/review_info/${review?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ReviewLikeRow({ reviewLike, snap, createdAt, navigate }: RowProps & { reviewLike: any }) {
+function ReviewLikeRow({ reviewLike, snap, createdAt, navigate, actor }: RowProps & { reviewLike: any }) {
     const review = reviewLike.review
     return (
         <ActivityRow
@@ -218,11 +276,12 @@ function ReviewLikeRow({ reviewLike, snap, createdAt, navigate }: RowProps & { r
             onRowClick={() => navigate(`/review_info/${review?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ThreadLikeRow({ threadLike, snap, createdAt, navigate }: RowProps & { threadLike: any }) {
+function ThreadLikeRow({ threadLike, snap, createdAt, navigate, actor }: RowProps & { threadLike: any }) {
     const thread = threadLike.communityThread
     return (
         <ActivityRow
@@ -233,11 +292,12 @@ function ThreadLikeRow({ threadLike, snap, createdAt, navigate }: RowProps & { t
             onRowClick={() => navigate(`/community/${thread?.community?.media?.id}/thread/${thread?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ListLikeRow({ listLike, snap, createdAt, navigate }: RowProps & { listLike: any }) {
+function ListLikeRow({ listLike, snap, createdAt, navigate, actor }: RowProps & { listLike: any }) {
     return (
         <ActivityRow
             label="Liked list"
@@ -245,11 +305,12 @@ function ListLikeRow({ listLike, snap, createdAt, navigate }: RowProps & { listL
             onRowClick={() => navigate(`/list/${listLike.list?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ListSaveRow({ listSave, snap, createdAt, navigate }: RowProps & { listSave: any }) {
+function ListSaveRow({ listSave, snap, createdAt, navigate, actor }: RowProps & { listSave: any }) {
     return (
         <ActivityRow
             label="Saved list"
@@ -257,11 +318,12 @@ function ListSaveRow({ listSave, snap, createdAt, navigate }: RowProps & { listS
             onRowClick={() => navigate(`/list/${listSave.list?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ListRow({ status, list, snap, createdAt, navigate }: RowProps & { status: string; list: any }) {
+function ListRow({ status, list, snap, createdAt, navigate, actor }: RowProps & { status: string; list: any }) {
     return (
         <ActivityRow
             label={status === "created" ? "Created list" : "Updated list"}
@@ -269,11 +331,12 @@ function ListRow({ status, list, snap, createdAt, navigate }: RowProps & { statu
             onRowClick={() => navigate(`/list/${list.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function ThreadRow({ status, thread, snap, createdAt, navigate }: RowProps & { status: string; thread: any }) {
+function ThreadRow({ status, thread, snap, createdAt, navigate, actor }: RowProps & { status: string; thread: any }) {
     return (
         <ActivityRow
             coverImage={thread?.community?.media?.coverImage}
@@ -284,11 +347,12 @@ function ThreadRow({ status, thread, snap, createdAt, navigate }: RowProps & { s
             onRowClick={() => navigate(`/community/${thread?.community?.media?.id}/thread/${thread?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
 
-function MediaInListRow({ mediaInList, snap, createdAt, navigate }: RowProps & { mediaInList: any }) {
+function MediaInListRow({ mediaInList, snap, createdAt, navigate, actor }: RowProps & { mediaInList: any }) {
     return (
         <ActivityRow
             coverImage={mediaInList.media?.coverImage}
@@ -298,6 +362,7 @@ function MediaInListRow({ mediaInList, snap, createdAt, navigate }: RowProps & {
             onRowClick={() => navigate(`/list/${mediaInList.list?.id}`)}
             createdAt={createdAt}
             navigate={navigate}
+            actor={actor}
         />
     )
 }
